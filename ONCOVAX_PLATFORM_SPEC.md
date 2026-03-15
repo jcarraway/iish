@@ -31,55 +31,59 @@ Reduce the time from cancer diagnosis to personalized vaccine access from months
 Extends existing Turborepo. New packages live alongside art-cafe apps.
 
 ```
-oncovax/
+oncovax/                                 # As built (Sessions 1-2)
 ├── apps/
-│   ├── web/                    # Next.js 14+ patient-facing app (App Router)
-│   ├── provider-portal/        # Next.js app for oncologists/advocates
-│   └── admin/                  # Internal ops dashboard
+│   ├── web/                             # Next.js 15 patient-facing app (App Router)
+│   │   ├── app/
+│   │   │   ├── admin/trials/            # Admin QA page (Session 2)
+│   │   │   ├── api/
+│   │   │   │   ├── admin/               # Admin-only API routes (Session 2)
+│   │   │   │   │   ├── trial-sync/      # POST: trigger sync + parse
+│   │   │   │   │   └── trials/          # GET: list, POST: reparse
+│   │   │   │   ├── auth/                # Magic link auth (Session 1)
+│   │   │   │   ├── stripe/              # Checkout + webhook (Session 1)
+│   │   │   │   └── trials/              # Public trial search + detail (Session 2)
+│   │   │   └── ...                      # Patient-facing pages (Session 1 stubs)
+│   │   └── lib/
+│   │       ├── ai.ts                    # Claude Opus client + helpers
+│   │       ├── clinicaltrials.ts        # CTG v2 API client (Session 2)
+│   │       ├── eligibility-parser.ts    # Claude eligibility parser (Session 2)
+│   │       ├── mapbox.ts                # Geocoding fallback (Session 2)
+│   │       ├── trial-sync.ts            # Sync worker (Session 2)
+│   │       ├── db.ts, redis.ts, session.ts, events.ts, stripe.ts, cloudinary.ts
+│   │       └── ...
+│   └── mobile/                          # Expo SDK 54 (Session 1 scaffold)
 ├── packages/
-│   ├── db/                     # Prisma ORM schema + migrations (Postgres)
-│   ├── auth/                   # Magic link auth (shared from art-cafe stack)
-│   ├── ui/                     # Shared component library (Tailwind)
-│   ├── api/                    # tRPC router definitions
-│   ├── doc-ingestion/          # Medical document intake (Claude Vision extraction)
-│   ├── trial-ingestion/        # ClinicalTrials.gov sync worker (TypeScript)
-│   ├── eligibility-engine/     # LLM-powered eligibility parsing (TypeScript)
-│   ├── sequencing-nav/         # Sequencing provider directory + insurance logic
-│   └── regulatory-nav/         # Compassionate use / Right to Try guidance engine
-├── services/
-│   ├── neoantigen-pipeline/    # Rust core + Python ML (Phase 3)
-│   │   ├── variant-caller/     # Rust: FASTQ → VCF
-│   │   ├── hla-typer/          # Rust: HLA allele identification
-│   │   ├── neoantigen-ranker/  # Python: immunogenicity prediction + ranking
-│   │   ├── structure-predictor/# Python: AlphaFold API integration
-│   │   └── mrna-designer/      # Python: codon optimization + sequence output
-│   └── data-sync/              # Background workers for external data sources
-├── infrastructure/
-│   ├── docker/                 # Dockerfiles per service
-│   ├── terraform/              # AWS/Vercel infra
-│   └── nats/                   # NATS JetStream config (reuse AEGIS patterns)
-└── docs/
-    ├── SPEC.md                 # This file
-    ├── DATA_MODEL.md
-    └── API_CONTRACTS.md
+│   ├── db/                              # Prisma 7 + PostgreSQL (8 models)
+│   └── shared/                          # Types, schemas, constants, auth
+├── scripts/
+│   └── trial-sync.ts                    # CLI: pnpm trial-sync (Session 2)
+└── [future phases]
+    ├── services/neoantigen-pipeline/    # Rust + Python (Phase 3)
+    └── infrastructure/                  # Docker, Terraform, NATS (Phase 3+)
 ```
+
+> **Architecture note:** Sessions 1-2 established that trial ingestion, eligibility parsing, and sync logic live as lib files in `apps/web/lib/`, not as separate packages. This keeps the dependency graph simple. The original spec's `packages/trial-ingestion/`, `packages/eligibility-engine/`, `packages/doc-ingestion/` are implemented as `apps/web/lib/{clinicaltrials,trial-sync,eligibility-parser,mapbox}.ts`.
 
 ### 1.3 Core Tech Stack
 
 | Layer | Technology | Rationale |
 |-------|-----------|-----------|
-| Frontend | Next.js 14+ (App Router), React, Tailwind | Existing stack, fast iteration |
-| API | tRPC | Type-safe, existing pattern |
-| ORM | Prisma | Consistent with all existing projects (art-cafe, Freedom, venture apps) |
-| Database | Postgres (Neon or Supabase) | Existing, JSONB for flexible clinical data |
-| Auth | Magic link (existing) | Low friction for patients |
-| Doc Ingestion | Claude Vision API | Extract structured clinical data from photos/PDFs of medical documents |
-| Patient Portal | Epic MyChart FHIR R4 API | Direct structured data pull (high-priority follow-up) |
-| Background Jobs | NATS JetStream | Reuse AEGIS infra for pipeline orchestration |
-| Compute Pipeline | Rust (core) + Python (ML) | Rust for genomic data processing performance, Python for ML ecosystem |
-| AI/LLM | Claude API (Anthropic) | Eligibility parsing, doc extraction, patient guidance, neoantigen interpretation |
-| File Storage | S3-compatible (genomic data) | HIPAA-eligible, large file support |
-| Search | Postgres full-text + pg_trgm | Good enough for trial search at scale |
+| Frontend | Next.js 15.0.0 (App Router), React 19, Tailwind | Shared spec exact versions |
+| Mobile | Expo SDK 54, React Native 0.76.9, Dripsy | Cross-platform UI (not shadcn) |
+| API | Next.js API routes | Direct, no tRPC overhead |
+| ORM | Prisma 7.0.0 | `prisma-client` generator, driver adapter required |
+| Database | PostgreSQL (Railway) | JSONB for flexible clinical data |
+| Cache/Sessions | Redis (Railway) | Session storage, sliding expiration |
+| Auth | Custom magic link (jose + Redis) | Low friction for patients, no NextAuth |
+| Geocoding | Mapbox (fallback only) | CTG API provides geoPoint for most sites |
+| Doc Ingestion | Claude Vision API | Extract structured clinical data from photos/PDFs |
+| Patient Portal | Epic MyChart FHIR R4 API | Direct structured data pull (Session 6) |
+| Background Jobs | NATS JetStream | Reuse AEGIS infra for pipeline orchestration (Phase 3+) |
+| Compute Pipeline | Rust (core) + Python (ML) | Genomic data processing (Phase 3) |
+| AI/LLM | Claude Opus (`claude-opus-4-20250514`) | Eligibility parsing, doc extraction, patient guidance |
+| File Storage | S3 (medical documents) | HIPAA-eligible, presigned URLs |
+| Search | Prisma queries (contains, mode: insensitive) | Good enough for ~200 trial dataset |
 | Hosting | Vercel (web) + AWS (compute services) | Split: edge for web, GPU/compute for pipeline |
 
 ### 1.4 Data Flow Overview
@@ -106,85 +110,88 @@ Patient Intake → Trial Matching (Phase 1)
 
 The primary data source is ClinicalTrials.gov's API (v2). This is public, free, no API key required, and updated daily.
 
-#### 2.1.1 Trial Ingestion Worker
+#### 2.1.1 Trial Ingestion Worker — IMPLEMENTED
 
-```typescript
-// packages/trial-ingestion/src/sync.ts
+**Status:** Completed (Session 2). Code lives in `apps/web/lib/`, not separate packages.
 
-interface TrialSyncConfig {
-  // Initial query: personalized/neoantigen/mRNA cancer vaccine trials
-  searchTerms: [
-    "personalized cancer vaccine",
-    "neoantigen vaccine",
-    "mRNA cancer vaccine",
-    "individualized cancer vaccine",
-    "autogene cevumeran",  // BioNTech's vaccine
-    "mRNA-4157",           // Moderna/Merck's vaccine
-    "personalized immunotherapy"
-  ];
-  // Filter to interventional studies, recruiting or not yet recruiting
-  statuses: ["RECRUITING", "NOT_YET_RECRUITING", "ENROLLING_BY_INVITATION"];
-  // Sync frequency
-  cronSchedule: "0 6 * * *"; // Daily at 6am UTC
-}
+**Implementation files:**
+- `apps/web/lib/clinicaltrials.ts` — CTG v2 API client with TypeScript types, auto-pagination (AsyncGenerator), retry with exponential backoff
+- `apps/web/lib/trial-sync.ts` — Sync worker: fetch → upsert Trial + TrialSite → geocode missing coordinates
+- `apps/web/lib/mapbox.ts` — Geocoding fallback (most sites have coordinates from CTG API `geoPoint`)
+- `scripts/trial-sync.ts` — CLI: `pnpm trial-sync` (supports `--skip-parse`, `--parse-only`)
+
+**Search terms** (defined in `packages/shared/src/constants.ts` as `TRIAL_SEARCH_TERMS`):
 ```
+"personalized cancer vaccine", "neoantigen vaccine", "mRNA cancer vaccine",
+"individualized cancer vaccine", "autogene cevumeran", "mRNA-4157",
+"personalized immunotherapy", "cancer mRNA", "neoantigen immunotherapy"
+```
+
+**Status filter** (`TRIAL_SYNC_STATUSES`):
+- Primary: `RECRUITING`, `NOT_YET_RECRUITING`, `ENROLLING_BY_INVITATION`
+- Historical: `ACTIVE_NOT_RECRUITING`, `COMPLETED`
 
 **API endpoint:** `https://clinicaltrials.gov/api/v2/studies`
 
-**Sync strategy:**
-1. Full sync on first run (fetch all matching studies)
-2. Daily incremental sync using `lastUpdatePostDate` filter
-3. Store raw JSON response in `trials_raw` table
-4. Parse and normalize into structured `trials` table
-5. Run LLM eligibility extraction on new/updated trials
+**Sync strategy (as built):**
+1. Full re-fetch + upsert on `nctId` every run (dataset is small: ~100-200 trials)
+2. Raw JSON stored in `Trial.rawJson` field
+3. Sites deleted and recreated from fresh API data each sync (no natural unique key)
+4. `parsedEligibility` preserved if `rawEligibilityText` unchanged, cleared if changed
+5. Vaccine-relevant intervention extracted by keyword matching (mrna, vaccine, neoantigen)
+6. Mapbox geocoding only for sites missing CTG `geoPoint` coordinates
 
-#### 2.1.2 Eligibility Parsing with Claude
+#### 2.1.2 Eligibility Parsing with Claude — IMPLEMENTED
 
-This is the key differentiator. ClinicalTrials.gov eligibility criteria are free-text, often 2–3 pages of inclusion/exclusion criteria written in clinical jargon. We use Claude to parse these into structured, queryable fields.
+**Status:** Completed (Session 2). Uses Claude Opus for accuracy over cost.
 
+**Implementation files:**
+- `apps/web/lib/eligibility-parser.ts` — Parser with few-shot examples, Zod validation, batch processing
+- `packages/shared/src/types.ts` — `ParsedEligibility` interface (source of truth)
+- `packages/shared/src/schemas.ts` — `parsedEligibilitySchema` Zod schema
+
+**Model:** `claude-opus-4-20250514` (constant `CLAUDE_MODEL` in `apps/web/lib/ai.ts`)
+
+**ParsedEligibility interface (as implemented):**
 ```typescript
-// packages/eligibility-engine/src/parse.ts
-
 interface ParsedEligibility {
-  // Structured from free-text criteria
-  cancerTypes: CancerType[];           // e.g., ["breast_tnbc", "breast_her2_positive"]
-  stages: Stage[];                      // e.g., ["II", "III", "IV"]
+  cancerTypes: { name: string; normalized: string }[];
+  stages: string[];
   priorTreatments: {
-    required: Treatment[];              // Must have had
-    excluded: Treatment[];              // Must NOT have had
+    required: { name: string; type: string }[];
+    excluded: { name: string; type: string }[];
   };
   biomarkers: {
-    required: Biomarker[];              // e.g., ["PD-L1 >= 1%"]
-    excluded: Biomarker[];
+    required: { name: string; condition: string }[];
+    excluded: { name: string; condition: string }[];
   };
-  ageRange: { min: number; max: number };
-  ecogRange: { min: number; max: number };  // Performance status
-  surgicalStatus: "pre_surgery" | "post_surgery" | "either";
-  priorLines: { min: number; max: number }; // Lines of prior therapy
-  organFunction: {                      // Lab value requirements
-    liver: string[];
-    kidney: string[];
-    blood: string[];
+  ageRange: { min: number | null; max: number | null };
+  ecogRange: { min: number | null; max: number | null };
+  surgicalStatus: "pre_surgery" | "post_surgery" | "either" | "unknown";
+  priorLinesOfTherapy: { min: number | null; max: number | null };
+  organFunction: {
+    requirements: { organ: string; metric: string; condition: string }[];
   };
-  geographicRestrictions: string[];     // Trial site locations
-  exclusionConditions: string[];        // Autoimmune, HIV, etc.
-  rawCriteria: string;                  // Original text for reference
-  confidenceScore: number;             // 0-1, how confident the parse is
+  geographicRestrictions: string[];
+  exclusionConditions: string[];
+  otherKeyRequirements: string[];
+  confidenceScore: number;  // 0-1
 }
-
-// Prompt template for Claude eligibility parsing
-const ELIGIBILITY_PARSE_PROMPT = `
-You are parsing clinical trial eligibility criteria into structured data.
-Given the following eligibility criteria text from a cancer clinical trial,
-extract structured fields. Be conservative — if a criterion is ambiguous,
-flag it with low confidence rather than guessing.
-
-Return JSON matching this schema: [ParsedEligibility schema]
-
-Eligibility criteria:
-{criteria_text}
-`;
 ```
+
+**Key implementation details:**
+- System prompt includes 2 few-shot examples (melanoma + colorectal cancer)
+- Confidence scoring rubric: 0.9-1.0 clear, 0.7-0.89 mostly clear, 0.5-0.69 ambiguous, <0.5 very unclear
+- Sequential processing with 1s delay between requests (Opus rate limits)
+- Each trial parsed independently; failures don't stop batch
+- Zod validation catches malformed Claude output before DB write
+- Raw eligibility text stored in `Trial.rawEligibilityText` (not in ParsedEligibility)
+
+**Admin API routes for QA:**
+- `POST /api/admin/trial-sync` — trigger sync + optional parse
+- `GET /api/admin/trials` — list trials with filters (unparsed, low_confidence)
+- `POST /api/admin/trials/[trialId]/reparse` — re-parse single trial
+- Admin QA page at `/admin/trials` with table, confidence color-coding, expandable eligibility
 
 #### 2.1.3 Patient Intake — Document-First Design
 

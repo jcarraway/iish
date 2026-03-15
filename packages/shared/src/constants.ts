@@ -48,3 +48,20 @@ export const EVENT_NAMES = {
   DAY7_RETAINED: 'day7_retained',
   DAY30_RETAINED: 'day30_retained',
 } as const;
+
+export const TRIAL_SEARCH_TERMS = [
+  'personalized cancer vaccine',
+  'neoantigen vaccine',
+  'mRNA cancer vaccine',
+  'individualized cancer vaccine',
+  'autogene cevumeran',
+  'mRNA-4157',
+  'personalized immunotherapy',
+  'cancer mRNA',
+  'neoantigen immunotherapy',
+] as const;
+
+export const TRIAL_SYNC_STATUSES = {
+  PRIMARY: ['RECRUITING', 'NOT_YET_RECRUITING', 'ENROLLING_BY_INVITATION'] as const,
+  HISTORICAL: ['ACTIVE_NOT_RECRUITING', 'COMPLETED'] as const,
+} as const;

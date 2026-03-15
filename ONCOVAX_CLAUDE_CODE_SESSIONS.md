@@ -376,6 +376,77 @@ This is for us to QA the pipeline, not for patients.
 
 ---END---
 
+### SESSION 2 — Implementation Notes (completed)
+
+**Deviations from the original session prompt (shared spec overrides applied):**
+
+| Original Session 2 Prompt | What Was Built | Why |
+|---|---|---|
+| `packages/trial-ingestion/src/client.ts` | `apps/web/lib/clinicaltrials.ts` | Session 1 established: lib files in `apps/web/lib/`, not separate packages |
+| `packages/eligibility-engine/src/parser.ts` | `apps/web/lib/eligibility-parser.ts` | Same — no separate packages, all in web lib |
+| tRPC procedures | Next.js API routes | Shared spec mandates API routes over tRPC |
+| Claude Sonnet for parsing | Claude Opus (`claude-opus-4-20250514`) | Accuracy over cost/speed for medical eligibility parsing |
+| Google Maps geocoding | Mapbox (`apps/web/lib/mapbox.ts`) | Mapbox as fallback only — ClinicalTrials.gov API already provides `geoPoint` lat/lng for most sites |
+| Incremental sync (date filter) | Full re-fetch + upsert | Dataset is small (~100-200 trials), full re-fetch is simpler and more reliable |
+| Testing against 10+ trials | Deferred to manual run | Requires live database; `pnpm trial-sync --skip-parse` fetches real data from ClinicalTrials.gov |
+
+**Prisma 7 JSON field nuances encountered:**
+- Setting nullable JSON fields to `null` requires `Prisma.DbNull` (not literal `null`)
+- Filtering `parsedEligibility: null` in `where` clauses requires `{ equals: Prisma.DbNull }`
+- JSON field values must be serialized through `JSON.parse(JSON.stringify(...))` for type compatibility with Prisma's `InputJsonValue`
+
+**ParsedEligibility type changes from Session 1 → Session 2:**
+- `cancerTypes`: `string[]` → `{ name, normalized }[]`
+- `priorTreatments.required/excluded`: `string[]` → `{ name, type }[]`
+- `biomarkers.required/excluded`: `string[]` → `{ name, condition }[]`
+- `priorLines` → `priorLinesOfTherapy`
+- `organFunction`: `{ liver, kidney, blood: string[] }` → `{ requirements: { organ, metric, condition }[] }`
+- Added `otherKeyRequirements: string[]`
+- Added `unknown` to `surgicalStatus` enum
+- All range `min`/`max` now `number | null` instead of `number`
+- Removed `rawCriteria` (stored in `Trial.rawEligibilityText`)
+
+**What was built (10 new files, 8 modified):**
+
+New files:
+- `apps/web/lib/clinicaltrials.ts` — CTG v2 API client with TypeScript types, auto-pagination (AsyncGenerator), retry with exponential backoff
+- `apps/web/lib/mapbox.ts` — Geocoding fallback for sites missing coordinates
+- `apps/web/lib/trial-sync.ts` — Sync worker: fetch studies, upsert Trial + TrialSite, geocode, preserve parsedEligibility when raw text unchanged
+- `apps/web/lib/eligibility-parser.ts` — Claude Opus parser with 2 few-shot oncology examples, Zod validation, batch processing with rate limiting (1s delay)
+- `apps/web/app/api/admin/trial-sync/route.ts` — POST trigger sync + optional parse (admin only)
+- `apps/web/app/api/admin/trials/route.ts` — GET trials list with filters: unparsed, low_confidence (admin only)
+- `apps/web/app/api/admin/trials/[trialId]/reparse/route.ts` — POST re-parse single trial (admin only)
+- `apps/web/app/admin/layout.tsx` — Admin layout wrapper
+- `apps/web/app/admin/trials/page.tsx` — Admin QA page: table, confidence color-coding, expandable parsed eligibility, filter tabs, sync/reparse buttons
+- `scripts/trial-sync.ts` — CLI entry point (`pnpm trial-sync`) with `--skip-parse` and `--parse-only` flags
+
+Modified files:
+- `packages/shared/src/types.ts` — Richer `ParsedEligibility` interface
+- `packages/shared/src/schemas.ts` — Added `parsedEligibilitySchema` Zod schema
+- `packages/shared/src/constants.ts` — Added `TRIAL_SEARCH_TERMS`, `TRIAL_SYNC_STATUSES`
+- `packages/shared/src/index.ts` — Exports new schemas + constants
+- `apps/web/lib/ai.ts` — Model changed to `claude-opus-4-20250514`, exported `CLAUDE_MODEL` constant
+- `apps/web/app/api/trials/route.ts` — Real search/filter/paginate implementation (was 501 stub)
+- `apps/web/app/api/trials/[trialId]/route.ts` — Real single trial lookup with sites (was 501 stub)
+- `apps/web/middleware.ts` — Added `/admin/:path*` to matcher
+- `.env.example` — `GOOGLE_MAPS_API_KEY` → `MAPBOX_ACCESS_TOKEN`
+- `apps/web/.env` — Added `MAPBOX_ACCESS_TOKEN`
+- `package.json` (root) — Added `trial-sync` script, `tsx` + `dotenv` devDeps
+
+**Verification:**
+- `pnpm install` — passed
+- `pnpm db:generate` — passed
+- `pnpm --filter @oncovax/web build` — 0 type errors, all routes compiled
+
+**What Session 3 needs to know:**
+- Sync/parse functions accept optional `db: PrismaClient` parameter for dependency injection (CLI script creates its own client)
+- `CLAUDE_MODEL` constant exported from `apps/web/lib/ai.ts` — use it for all AI calls
+- Admin routes check `user.role === 'admin'` — first admin must be manually promoted via SQL/Prisma Studio
+- Public trial routes (`/api/trials`, `/api/trials/[trialId]`) do not require auth
+- `parsedEligibilitySchema` from `@oncovax/shared` should be used for Zod validation of any parsed eligibility data
+- The ClinicalTrials.gov API client returns typed `CTGStudy` objects — see `apps/web/lib/clinicaltrials.ts` for the type definitions
+- Mapbox is a geocoding fallback only — most sites already have coordinates from CTG API's `geoPoint`
+
 ---
 
 ## SESSION 3: Document Ingestion Engine

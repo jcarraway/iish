@@ -9,10 +9,13 @@
     "clean": "turbo run clean",
     "db:generate": "turbo run db:generate",
     "db:migrate": "turbo run db:migrate",
-    "db:push": "turbo run db:push"
+    "db:push": "turbo run db:push",
+    "trial-sync": "tsx scripts/trial-sync.ts"
   },
   "devDependencies": {
+    "dotenv": "^16.0.0",
     "turbo": "2.6.1",
+    "tsx": "^4.0.0",
     "typescript": "5.7.2"
   }
 }

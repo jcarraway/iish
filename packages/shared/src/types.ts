@@ -29,28 +29,26 @@ export interface PatientProfile {
 }
 
 export interface ParsedEligibility {
-  cancerTypes: string[];
+  cancerTypes: { name: string; normalized: string }[];
   stages: string[];
   priorTreatments: {
-    required: string[];
-    excluded: string[];
+    required: { name: string; type: string }[];
+    excluded: { name: string; type: string }[];
   };
   biomarkers: {
-    required: string[];
-    excluded: string[];
+    required: { name: string; condition: string }[];
+    excluded: { name: string; condition: string }[];
   };
-  ageRange: { min: number; max: number };
-  ecogRange: { min: number; max: number };
-  surgicalStatus: 'pre_surgery' | 'post_surgery' | 'either';
-  priorLines: { min: number; max: number };
+  ageRange: { min: number | null; max: number | null };
+  ecogRange: { min: number | null; max: number | null };
+  surgicalStatus: 'pre_surgery' | 'post_surgery' | 'either' | 'unknown';
+  priorLinesOfTherapy: { min: number | null; max: number | null };
   organFunction: {
-    liver: string[];
-    kidney: string[];
-    blood: string[];
+    requirements: { organ: string; metric: string; condition: string }[];
   };
   geographicRestrictions: string[];
   exclusionConditions: string[];
-  rawCriteria: string;
+  otherKeyRequirements: string[];
   confidenceScore: number;
 }
 

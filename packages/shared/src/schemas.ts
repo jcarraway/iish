@@ -27,6 +27,46 @@ export const patientProfileSchema = z.object({
   zipCode: z.string().optional(),
 });
 
+export const parsedEligibilitySchema = z.object({
+  cancerTypes: z.array(z.object({
+    name: z.string(),
+    normalized: z.string(),
+  })),
+  stages: z.array(z.string()),
+  priorTreatments: z.object({
+    required: z.array(z.object({ name: z.string(), type: z.string() })),
+    excluded: z.array(z.object({ name: z.string(), type: z.string() })),
+  }),
+  biomarkers: z.object({
+    required: z.array(z.object({ name: z.string(), condition: z.string() })),
+    excluded: z.array(z.object({ name: z.string(), condition: z.string() })),
+  }),
+  ageRange: z.object({
+    min: z.number().nullable(),
+    max: z.number().nullable(),
+  }),
+  ecogRange: z.object({
+    min: z.number().nullable(),
+    max: z.number().nullable(),
+  }),
+  surgicalStatus: z.enum(['pre_surgery', 'post_surgery', 'either', 'unknown']),
+  priorLinesOfTherapy: z.object({
+    min: z.number().nullable(),
+    max: z.number().nullable(),
+  }),
+  organFunction: z.object({
+    requirements: z.array(z.object({
+      organ: z.string(),
+      metric: z.string(),
+      condition: z.string(),
+    })),
+  }),
+  geographicRestrictions: z.array(z.string()),
+  exclusionConditions: z.array(z.string()),
+  otherKeyRequirements: z.array(z.string()),
+  confidenceScore: z.number().min(0).max(1),
+});
+
 export const documentUploadSchema = z.object({
   documentType: z.string(),
   s3Key: z.string(),
