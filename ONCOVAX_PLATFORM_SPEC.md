@@ -31,7 +31,7 @@ Reduce the time from cancer diagnosis to personalized vaccine access from months
 Extends existing Turborepo. New packages live alongside art-cafe apps.
 
 ```
-oncovax/                                 # As built (Sessions 1-3)
+oncovax/                                 # As built (Sessions 1-4)
 ├── apps/
 │   ├── web/                             # Next.js 15 patient-facing app (App Router)
 │   │   ├── app/
@@ -44,24 +44,37 @@ oncovax/                                 # As built (Sessions 1-3)
 │   │   │   │   ├── documents/           # Upload URL, extraction pipeline (Session 3)
 │   │   │   │   │   ├── upload-url/      # POST: presigned S3 PUT URL
 │   │   │   │   │   └── extract/         # POST: trigger extraction, GET: re-fetch by ID
+│   │   │   │   ├── matches/             # Match listing, detail, status, generation, brief (Session 4)
+│   │   │   │   │   ├── generate/        # POST: trigger match generation
+│   │   │   │   │   └── [matchId]/       # GET: detail, PATCH: status
+│   │   │   │   │       └── brief/       # GET: generate oncologist brief
 │   │   │   │   ├── patients/            # Create + get patient profile (Session 3)
 │   │   │   │   ├── stripe/              # Checkout + webhook (Session 1)
 │   │   │   │   └── trials/              # Public trial search + detail (Session 2)
+│   │   │   ├── matches/                 # Match results flow (Session 4)
+│   │   │   │   ├── page.tsx             # Ranked match list with filter tabs
+│   │   │   │   └── [trialId]/
+│   │   │   │       ├── page.tsx         # Trial detail + eligibility breakdown
+│   │   │   │       └── contact/page.tsx # Oncologist brief generator
 │   │   │   ├── start/                   # Patient intake flow (Session 3)
 │   │   │   │   ├── upload/              # Document upload page
 │   │   │   │   ├── manual/              # Manual intake wizard
 │   │   │   │   └── confirm/             # Convergence: review + auth + save
 │   │   │   └── ...                      # Other pages (Session 1 stubs)
-│   │   ├── components/                  # Client components (Session 3)
+│   │   ├── components/                  # Client components (Sessions 3-4)
 │   │   │   ├── DocumentUploader.tsx     # Mobile-first S3 upload with quality checks
 │   │   │   ├── ManualIntakeWizard.tsx   # 4-step clinical data wizard
-│   │   │   └── InlineMagicLink.tsx      # Inline auth with session polling
+│   │   │   ├── InlineMagicLink.tsx      # Inline auth with session polling
+│   │   │   ├── MatchCard.tsx            # Match card with score badge + breakdown pills (Session 4)
+│   │   │   └── EligibilityBreakdown.tsx # 6-dimension breakdown + LLM assessment (Session 4)
 │   │   └── lib/
 │   │       ├── ai.ts                    # Claude Opus client + multi-image + PDF support
 │   │       ├── clinicaltrials.ts        # CTG v2 API client (Session 2)
 │   │       ├── eligibility-parser.ts    # Claude eligibility parser (Session 2)
 │   │       ├── extraction.ts            # Claude Vision extraction pipeline (Session 3)
 │   │       ├── image-quality.ts         # Client-side quality checks + HEIC (Session 3)
+│   │       ├── matcher.ts              # 3-tier matching engine with fuzzy + stage matching (Session 4)
+│   │       ├── oncologist-brief.ts     # Claude-powered oncologist brief generator (Session 4)
 │   │       ├── s3.ts                    # S3 presigned URL generation (Session 3)
 │   │       ├── mapbox.ts                # Geocoding fallback (Session 2)
 │   │       ├── trial-sync.ts            # Sync worker (Session 2)
@@ -78,7 +91,7 @@ oncovax/                                 # As built (Sessions 1-3)
     └── infrastructure/                  # Docker, Terraform, NATS (Phase 3+)
 ```
 
-> **Architecture note:** Sessions 1-3 established that all server logic (trial ingestion, eligibility parsing, document extraction, sync) lives as lib files in `apps/web/lib/`, not as separate packages. Client components live in `apps/web/components/`. The original spec's `packages/trial-ingestion/`, `packages/eligibility-engine/`, `packages/doc-ingestion/` are implemented as `apps/web/lib/{clinicaltrials,trial-sync,eligibility-parser,extraction,s3,image-quality}.ts`.
+> **Architecture note:** Sessions 1-4 established that all server logic (trial ingestion, eligibility parsing, document extraction, matching, sync) lives as lib files in `apps/web/lib/`, not as separate packages. Client components live in `apps/web/components/`. The original spec's `packages/trial-ingestion/`, `packages/eligibility-engine/`, `packages/doc-ingestion/` are implemented as `apps/web/lib/{clinicaltrials,trial-sync,eligibility-parser,extraction,matcher,oncologist-brief,s3,image-quality}.ts`.
 
 ### 1.3 Core Tech Stack
 
@@ -696,37 +709,78 @@ interface PatientProfile {
 }
 ```
 
-#### 2.1.4 Matching Algorithm
+#### 2.1.4 Matching Algorithm — IMPLEMENTED
 
+**Status:** Completed (Session 4). 3-tier matching engine with cancer type fuzzy matching, stage comparison, and LLM-assisted assessment.
+
+**Implementation files:**
+- `apps/web/lib/matcher.ts` — Full 3-tier matching pipeline
+- `apps/web/lib/oncologist-brief.ts` — Claude-powered oncologist brief generator
+- `apps/web/app/api/matches/route.ts` — GET: list patient matches sorted by score
+- `apps/web/app/api/matches/[matchId]/route.ts` — GET: match detail + trial + sites, PATCH: update status
+- `apps/web/app/api/matches/generate/route.ts` — POST: trigger match generation
+- `apps/web/app/api/matches/[matchId]/brief/route.ts` — GET: generate oncologist brief
+- `apps/web/components/MatchCard.tsx` — Match card with score badge + breakdown pills
+- `apps/web/components/EligibilityBreakdown.tsx` — 6-dimension breakdown + LLM assessment panel
+- `/matches`, `/matches/[trialId]`, `/matches/[trialId]/contact` — Full page implementations
+
+**MatchResult interface (as implemented in `packages/shared/src/types.ts`):**
 ```typescript
-// packages/eligibility-engine/src/match.ts
+interface MatchBreakdownItem {
+  category: string;      // cancerType, stage, biomarkers, priorTreatments, ecog, age
+  score: number;         // 0-100
+  weight: number;        // 0-1 (sum = 1.0)
+  status: 'match' | 'unknown' | 'mismatch';
+  reason: string;        // Human-readable explanation
+}
+
+interface LLMAssessment {
+  overallAssessment: 'likely_eligible' | 'possibly_eligible' | 'likely_ineligible';
+  reasoning: string;
+  potentialBlockers: string[];
+  missingInfo: string[];
+  actionItems: string[];
+}
 
 interface MatchResult {
   trialId: string;
-  trialTitle: string;
-  sponsor: string;
-  phase: string;
-  matchScore: number;              // 0-100
-  matchBreakdown: {
-    cancerTypeMatch: boolean;
-    stageMatch: boolean | "unknown";
-    subtypeMatch: boolean | "unknown";
-    surgicalStatusMatch: boolean | "unknown";
-    geographicMatch: boolean;
-    ageMatch: boolean;
-  };
-  potentialBlockers: string[];     // "Requires PD-L1 testing", etc.
-  unknownCriteria: string[];       // Criteria we couldn't evaluate
-  nearestSites: TrialSite[];       // Sorted by distance from patient zip
-  enrollmentContact: ContactInfo;
-  clinicalTrialsGovUrl: string;
+  matchScore: number;
+  matchBreakdown: MatchBreakdownItem[];
+  potentialBlockers: string[];
+  llmAssessment?: LLMAssessment;
+  status: string;
 }
-
-// Matching is tiered:
-// Tier 1: Hard filters (cancer type, age, geographic availability)
-// Tier 2: Soft matching with confidence scores (stage, subtype, prior treatments)
-// Tier 3: LLM-assisted matching for complex criteria against patient narrative
 ```
+
+**Matching architecture (as built):**
+
+**Tier 1 — Hard Filters:**
+- Cancer type mismatch (fuzzy matching with 15-type alias table including subtypes like TNBC, IDC, NSCLC)
+- Age out of range
+- Trial not recruiting / missing parsedEligibility
+- "Unknown" matches are kept (benefit of the doubt)
+
+**Tier 2 — Soft Scoring (6 weighted dimensions):**
+| Dimension | Weight | Matching Logic |
+|---|---|---|
+| Cancer Type | 0.25 | Alias table fuzzy match + "solid tumor" basket trial detection |
+| Stage | 0.20 | Roman numeral parsing (I→1, IIA→2.1, etc.) + keyword mapping ("metastatic"→4, "locally advanced"→3) |
+| Biomarkers | 0.20 | Required/excluded check against patient biomarkers + receptor status (ER/PR/HER2) |
+| Prior Treatments | 0.15 | Required/excluded treatment matching with substring comparison |
+| ECOG | 0.10 | Range-based comparison against trial's ecogRange |
+| Age | 0.10 | Range-based comparison against trial's ageRange |
+
+Scoring: match=100, unknown=50, mismatch=0. Final score = weighted sum.
+
+**Tier 3 — LLM Assessment (top 10 only):**
+- Claude Opus evaluates patient profile vs. raw eligibility text
+- Returns structured JSON: overallAssessment, reasoning, blockers, missing info, action items
+- Can cap score to 30 if "likely_ineligible"
+- 1s rate limit between requests
+
+**Match generation trigger:** Fire-and-forget on patient create (`POST /api/patients`). Also available via `POST /api/matches/generate` for manual re-generation.
+
+**Match status workflow:** `new` → `saved` / `dismissed` / `contacted` / `applied`
 
 ### 2.2 Database Schema (Phase 1)
 
@@ -2295,16 +2349,18 @@ SESSION 3: Document ingestion engine — COMPLETED ✓
   Deviations: Sync extraction (not async polling), pre-auth flow,
               Opus not Sonnet, all in apps/web/ not packages/
 
-SESSION 4: Matching + results — NEXT
-  TODO: Build matching engine (3-tier: hard filters, soft scoring, LLM-assisted)
-        Build results page with trial cards
-        Build trial detail page with eligibility breakdown
-        Build oncologist brief generator
-        Wire up re-matching on new trials
+SESSION 4: Matching engine + results — COMPLETED ✓
+  Built: 3-tier matching engine (fuzzy cancer type + stage comparison + LLM assessment),
+         oncologist brief generator (Claude-powered), match API routes (list, detail,
+         status update, generation trigger, brief generation),
+         MatchCard + EligibilityBreakdown components,
+         full /matches, /matches/[trialId], /matches/[trialId]/contact pages
+  Deviations: ECOG/age weights replace surgical/geographic, no map view yet,
+              no PDF download yet, fire-and-forget match gen (not re-match on sync)
 
-→ PHASE 1 IS LIVE (after Session 4 — document upload + manual intake paths)
+→ PHASE 1 MVP IS LIVE (Sessions 1-4: document upload + manual intake + matching + results)
 
-SESSION 5: Treatment Translator + Financial Assistance Finder
+SESSION 5: Treatment Translator + Financial Assistance Finder — NEXT
   TODO: Two-step Claude pipeline (clinical grounding → patient translation)
         Financial programs database + matching engine
         Treatment translation UI + financial results page

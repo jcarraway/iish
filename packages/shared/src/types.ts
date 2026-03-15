@@ -52,15 +52,28 @@ export interface ParsedEligibility {
   confidenceScore: number;
 }
 
+export interface MatchBreakdownItem {
+  category: string;
+  score: number;
+  weight: number;
+  status: 'match' | 'unknown' | 'mismatch';
+  reason: string;
+}
+
+export interface LLMAssessment {
+  overallAssessment: 'likely_eligible' | 'possibly_eligible' | 'likely_ineligible';
+  reasoning: string;
+  potentialBlockers: string[];
+  missingInfo: string[];
+  actionItems: string[];
+}
+
 export interface MatchResult {
   trialId: string;
   matchScore: number;
-  matchBreakdown: {
-    category: string;
-    score: number;
-    reason: string;
-  }[];
+  matchBreakdown: MatchBreakdownItem[];
   potentialBlockers: string[];
+  llmAssessment?: LLMAssessment;
   status: string;
 }
 

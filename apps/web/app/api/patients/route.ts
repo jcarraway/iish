@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/session';
 import { trackEvent } from '@/lib/events';
+import { generateMatchesForPatient } from '@/lib/matcher';
 import { patientProfileSchema, INTAKE_PATHS, EVENT_NAMES, DOCUMENT_TYPES } from '@oncovax/shared';
 import { z } from 'zod';
 
@@ -72,6 +73,11 @@ export async function POST(req: NextRequest) {
     await trackEvent(session.userId, EVENT_NAMES.ANALYSIS_COMPLETED, {
       intakePath: data.intakePath,
       documentCount: data.documents?.length ?? 0,
+    });
+
+    // Fire-and-forget: generate matches in the background
+    generateMatchesForPatient(result.id).catch((err) => {
+      console.error('Background match generation failed:', err);
     });
 
     return NextResponse.json({ patientId: result.id });

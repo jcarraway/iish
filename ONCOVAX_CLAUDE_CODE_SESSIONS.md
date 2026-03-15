@@ -924,6 +924,74 @@ This is the core trial-matching MVP. After this session, the clinical trial find
 
 ---END---
 
+### SESSION 4 — Implementation Notes (completed)
+
+**Deviations from the original session prompt (shared spec overrides applied):**
+
+| Original Session 4 Prompt | What Was Built | Why |
+|---|---|---|
+| `packages/eligibility-engine/src/matcher.ts` | `apps/web/lib/matcher.ts` | Sessions 1-3 pattern: lib files in `apps/web/lib/`, not separate packages |
+| tRPC procedures | Next.js API routes | Shared spec mandates API routes over tRPC |
+| Geographic distance calculation | Not included (no travel radius in current PatientProfile) | Deferred — requires geocoding patient zip. Can add in Session 5 polish |
+| Map view of trial sites | Not included | Deferred — requires Mapbox/Google Maps JS SDK on frontend. Can add in Session 5 polish |
+| Re-matching on new trials with email notifications | Not included | Deferred to Session 5 (notification system). Match generation trigger exists via `POST /api/matches/generate` |
+| Download as PDF (oncologist brief) | Copy + Print only | PDF generation requires `@react-pdf/renderer` or similar — deferred |
+| Filter/sort controls on results page | Tab filter only (all/saved/dismissed) | Sufficient for MVP. Phase/distance filters can be added later |
+| Trial matching weights: surgicalStatus + geography | Replaced with: ECOG + age | More relevant for personalized cancer vaccine trial matching — ECOG/age appear in nearly every eligibility criteria, surgical status and geography less so |
+
+**Key architectural decisions:**
+
+1. **Cancer type fuzzy matching:** Built a 15-type alias table (`CANCER_TYPE_ALIASES`) mapping canonical cancer types to common variations, subtypes, and abbreviations. `toCanonicalCancerType()` resolves any patient input to its canonical key. Substring matching fallback handles "solid tumor" basket trials.
+
+2. **Stage comparison matching:** Roman numeral parsing with substage decimals (I→1, IIA→2.1, IIIC→3.3, IV→4). Keyword mapping for descriptive stages ("metastatic"→4, "locally advanced"→3, "early"→1.5). Range-based comparison checks if patient's major stage falls within trial's min-max range.
+
+3. **3-tier matching pipeline:**
+   - Tier 1 (hard filter): Cancer type mismatch + age out of range → eliminate. Keeps "unknown" matches (benefit of the doubt).
+   - Tier 2 (soft scoring): 6 weighted dimensions — cancerType (0.25), stage (0.20), biomarkers (0.20), priorTreatments (0.15), ecog (0.10), age (0.10). Status scoring: match=100, unknown=50, mismatch=0.
+   - Tier 3 (LLM): Top 10 trials get Claude Opus assessment with structured JSON output. Can cap score to 30 if "likely_ineligible".
+
+4. **Match generation trigger:** `POST /api/patients` fires `generateMatchesForPatient()` fire-and-forget on patient create. Also available via `POST /api/matches/generate` for manual re-generation.
+
+5. **Oncologist brief:** Claude-generated, professional clinical tone (doctor-to-doctor), ~400 words. Includes patient match summary, eligibility assessment, concerns, missing data, next steps, and nearest sites.
+
+6. **Match status workflow:** `new` → `saved` / `dismissed` / `contacted` / `applied`. Updated via `PATCH /api/matches/[matchId]`.
+
+**What was built (7 new files, 4 modified):**
+
+New files:
+- `apps/web/lib/matcher.ts` — 3-tier matching engine: cancer type fuzzy matching (15-type alias table), stage comparison (Roman numeral parsing + keyword mapping), biomarker matching (receptor status integration), treatment history matching, ECOG matching, age matching, weighted soft scoring, LLM assessment (top 10), `generateMatchesForPatient()` pipeline
+- `apps/web/lib/oncologist-brief.ts` — Claude-powered oncologist brief generator (clinical tone, structured format)
+- `apps/web/app/api/matches/generate/route.ts` — POST: trigger match generation for current patient (requires auth)
+- `apps/web/app/api/matches/[matchId]/brief/route.ts` — GET: generate oncologist brief for a specific match
+- `apps/web/components/MatchCard.tsx` — Match card with score badge (green ≥70, yellow ≥40, red <40), breakdown pills, status actions, potential blocker preview
+- `apps/web/components/EligibilityBreakdown.tsx` — Full 6-dimension breakdown with status icons, score bars, weight labels, LLM assessment panel (reasoning, missing info, action items), potential blockers section
+
+Modified files:
+- `packages/shared/src/types.ts` — Added `MatchBreakdownItem` (category, score, weight, status, reason), `LLMAssessment` (overallAssessment, reasoning, potentialBlockers, missingInfo, actionItems)
+- `packages/shared/src/index.ts` — Exported `MatchBreakdownItem`, `LLMAssessment`
+- `apps/web/app/api/patients/route.ts` — Added fire-and-forget `generateMatchesForPatient()` call on patient create
+- `apps/web/app/api/matches/route.ts` — Replaced 501 stub → GET: list patient matches sorted by score, includes trial data
+- `apps/web/app/api/matches/[matchId]/route.ts` — Replaced 501 stub → GET: match detail with trial + sites, PATCH: update match status
+
+Pages (3 replaced stubs):
+- `/matches` — Match list with filter tabs (all/saved/dismissed), regenerate button, loading skeleton, empty state
+- `/matches/[trialId]` — Trial detail: eligibility breakdown, intervention details, trial summary, raw criteria, sites with contact info, ClinicalTrials.gov link
+- `/matches/[trialId]/contact` — Oncologist brief: loading spinner (10-15s), copy to clipboard, print, formatted brief display, disclaimer
+
+**Verification:**
+- `pnpm install` — passed
+- `pnpm --filter @oncovax/web build` — 0 type errors, all 37 routes compiled
+
+**What Session 5 needs to know:**
+- `generateMatchesForPatient(patientId)` is the main entry point — loads patient, fetches recruiting trials, runs 3-tier pipeline, upserts Match records
+- `CLAUDE_MODEL` constant from `apps/web/lib/ai.ts` used for all AI calls
+- Match records store `matchBreakdown` as `{ items: MatchBreakdownItem[], llmAssessment?: LLMAssessment }` in Prisma Json field
+- `potentialBlockers` stored as `string[]` in Prisma Json field
+- `requireSession()` from `apps/web/lib/session.ts` guards all match endpoints
+- MatchCard and EligibilityBreakdown components are reusable — pass typed props
+- The matches page uses `useParams()` with `trialId` but the actual URL param represents the `matchId` (the match record ID, not the trial ID). This is because the routes are at `/matches/[trialId]` but the matchId is used for API calls
+- `MATCH_STATUSES` from `@oncovax/shared` defines valid status values
+
 ---
 
 ## SESSION 5: Treatment Translator + Financial Assistance Finder
