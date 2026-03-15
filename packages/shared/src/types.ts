@@ -218,3 +218,48 @@ export interface ExtractionPipelineResult {
   claudeApiCost?: number;
   error?: string;
 }
+
+// FHIR Integration Types
+
+export interface FhirResourceSummary {
+  resourceType: string;
+  count: number;
+  description: string;
+  dateRange?: { earliest?: string; latest?: string };
+}
+
+export interface FhirExtractionResult {
+  profile: Partial<PatientProfile>;
+  fieldSources: Record<string, 'fhir'>;
+  completeness: number;
+  missingFields: string[];
+  resourceSummary: FhirResourceSummary[];
+  healthSystemName?: string;
+  extractedAt: string;
+}
+
+export interface HealthSystemResult {
+  id: string;
+  name: string;
+  fhirBaseUrl: string;
+  brand?: string;
+  logoUrl?: string;
+  city?: string;
+  state?: string;
+  isCancerCenter: boolean;
+  ehrVendor: string;
+}
+
+export interface FhirTokenPair {
+  accessToken: string;
+  refreshToken?: string;
+  expiresIn?: number;
+  scope?: string;
+  tokenType: string;
+}
+
+export interface SmartEndpoints {
+  authorizeUrl: string;
+  tokenUrl: string;
+  fhirBaseUrl: string;
+}

@@ -120,3 +120,46 @@ export const INCOME_RANGES = [
   '$100,000+',
   'Prefer not to say',
 ] as const;
+
+export const FHIR_SCOPES = [
+  'patient/Patient.read',
+  'patient/Condition.read',
+  'patient/DiagnosticReport.read',
+  'patient/Observation.read',
+  'patient/MedicationRequest.read',
+  'patient/Procedure.read',
+  'launch/patient',
+  'openid',
+  'fhirUser',
+] as const;
+
+export const FHIR_SYNC_STATUSES = {
+  PENDING: 'pending',
+  CONNECTED: 'connected',
+  SYNCED: 'synced',
+  TOKEN_EXPIRED: 'token_expired',
+  REVOKED: 'revoked',
+  ERROR: 'error',
+} as const;
+
+export const BIOMARKER_LOINCS: Record<string, string> = {
+  '85337-4': 'erStatus',
+  '85339-0': 'prStatus',
+  '85319-2': 'her2Ihc',
+  '85318-4': 'her2Fish',
+  '85329-1': 'ki67',
+  '85147-7': 'pdl1',
+  '94076-7': 'tmb',
+  '81695-9': 'msi',
+} as const;
+
+export const LAB_LOINCS: Record<string, string> = {
+  '751-8': 'anc',
+  '777-3': 'platelets',
+  '718-7': 'hemoglobin',
+  '2160-0': 'creatinine',
+  '1920-8': 'ast',
+  '1742-6': 'alt',
+  '1975-2': 'bilirubin',
+  '1751-7': 'albumin',
+} as const;

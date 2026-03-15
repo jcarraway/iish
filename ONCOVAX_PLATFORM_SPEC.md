@@ -31,7 +31,7 @@ Reduce the time from cancer diagnosis to personalized vaccine access from months
 Extends existing Turborepo. New packages live alongside art-cafe apps.
 
 ```
-oncovax/                                 # As built (Sessions 1-5)
+oncovax/                                 # As built (Sessions 1-6)
 ├── apps/
 │   ├── web/                             # Next.js 15 patient-facing app (App Router)
 │   │   ├── app/
@@ -44,6 +44,14 @@ oncovax/                                 # As built (Sessions 1-5)
 │   │   │   │   ├── documents/           # Upload URL, extraction pipeline (Session 3)
 │   │   │   │   │   ├── upload-url/      # POST: presigned S3 PUT URL
 │   │   │   │   │   └── extract/         # POST: trigger extraction, GET: re-fetch by ID
+│   │   │   │   ├── fhir/               # FHIR/MyChart integration (Session 6)
+│   │   │   │   │   ├── authorize/       # GET: initiate SMART on FHIR OAuth
+│   │   │   │   │   ├── callback/        # GET: handle OAuth callback, store encrypted tokens
+│   │   │   │   │   ├── connections/     # GET: list patient's FHIR connections
+│   │   │   │   │   ├── extract/         # POST: pull FHIR resources, map to PatientProfile
+│   │   │   │   │   ├── health-systems/  # GET: searchable health system directory
+│   │   │   │   │   ├── resync/          # POST: re-pull with token refresh
+│   │   │   │   │   └── revoke/          # POST: revoke access, clear FHIR data
 │   │   │   │   ├── financial/           # Financial assistance matching (Session 5)
 │   │   │   │   │   ├── route.ts         # GET: matched programs grouped by category
 │   │   │   │   │   ├── [programId]/     # GET: program detail + patient match
@@ -57,9 +65,9 @@ oncovax/                                 # As built (Sessions 1-5)
 │   │   │   │   ├── translator/          # Treatment translation pipeline (Session 5)
 │   │   │   │   │   └── route.ts         # GET: cached, POST: generate via 2-step Claude pipeline
 │   │   │   │   └── trials/              # Public trial search + detail (Session 2)
-│   │   │   ├── dashboard/               # Dashboard hub (Session 5)
-│   │   │   │   ├── page.tsx             # 3-card layout: trials, treatment guide, financial
-│   │   │   │   └── records/page.tsx     # Manage health records (stub)
+│   │   │   ├── dashboard/               # Dashboard hub (Sessions 5-6)
+│   │   │   │   ├── page.tsx             # 4-card layout: trials, treatment guide, financial, records
+│   │   │   │   └── records/page.tsx     # Data access transparency — what FHIR accessed, revoke, re-sync
 │   │   │   ├── financial/               # Financial assistance finder (Session 5)
 │   │   │   │   ├── page.tsx             # Programs grouped by category, hero savings banner
 │   │   │   │   └── [programId]/page.tsx # Program detail + eligibility + how to apply
@@ -68,26 +76,35 @@ oncovax/                                 # As built (Sessions 1-5)
 │   │   │   │   └── [trialId]/
 │   │   │   │       ├── page.tsx         # Trial detail + eligibility breakdown
 │   │   │   │       └── contact/page.tsx # Oncologist brief generator
-│   │   │   ├── start/                   # Patient intake flow (Session 3, extended Session 5)
+│   │   │   ├── start/                   # Patient intake flow (Sessions 3, 5, 6)
 │   │   │   │   ├── upload/              # Document upload page
+│   │   │   │   ├── mychart/             # MyChart connect — health system search + OAuth + extraction (Session 6)
 │   │   │   │   ├── manual/              # Manual intake wizard
-│   │   │   │   └── confirm/             # Review + auth + save + optional financial profile
+│   │   │   │   └── confirm/             # Review + auth + save + FHIR badges + financial profile
 │   │   │   ├── translate/               # Treatment translator (Session 5)
 │   │   │   │   └── page.tsx             # Magazine-style treatment guide with drug cards + timeline
 │   │   │   └── ...                      # Other pages (Session 1 stubs)
-│   │   ├── components/                  # Client components (Sessions 3-5)
+│   │   ├── components/                  # Client components (Sessions 3-6)
 │   │   │   ├── DocumentUploader.tsx     # Mobile-first S3 upload with quality checks
 │   │   │   ├── ManualIntakeWizard.tsx   # 4-step clinical data wizard
 │   │   │   ├── InlineMagicLink.tsx      # Inline auth with session polling
 │   │   │   ├── MatchCard.tsx            # Match card with score badge + breakdown pills (Session 4)
 │   │   │   ├── EligibilityBreakdown.tsx # 6-dimension breakdown + LLM assessment (Session 4)
 │   │   │   ├── TranslationSection.tsx   # Collapsible section for treatment guide (Session 5)
-│   │   │   └── FinancialProgramCard.tsx # Program card with status badge + apply button (Session 5)
+│   │   │   ├── FinancialProgramCard.tsx # Program card with status badge + apply button (Session 5)
+│   │   │   └── HealthSystemSearch.tsx   # Searchable health system directory with debounce (Session 6)
 │   │   └── lib/
 │   │       ├── ai.ts                    # Claude Opus client + multi-image + PDF support
 │   │       ├── clinicaltrials.ts        # CTG v2 API client (Session 2)
 │   │       ├── eligibility-parser.ts    # Claude eligibility parser (Session 2)
 │   │       ├── extraction.ts            # Claude Vision extraction pipeline (Session 3)
+│   │       ├── fhir/                    # FHIR integration library (Session 6)
+│   │       │   ├── types.ts             # FHIR R4 resource type definitions (Condition, Observation, etc.)
+│   │       │   ├── code-maps.ts         # ICD-10, LOINC, RxNorm, SNOMED lookup tables
+│   │       │   ├── client.ts            # Authenticated FHIR HTTP client with pagination
+│   │       │   ├── smart-auth.ts        # SMART on FHIR OAuth (discovery, token exchange, encryption)
+│   │       │   ├── extract-resources.ts # Pull FHIR resources in parallel (4 resource types)
+│   │       │   └── mapper.ts            # Map FHIR → PatientProfile (completeness tracking)
 │   │       ├── financial-matcher.ts     # Financial program matching engine (Session 5)
 │   │       ├── image-quality.ts         # Client-side quality checks + HEIC (Session 3)
 │   │       ├── matcher.ts              # 3-tier matching engine with fuzzy + stage matching (Session 4)
@@ -100,18 +117,19 @@ oncovax/                                 # As built (Sessions 1-5)
 │   │       └── ...
 │   └── mobile/                          # Expo SDK 54 (Session 1 scaffold)
 ├── packages/
-│   ├── db/                              # Prisma 7 + PostgreSQL (10 models)
+│   ├── db/                              # Prisma 7 + PostgreSQL (11 models)
 │   └── shared/                          # Types, schemas, constants, auth
 ├── scripts/
 │   ├── trial-sync.ts                    # CLI: pnpm trial-sync (Session 2)
 │   ├── seed-financial-programs.ts       # Seed 30 financial programs (Session 5)
-│   └── financial-status-check.ts        # CLI: check/update fund statuses (Session 5)
+│   ├── financial-status-check.ts        # CLI: check/update fund statuses (Session 5)
+│   └── seed-health-systems.ts           # Seed 30 health systems with FHIR URLs (Session 6)
 └── [future phases]
     ├── services/neoantigen-pipeline/    # Rust + Python (Phase 3)
     └── infrastructure/                  # Docker, Terraform, NATS (Phase 3+)
 ```
 
-> **Architecture note:** Sessions 1-5 established that all server logic (trial ingestion, eligibility parsing, document extraction, matching, translation, financial matching, sync) lives as lib files in `apps/web/lib/`, not as separate packages. Client components live in `apps/web/components/`. The original spec's `packages/trial-ingestion/`, `packages/eligibility-engine/`, `packages/doc-ingestion/` are implemented as `apps/web/lib/{clinicaltrials,trial-sync,eligibility-parser,extraction,matcher,oncologist-brief,translator,financial-matcher,s3,image-quality}.ts`.
+> **Architecture note:** Sessions 1-6 established that all server logic (trial ingestion, eligibility parsing, document extraction, matching, translation, financial matching, FHIR integration, sync) lives as lib files in `apps/web/lib/`, not as separate packages. Client components live in `apps/web/components/`. The original spec's `packages/trial-ingestion/`, `packages/eligibility-engine/`, `packages/doc-ingestion/` are implemented as `apps/web/lib/{clinicaltrials,trial-sync,eligibility-parser,extraction,matcher,oncologist-brief,translator,financial-matcher,s3,image-quality}.ts`. FHIR integration lives in `apps/web/lib/fhir/` as a subdirectory with 6 files (types, code-maps, client, smart-auth, extract-resources, mapper).
 
 ### 1.3 Core Tech Stack
 
@@ -484,7 +502,9 @@ type QualityIssue =
 // Use client-side image analysis: resolution check, blur detection, brightness
 ```
 
-#### 2.1.3a MyChart / FHIR Integration (High-Priority Follow-Up)
+#### 2.1.3a MyChart / FHIR Integration (High-Priority Follow-Up) — IMPLEMENTED (Session 6)
+
+> **Implementation files:** `apps/web/lib/fhir/{types,code-maps,client,smart-auth,extract-resources,mapper}.ts`, `apps/web/app/api/fhir/{authorize,callback,connections,extract,health-systems,resync,revoke}/route.ts`, `apps/web/app/start/mychart/page.tsx`, `apps/web/app/dashboard/records/page.tsx`, `apps/web/components/HealthSystemSearch.tsx`, `scripts/seed-health-systems.ts`
 
 **Priority:** Ship immediately after Phase 1 MVP launch. This is the highest-fidelity intake path and eliminates both manual entry errors AND document photo quality issues.
 
@@ -2410,9 +2430,17 @@ SESSION 5: Treatment Translator + Financial Assistance Finder — COMPLETED
   Deviations: No PDF export for translation yet, no email notifications for fund
               reopening yet (flag stored), status check is manual CLI (not cron)
 
-SESSION 6: MyChart FHIR integration (after Epic approval lands) — NEXT
-  TODO: SMART on FHIR OAuth, health system directory, FHIR extraction,
-        PatientProfile mapping, data access transparency UI
+SESSION 6: MyChart FHIR integration — COMPLETED
+  Built: SMART on FHIR OAuth 2.0 flow (discovery, authorize, token exchange, refresh),
+         30-system health system directory (15 cancer centers + 15 health systems),
+         FHIR resource extraction (Condition, Observation, MedicationRequest, Procedure),
+         code mapping tables (ICD-10 → cancer type, LOINC → biomarker, RxNorm → treatment,
+         SNOMED → surgery), PatientProfile mapper with completeness tracking,
+         encrypted token storage (jose A256GCM), data access transparency page,
+         revoke/re-sync flows, confirm page "from MyChart" badges, dashboard 4-card layout
+  Deviations: FHIR code lives in apps/web/lib/fhir/ (not packages/doc-ingestion/),
+              HealthSystem is a separate Prisma model (not just string fields),
+              all FHIR endpoints use Epic sandbox URL (production switch is env config)
 
 → PHASE 1.5 COMPLETE (all intake paths + full feature set)
 ```

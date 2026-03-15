@@ -1639,6 +1639,84 @@ Handle gracefully:
 
 ---END---
 
+### Session 6 Implementation Notes
+
+**Implemented:** March 15, 2026
+
+**Deviations from session prompt:**
+
+| Spec | Implementation | Reason |
+|------|---------------|--------|
+| FHIR code in `packages/doc-ingestion/src/fhir/` | `apps/web/lib/fhir/` (6 files) | No `packages/doc-ingestion` exists — consistent with Sessions 1-5 pattern |
+| Health system data as string fields in FhirConnection | Separate `HealthSystem` Prisma model | Normalized data, searchable directory, reusable across connections |
+| `fhirclient` npm package | Custom lightweight `FhirClient` class | Minimal dependencies, only needs GET + pagination |
+| Token storage as plain encrypted strings | `jose` EncryptJWT with A256GCM | Reuses existing `jose` dependency from auth, structured encryption |
+| Production FHIR base URLs per system | All systems use Epic sandbox URL | Production URLs are per-system config, swap via seed script update |
+| DiagnosticReport extraction | Not implemented | Condition + Observation + MedicationRequest + Procedure covers all trial-matching fields |
+
+**Architectural decisions:**
+
+1. **FHIR lib as subdirectory:** Created `apps/web/lib/fhir/` with 6 files (types, code-maps, client, smart-auth, extract-resources, mapper) rather than a flat lib file — the FHIR integration is complex enough to warrant organization but not a separate package.
+2. **Code mapping tables:** ~30 ICD-10 cancer types, ~40 RxNorm oncology drugs, ~17 SNOMED procedures, 8 LOINC biomarkers, 8 LOINC labs — all as static lookup objects. Unknown codes get logged and the field is flagged as missing.
+3. **Token encryption:** Reuses `MAGIC_LINK_SECRET` from existing auth for `jose` A256GCM encryption. In production, should use a dedicated `FHIR_ENCRYPTION_KEY`.
+4. **Merge strategy:** FHIR data fills empty fields or replaces extracted data, but never overwrites manual entries (`fieldSources[key] !== 'manual'`).
+5. **HealthSystem model:** Added as 11th Prisma model with `fhirBaseUrl`, `brand`, `city`, `state`, `isCancerCenter`, `ehrVendor`. FhirConnection now has optional `healthSystemId` relation.
+6. **Dashboard evolution:** Grid changed from 3-col to responsive 2-col/4-col. 4th card "Connected Records" links to `/dashboard/records` or `/start/mychart` based on connection count.
+
+**Files built:**
+
+New files (17):
+- `apps/web/lib/fhir/types.ts` — FHIR R4 resource type definitions
+- `apps/web/lib/fhir/code-maps.ts` — ICD-10, LOINC, RxNorm, SNOMED lookup tables
+- `apps/web/lib/fhir/client.ts` — Authenticated FHIR HTTP client with pagination
+- `apps/web/lib/fhir/smart-auth.ts` — SMART on FHIR OAuth 2.0 (discovery, authorize, token exchange, refresh, encrypt/decrypt)
+- `apps/web/lib/fhir/extract-resources.ts` — Pull 4 FHIR resource types in parallel
+- `apps/web/lib/fhir/mapper.ts` — Map FHIR → PatientProfile with completeness tracking
+- `apps/web/app/api/fhir/authorize/route.ts` — Initiate SMART OAuth flow
+- `apps/web/app/api/fhir/callback/route.ts` — Handle OAuth callback, store encrypted tokens
+- `apps/web/app/api/fhir/extract/route.ts` — Pull + map FHIR resources to patient profile
+- `apps/web/app/api/fhir/revoke/route.ts` — Revoke access, clear FHIR-sourced data
+- `apps/web/app/api/fhir/resync/route.ts` — Re-pull with automatic token refresh
+- `apps/web/app/api/fhir/connections/route.ts` — List patient's FHIR connections
+- `apps/web/app/api/fhir/health-systems/route.ts` — Searchable health system directory API
+- `apps/web/components/HealthSystemSearch.tsx` — Search component with 300ms debounce
+- `scripts/seed-health-systems.ts` — Seed 30 health systems (15 cancer centers + 15 large systems)
+
+Modified files (6):
+- `packages/db/prisma/schema.prisma` — Added HealthSystem model (11 total), expanded FhirConnection (healthSystemId, fhirBaseUrl, scopesGranted, resourcesPulled, consentScopes, encrypted tokens)
+- `packages/shared/src/types.ts` — Added FhirExtractionResult, HealthSystemResult, FhirTokenPair, SmartEndpoints
+- `packages/shared/src/constants.ts` — Added FHIR_SCOPES, FHIR_SYNC_STATUSES, BIOMARKER_LOINCS, LAB_LOINCS
+- `packages/shared/src/index.ts` — Updated exports
+- `apps/web/app/start/confirm/page.tsx` — Green "from MyChart" badges, mychart path loading from API
+- `apps/web/app/dashboard/page.tsx` — 4-card grid with Connected Records card
+
+Replaced stubs (2):
+- `apps/web/app/start/mychart/page.tsx` — Full 5-step flow (search → confirm → connect → extract → done)
+- `apps/web/app/dashboard/records/page.tsx` — Data transparency UI (access log, revoke, re-sync)
+
+**Database changes:**
+- HealthSystem model: 30 seeded (15 cancer centers, 15 health systems, all with Epic sandbox FHIR URL)
+- FhirConnection model: expanded with 7 new fields (healthSystemId, healthSystemName, fhirBaseUrl, scopesGranted, resourcesPulled, accessTokenEnc/refreshTokenEnc replacing accessToken/refreshToken, consentScopes)
+
+**Verification:**
+- `npx prisma db push` ✓ (11 models)
+- `npx prisma generate` ✓
+- `pnpm --filter @oncovax/web build` ✓ (0 type errors, 51 routes)
+- `npx tsx scripts/seed-health-systems.ts` ✓ (30 health systems created)
+
+**What Session 7 needs to know:**
+- `apps/web/lib/fhir/` contains the full FHIR integration library (6 files)
+- `FhirClient` class in `client.ts` is the authenticated HTTP client — pass baseUrl + accessToken
+- `extractFhirResources(client, patientId)` pulls 4 resource types in parallel — returns `RawFhirData`
+- `mapFhirToPatientProfile(rawData, healthSystemName)` does code mapping — returns `FhirExtractionResult` with completeness score
+- Token encryption uses `jose` EncryptJWT/jwtDecrypt with A256GCM — see `smart-auth.ts`
+- FHIR data merge respects `fieldSources` — never overwrites `manual` entries
+- `HealthSystem` model is the directory — seeded with 30 systems, all pointing to Epic sandbox URL
+- OAuth state is stored in Redis with 5-min TTL keyed by `fhir_state:{uuid}`
+- `EPIC_CLIENT_ID` env var controls the OAuth client ID — `oncovax-dev` in development
+- Dashboard now has 4 cards and loads matches + financial + FHIR connections in parallel
+- Confirm page checks `path=mychart` query param and loads profile from `/api/patients/me`
+
 ---
 
 ## What comes next

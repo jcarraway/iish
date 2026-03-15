@@ -10,6 +10,7 @@ interface DashboardData {
   financialEligibleCount: number;
   financialTotalEstimated: number;
   hasProfile: boolean;
+  fhirConnectionCount: number;
 }
 
 export default function DashboardPage() {
@@ -21,10 +22,15 @@ export default function DashboardPage() {
     async function loadDashboard() {
       try {
         // Load matches and financial data in parallel
-        const [matchRes, financialRes] = await Promise.all([
+        const [matchRes, financialRes, fhirRes] = await Promise.all([
           fetch('/api/matches').then(r => r.ok ? r.json() : null).catch(() => null),
           fetch('/api/financial').then(r => r.ok ? r.json() : null).catch(() => null),
+          fetch('/api/fhir/connections').then(r => r.ok ? r.json() : null).catch(() => null),
         ]);
+
+        const activeConnections = (fhirRes?.connections ?? []).filter(
+          (c: { syncStatus: string }) => c.syncStatus !== 'revoked'
+        );
 
         setData({
           matchCount: matchRes?.matches?.length ?? 0,
@@ -32,9 +38,10 @@ export default function DashboardPage() {
           financialEligibleCount: financialRes?.eligibleCount ?? 0,
           financialTotalEstimated: financialRes?.totalEstimated ?? 0,
           hasProfile: matchRes !== null,
+          fhirConnectionCount: activeConnections.length,
         });
       } catch {
-        setData({ matchCount: 0, topMatchScore: null, financialEligibleCount: 0, financialTotalEstimated: 0, hasProfile: false });
+        setData({ matchCount: 0, topMatchScore: null, financialEligibleCount: 0, financialTotalEstimated: 0, hasProfile: false, fhirConnectionCount: 0 });
       } finally {
         setLoading(false);
       }
@@ -77,7 +84,7 @@ export default function DashboardPage() {
       <p className="mt-2 text-sm text-gray-500">Your cancer navigation hub</p>
 
       {/* Quick-access cards */}
-      <div className="mt-8 grid gap-4 sm:grid-cols-3">
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {/* Trial Matches */}
         <Link
           href="/matches"
@@ -141,6 +148,34 @@ export default function DashboardPage() {
             <>
               <p className="mt-3 text-sm text-gray-600">Find financial assistance programs you qualify for</p>
               <p className="mt-1 text-xs text-blue-600">Find assistance &rarr;</p>
+            </>
+          )}
+        </Link>
+
+        {/* Connected Records */}
+        <Link
+          href={data.fhirConnectionCount > 0 ? '/dashboard/records' : '/start/mychart'}
+          className="rounded-xl border border-gray-200 p-5 hover:border-cyan-300 hover:shadow-sm transition-all"
+        >
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-100 text-cyan-600">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.886-3.497l4.5-4.5a4.5 4.5 0 016.364 6.364l-1.757 1.757" />
+              </svg>
+            </div>
+            <h2 className="font-semibold text-gray-900">Records</h2>
+          </div>
+          {data.fhirConnectionCount > 0 ? (
+            <>
+              <p className="mt-3 text-2xl font-bold text-gray-900">{data.fhirConnectionCount}</p>
+              <p className="text-xs text-gray-500">
+                connected system{data.fhirConnectionCount !== 1 ? 's' : ''}
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="mt-3 text-sm text-gray-600">Connect MyChart to import records automatically</p>
+              <p className="mt-1 text-xs text-blue-600">Connect &rarr;</p>
             </>
           )}
         </Link>

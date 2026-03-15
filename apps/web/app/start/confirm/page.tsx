@@ -16,6 +16,9 @@ interface UploadedFile {
 }
 
 function ConfidenceBadge({ confidence, source }: { confidence?: number; source?: string }) {
+  if (source === 'fhir') {
+    return <span className="ml-1 inline-block rounded px-1.5 py-0.5 text-[10px] font-medium bg-emerald-100 text-emerald-700">from MyChart</span>;
+  }
   if (source === 'manual') {
     return <span className="ml-1 inline-block rounded px-1.5 py-0.5 text-[10px] font-medium bg-gray-100 text-gray-500">Manual</span>;
   }
@@ -75,6 +78,27 @@ function ConfirmPageInner() {
       }
       setFieldSources(sources);
       setState('editing');
+    } else if (path === 'mychart') {
+      // MyChart path: load existing profile from API (already populated by FHIR extraction)
+      fetch('/api/patients/me')
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (data?.profile) {
+            setProfile(data.profile);
+            setFieldSources(data.fieldSources ?? {});
+            setFieldConfidence(data.fieldConfidence ?? {});
+            // Surface missing fields from FHIR extraction
+            const missing = sessionStorage.getItem('oncovax_fhir_missing');
+            if (missing) {
+              setCouldNotExtract(JSON.parse(missing));
+              sessionStorage.removeItem('oncovax_fhir_missing');
+            }
+            setState('editing');
+          } else {
+            router.push('/start/mychart');
+          }
+        })
+        .catch(() => router.push('/start/mychart'));
     } else {
       // Upload path: trigger extraction
       const stored = sessionStorage.getItem('oncovax_uploaded_files');
@@ -244,6 +268,8 @@ function ConfirmPageInner() {
       <p className="mt-2 mb-8 text-sm text-gray-500">
         {path === 'upload'
           ? 'Review the information extracted from your documents. Edit any fields that need correction.'
+          : path === 'mychart'
+          ? 'Review the data pulled from your MyChart records. Fields marked "from MyChart" were imported automatically.'
           : 'Review the information you entered. Make any changes before we match you to trials.'}
       </p>
 

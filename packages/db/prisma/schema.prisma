@@ -118,23 +118,50 @@ model DocumentUpload {
 }
 
 model FhirConnection {
-  id              String    @id @default(uuid()) @db.Uuid
-  patientId       String    @map("patient_id") @db.Uuid
-  providerSystem  String    @map("provider_system") @db.VarChar(200)
-  accessToken     String?   @map("access_token")
-  refreshToken    String?   @map("refresh_token")
-  tokenExpiresAt  DateTime? @map("token_expires_at")
-  lastSyncedAt    DateTime? @map("last_synced_at")
-  syncStatus      String?   @map("sync_status") @db.VarChar(50)
-  consentGiven    Boolean   @default(false) @map("consent_given")
-  consentAt       DateTime? @map("consent_at")
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
+  id                  String    @id @default(uuid()) @db.Uuid
+  patientId           String    @map("patient_id") @db.Uuid
+  healthSystemId      String?   @map("health_system_id") @db.Uuid
+  healthSystemName    String?   @map("health_system_name")
+  fhirBaseUrl         String?   @map("fhir_base_url")
+  providerSystem      String    @map("provider_system") @db.VarChar(200)
+  accessTokenEnc      String?   @map("access_token_enc")
+  refreshTokenEnc     String?   @map("refresh_token_enc")
+  tokenExpiresAt      DateTime? @map("token_expires_at")
+  scopesGranted       String[]  @map("scopes_granted")
+  resourcesPulled     Json?     @map("resources_pulled")
+  lastSyncedAt        DateTime? @map("last_synced_at")
+  syncStatus          String    @default("pending") @map("sync_status") @db.VarChar(50)
+  consentGiven        Boolean   @default(false) @map("consent_given")
+  consentAt           DateTime? @map("consent_at")
+  consentScopes       String[]  @map("consent_scopes")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
 
-  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  patient      Patient       @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  healthSystem HealthSystem? @relation(fields: [healthSystemId], references: [id])
 
   @@index([patientId])
   @@map("fhir_connections")
+}
+
+model HealthSystem {
+  id              String   @id @default(uuid()) @db.Uuid
+  name            String
+  fhirBaseUrl     String   @map("fhir_base_url")
+  brand           String?
+  logoUrl         String?  @map("logo_url")
+  city            String?
+  state           String?  @db.VarChar(100)
+  isCancerCenter  Boolean  @default(false) @map("is_cancer_center")
+  ehrVendor       String   @default("epic") @map("ehr_vendor") @db.VarChar(50)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  fhirConnections FhirConnection[]
+
+  @@index([name])
+  @@index([state])
+  @@map("health_systems")
 }
 
 model Match {
