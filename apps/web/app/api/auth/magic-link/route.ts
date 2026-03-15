@@ -5,12 +5,21 @@ import { z } from 'zod';
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
 
+const requestSchema = z.object({
+  email: z.string().email(),
+  redirect: z.string().optional(),
+});
+
 export async function POST(req: NextRequest) {
   try {
-    const { email } = z.object({ email: z.string().email() }).parse(await req.json());
+    const { email, redirect } = requestSchema.parse(await req.json());
     const normalizedEmail = email.toLowerCase().trim();
     const token = await createMagicLinkToken(normalizedEmail);
-    const link = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/verify?token=${token}`;
+
+    let link = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/verify?token=${token}`;
+    if (redirect) {
+      link += `&redirect=${encodeURIComponent(redirect)}`;
+    }
 
     await resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL!,

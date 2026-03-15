@@ -31,7 +31,7 @@ Reduce the time from cancer diagnosis to personalized vaccine access from months
 Extends existing Turborepo. New packages live alongside art-cafe apps.
 
 ```
-oncovax/                                 # As built (Sessions 1-2)
+oncovax/                                 # As built (Sessions 1-3)
 ├── apps/
 │   ├── web/                             # Next.js 15 patient-facing app (App Router)
 │   │   ├── app/
@@ -40,14 +40,29 @@ oncovax/                                 # As built (Sessions 1-2)
 │   │   │   │   ├── admin/               # Admin-only API routes (Session 2)
 │   │   │   │   │   ├── trial-sync/      # POST: trigger sync + parse
 │   │   │   │   │   └── trials/          # GET: list, POST: reparse
-│   │   │   │   ├── auth/                # Magic link auth (Session 1)
+│   │   │   │   ├── auth/                # Magic link auth (Session 1) + session check (Session 3)
+│   │   │   │   ├── documents/           # Upload URL, extraction pipeline (Session 3)
+│   │   │   │   │   ├── upload-url/      # POST: presigned S3 PUT URL
+│   │   │   │   │   └── extract/         # POST: trigger extraction, GET: re-fetch by ID
+│   │   │   │   ├── patients/            # Create + get patient profile (Session 3)
 │   │   │   │   ├── stripe/              # Checkout + webhook (Session 1)
 │   │   │   │   └── trials/              # Public trial search + detail (Session 2)
-│   │   │   └── ...                      # Patient-facing pages (Session 1 stubs)
+│   │   │   ├── start/                   # Patient intake flow (Session 3)
+│   │   │   │   ├── upload/              # Document upload page
+│   │   │   │   ├── manual/              # Manual intake wizard
+│   │   │   │   └── confirm/             # Convergence: review + auth + save
+│   │   │   └── ...                      # Other pages (Session 1 stubs)
+│   │   ├── components/                  # Client components (Session 3)
+│   │   │   ├── DocumentUploader.tsx     # Mobile-first S3 upload with quality checks
+│   │   │   ├── ManualIntakeWizard.tsx   # 4-step clinical data wizard
+│   │   │   └── InlineMagicLink.tsx      # Inline auth with session polling
 │   │   └── lib/
-│   │       ├── ai.ts                    # Claude Opus client + helpers
+│   │       ├── ai.ts                    # Claude Opus client + multi-image + PDF support
 │   │       ├── clinicaltrials.ts        # CTG v2 API client (Session 2)
 │   │       ├── eligibility-parser.ts    # Claude eligibility parser (Session 2)
+│   │       ├── extraction.ts            # Claude Vision extraction pipeline (Session 3)
+│   │       ├── image-quality.ts         # Client-side quality checks + HEIC (Session 3)
+│   │       ├── s3.ts                    # S3 presigned URL generation (Session 3)
 │   │       ├── mapbox.ts                # Geocoding fallback (Session 2)
 │   │       ├── trial-sync.ts            # Sync worker (Session 2)
 │   │       ├── db.ts, redis.ts, session.ts, events.ts, stripe.ts, cloudinary.ts
@@ -63,7 +78,7 @@ oncovax/                                 # As built (Sessions 1-2)
     └── infrastructure/                  # Docker, Terraform, NATS (Phase 3+)
 ```
 
-> **Architecture note:** Sessions 1-2 established that trial ingestion, eligibility parsing, and sync logic live as lib files in `apps/web/lib/`, not as separate packages. This keeps the dependency graph simple. The original spec's `packages/trial-ingestion/`, `packages/eligibility-engine/`, `packages/doc-ingestion/` are implemented as `apps/web/lib/{clinicaltrials,trial-sync,eligibility-parser,mapbox}.ts`.
+> **Architecture note:** Sessions 1-3 established that all server logic (trial ingestion, eligibility parsing, document extraction, sync) lives as lib files in `apps/web/lib/`, not as separate packages. Client components live in `apps/web/components/`. The original spec's `packages/trial-ingestion/`, `packages/eligibility-engine/`, `packages/doc-ingestion/` are implemented as `apps/web/lib/{clinicaltrials,trial-sync,eligibility-parser,extraction,s3,image-quality}.ts`.
 
 ### 1.3 Core Tech Stack
 
@@ -193,7 +208,35 @@ interface ParsedEligibility {
 - `POST /api/admin/trials/[trialId]/reparse` — re-parse single trial
 - Admin QA page at `/admin/trials` with table, confidence color-coding, expandable eligibility
 
-#### 2.1.3 Patient Intake — Document-First Design
+#### 2.1.3 Patient Intake — Document-First Design — IMPLEMENTED
+
+**Status:** Completed (Session 3). Document upload + manual intake paths fully functional. Pre-auth flow: upload/extract works without login, auth required only at confirm/save.
+
+**Implementation files:**
+- `apps/web/lib/s3.ts` — S3 presigned PUT (15min) / GET (1hr) URL generation
+- `apps/web/lib/extraction.ts` — Claude Vision extraction pipeline: type detection → pathology/lab/treatment extractors → merge into PatientProfile → Redis state
+- `apps/web/lib/image-quality.ts` — Client-side canvas quality checks (resolution ≥800px, brightness 40-240, file size 50KB-20MB), thumbnails, HEIC→JPEG conversion
+- `apps/web/lib/ai.ts` — `analyzeMultipleImages()` for multi-page documents, PDF `document` content block support
+- `apps/web/components/DocumentUploader.tsx` — Mobile-first upload (camera capture + file picker), S3 presigned upload with XHR progress, thumbnail grid
+- `apps/web/components/ManualIntakeWizard.tsx` — 4-step wizard (cancer basics, biomarkers, treatments, demographics)
+- `apps/web/components/InlineMagicLink.tsx` — Inline auth with session polling (3s interval)
+- `apps/web/app/api/documents/upload-url/route.ts` — POST: presigned S3 PUT URL (no auth)
+- `apps/web/app/api/documents/extract/route.ts` — POST: await full Claude Vision pipeline, return profile
+- `apps/web/app/api/documents/extract/[extractionId]/route.ts` — GET: re-fetch from Redis
+- `apps/web/app/api/auth/session/route.ts` — GET: session check for InlineMagicLink polling
+- `apps/web/app/api/patients/route.ts` — POST: create Patient + DocumentUpload in transaction
+- `apps/web/app/api/patients/me/route.ts` — GET: return patient with profile + documents
+- `/start/upload`, `/start/manual`, `/start/confirm` — Full page implementations
+
+**Key implementation details:**
+- Extraction uses Claude Opus (not Sonnet) for accuracy on medical documents
+- `POST /api/documents/extract` awaits the full pipeline (10-30s) — no polling needed
+- Redis stores results (1hr TTL) as backup re-fetch mechanism
+- S3 keys stored in `sessionStorage` pre-auth, DB records created only at confirm
+- Auth redirect: magic-link route forwards `?redirect=` param → verify route redirects back
+- Confirm page wraps `useSearchParams()` in Suspense boundary (Next.js 15 requirement)
+- HEIC conversion uses `heic2any` (WebAssembly, dynamically imported)
+- Confidence badges: green ≥0.8, yellow 0.5-0.79, red <0.5, gray for manual/no data
 
 **Design principle:** Cancer patients are drowning in paperwork. The primary intake path is document upload (photo/PDF of pathology report), NOT manual form entry. Claude Vision extracts structured clinical data, patient confirms or corrects in a pre-filled form. Three taps instead of twenty form fields.
 
@@ -203,7 +246,7 @@ interface ParsedEligibility {
 3. **Manual entry** (fallback only)
 
 ```typescript
-// packages/doc-ingestion/src/types.ts
+// packages/doc-ingestion/src/types.ts  (spec reference — implemented in apps/web/lib/)
 
 // Supported input types
 type DocumentInput = {
@@ -2229,55 +2272,48 @@ PHASE 4:
   □ Oncologist network partnerships
 ```
 
-### 7.4 First Claude Code Session — Start Here
+### 7.4 Claude Code Sessions — Progress Tracker
 
 ```
-SESSION 1: Project scaffolding
-  1. Initialize Turborepo with oncovax workspace
-  2. Set up Next.js 14 app with App Router
-  3. Set up Prisma ORM with Postgres schema (Phase 1 tables including doc_uploads, fhir_connections)
-  4. Set up tRPC router structure
-  5. Port magic link auth from art-cafe stack
-  6. Set up S3 bucket for medical document uploads (HIPAA config)
-  7. Deploy to Vercel (web) with staging environment
-  ACTION ITEM: Submit Epic App Orchard registration (parallel track, 4-8 week lead time)
+SESSION 1: Project scaffolding — COMPLETED ✓
+  Built: Turborepo monorepo, Next.js 15 + React 19, Prisma 7 (8 models),
+         custom magic link auth (jose + Redis), Stripe integration,
+         Expo SDK 54 mobile scaffold, 14 pages, 13 API routes, 7 lib files
+  Deviations: No tRPC (API routes), no NextAuth (custom), Dripsy not shadcn
 
-SESSION 2: Trial ingestion pipeline
-  1. Build ClinicalTrials.gov API client
-  2. Build sync worker (fetch + store + parse)
-  3. Build Claude eligibility parser with prompt engineering
-  4. Test parser against 20 real trial texts, iterate prompts
-  5. Set up daily cron sync
+SESSION 2: Trial ingestion pipeline — COMPLETED ✓
+  Built: CTG v2 API client, sync worker, Claude Opus eligibility parser,
+         admin QA page, CLI (pnpm trial-sync --skip-parse/--parse-only)
+  Deviations: Lib files not packages, Opus not Sonnet, Mapbox fallback only
 
-SESSION 3: Document ingestion engine
-  1. Build multi-file upload component (camera capture, photo library, PDF, drag-and-drop)
-  2. Build client-side quality checks (resolution, blur detection, brightness)
-  3. Build Claude Vision extraction pipeline (API calls, response parsing)
-  4. Engineer + test extraction prompts against real pathology reports (anonymized)
-  5. Build "extract and confirm" UI with per-field confidence indicators
-  6. Build document type auto-detection
-  7. Add support for lab reports and treatment summaries
-  8. Build fallback manual intake wizard
+SESSION 3: Document ingestion engine — COMPLETED ✓
+  Built: S3 presigned URLs, Claude Vision extraction pipeline (pathology/lab/treatment),
+         client-side quality checks + HEIC conversion, DocumentUploader component,
+         ManualIntakeWizard (4-step), InlineMagicLink with session polling,
+         extraction API routes, patient create/get API routes,
+         full /start/upload, /start/manual, /start/confirm pages
+  Deviations: Sync extraction (not async polling), pre-auth flow,
+              Opus not Sonnet, all in apps/web/ not packages/
 
-SESSION 4: Matching + results
-  1. Build matching engine (leverage extracted biomarker data for precision matching)
-  2. Build results page with trial cards + map
-  3. Build trial detail page with eligibility breakdown
-  4. Build oncologist brief generator (include extracted data with source attribution)
-  5. Wire up email notifications
+SESSION 4: Matching + results — NEXT
+  TODO: Build matching engine (3-tier: hard filters, soft scoring, LLM-assisted)
+        Build results page with trial cards
+        Build trial detail page with eligibility breakdown
+        Build oncologist brief generator
+        Wire up re-matching on new trials
 
-→ PHASE 1 IS LIVE (document upload + manual intake paths)
+→ PHASE 1 IS LIVE (after Session 4 — document upload + manual intake paths)
 
-SESSION 5: MyChart FHIR integration (after Epic approval lands)
-  1. Build SMART on FHIR OAuth 2.0 flow
-  2. Build health system search/directory
-  3. Build FHIR resource extraction (Condition, Observation, MedicationRequest, etc.)
-  4. Build FHIR → PatientProfile mapping with LOINC/ICD-10 code translation
-  5. Build data access transparency UI (show patient exactly what was pulled)
-  6. Build token refresh + revocation handling
-  7. Test against Epic sandbox, then production
+SESSION 5: Treatment Translator + Financial Assistance Finder
+  TODO: Two-step Claude pipeline (clinical grounding → patient translation)
+        Financial programs database + matching engine
+        Treatment translation UI + financial results page
 
-→ PHASE 1.5 COMPLETE (MyChart intake path live)
+SESSION 6: MyChart FHIR integration (after Epic approval lands)
+  TODO: SMART on FHIR OAuth, health system directory, FHIR extraction,
+        PatientProfile mapping, data access transparency UI
+
+→ PHASE 1.5 COMPLETE (all intake paths + full feature set)
 ```
 
 ---

@@ -677,6 +677,79 @@ All paths (document upload, manual) converge at the confirm page and produce the
 
 ---END---
 
+### SESSION 3 — Implementation Notes (completed)
+
+**Deviations from the original session prompt (shared spec overrides applied):**
+
+| Original Session 3 Prompt | What Was Built | Why |
+|---|---|---|
+| `packages/doc-ingestion/src/extract.ts` | `apps/web/lib/extraction.ts` | Sessions 1-2 pattern: lib files in `apps/web/lib/`, not separate packages |
+| `packages/doc-ingestion/src/quality-check.ts` | `apps/web/lib/image-quality.ts` | Same — all lib files in web app |
+| `packages/ui/src/document-upload.tsx` | `apps/web/components/DocumentUploader.tsx` | Components live in `apps/web/components/`, not a shared UI package |
+| tRPC procedures | Next.js API routes | Shared spec mandates API routes over tRPC |
+| Async extraction with polling | Sync POST that awaits pipeline + Redis backup | Simpler — POST awaits full Claude Vision pipeline (10-30s), returns results directly. Redis stores results for re-fetch backup |
+| Auth required for upload | Auth at confirm step only | Pre-auth flow: upload/extraction work without auth, auth required only at "Find my matches" save step |
+| Claude Sonnet for extraction | Claude Opus (`claude-opus-4-20250514`) | Accuracy over cost for medical document extraction |
+| Separate extractor packages | Single `extraction.ts` orchestrator | All extraction logic (detect type, extract, merge, pipeline) in one file |
+
+**Key architectural decisions:**
+
+1. **Pre-auth data flow:** S3 keys stored in `sessionStorage`, extraction results in Redis (1hr TTL). No database records until user authenticates at confirm step. This allows the full upload → extract → review flow without requiring login.
+
+2. **Sync extraction (not async polling):** The `POST /api/documents/extract` route awaits the full Claude Vision pipeline and returns results in the response body. This is simpler than fire-and-forget + polling. The `GET /api/documents/extract/[extractionId]` route exists as a backup re-fetch mechanism if the POST response is lost.
+
+3. **PDF support via document content blocks:** The Anthropic SDK requires PDFs to be sent as `type: 'document'` content blocks (not `type: 'image'`). The `toContentBlock()` helper in `ai.ts` handles this automatically based on content type.
+
+4. **HEIC conversion:** `heic2any` library converts iPhone HEIC photos to JPEG in-browser via WebAssembly. Dynamically imported only in DocumentUploader to avoid bloating other pages.
+
+**What was built (9 new files, 10 modified):**
+
+New files:
+- `apps/web/lib/s3.ts` — S3 client, presigned PUT/GET URL generation (15min/1hr expiry)
+- `apps/web/lib/extraction.ts` — Document type detection, pathology/lab/treatment extractors with Claude Vision, merge into PatientProfile, pipeline orchestrator with Redis state
+- `apps/web/lib/image-quality.ts` — Client-side canvas quality checks (resolution, brightness, file size), thumbnail generation, HEIC→JPEG conversion
+- `apps/web/components/DocumentUploader.tsx` — Mobile-first upload: camera capture + file picker, HEIC conversion, quality warnings, S3 presigned upload with XHR progress, thumbnail grid, remove/continue
+- `apps/web/components/ManualIntakeWizard.tsx` — 4-step wizard: cancer basics (type + stage), biomarkers (ER/PR/HER2 for breast, generic key-value), treatment history (repeatable entries + ECOG), demographics (age + zip)
+- `apps/web/components/InlineMagicLink.tsx` — Compact inline auth: email input → send magic link → poll `/api/auth/session` every 3s → callback on auth detected
+- `apps/web/app/api/documents/extract/route.ts` — POST: validate, generate extractionId, await full pipeline, return profile + extractions
+- `apps/web/app/api/documents/extract/[extractionId]/route.ts` — GET: re-fetch extraction results from Redis
+- `apps/web/app/api/auth/session/route.ts` — GET: check if user has active session (for InlineMagicLink polling)
+
+Modified files:
+- `packages/db/prisma/schema.prisma` — Added `storagePaths String[]`, `fileCount Int`, `mimeType String?` to DocumentUpload
+- `packages/shared/src/types.ts` — Added `PathologyExtraction`, `LabExtraction`, `TreatmentExtraction`, `ExtractionPipelineResult` interfaces
+- `packages/shared/src/schemas.ts` — Added `pathologyExtractionSchema`, `labExtractionSchema`, `treatmentExtractionSchema`, `documentExtractionResultSchema`, `presignedUrlRequestSchema`, `extractionRequestSchema`
+- `packages/shared/src/index.ts` — Exports for all new types/schemas
+- `apps/web/lib/ai.ts` — Added `analyzeMultipleImages()` for multi-page documents, PDF `document` content block support, refactored media type handling
+- `apps/web/app/api/documents/upload-url/route.ts` — Replaced 501 stub → generates S3 presigned PUT URL (UUID-prefixed s3Key, no auth required)
+- `apps/web/app/api/auth/magic-link/route.ts` — Added optional `redirect` field, forwarded into magic link URL
+- `apps/web/app/api/auth/verify/route.ts` — Added `?redirect=` query param support (validated as relative path)
+- `apps/web/app/api/patients/route.ts` — Replaced 501 stub → POST creates Patient + DocumentUpload records in `$transaction` (upsert on userId)
+- `apps/web/app/api/patients/me/route.ts` — Replaced 501 stub → GET returns patient profile with documents
+
+Pages (3 replaced stubs):
+- `/start/upload` — DocumentUploader component, stores files in sessionStorage, navigates to `/start/confirm?path=upload`
+- `/start/manual` — ManualIntakeWizard component, stores profile in sessionStorage, navigates to `/start/confirm?path=manual`
+- `/start/confirm` — State machine: loading → extracting (upload path) → editing (editable form with confidence badges: green ≥0.8, yellow 0.5-0.79, red <0.5) → auth_required (InlineMagicLink) → saving → redirect to `/matches`. Suspense boundary wraps useSearchParams.
+
+New dependency: `heic2any` added to `apps/web/package.json`
+
+**Verification:**
+- `pnpm install` — passed
+- `pnpm db:generate` — passed (Prisma client regenerated with new DocumentUpload fields)
+- `pnpm --filter @oncovax/web build` — 0 type errors, all routes compiled
+
+**What Session 4 needs to know:**
+- Patient profile is created via `POST /api/patients` with profile JSON, fieldSources, fieldConfidence, intakePath, documents array
+- `requireSession()` from `apps/web/lib/session.ts` returns `{ userId, email }` or throws `'UNAUTHORIZED'`
+- PatientProfile type includes: cancerType, cancerTypeNormalized, stage, histologicalGrade, receptorStatus, biomarkers, priorTreatments, ecogStatus, age, zipCode
+- ParsedEligibility on each Trial includes: cancerTypes, stages, biomarkers, priorTreatments, ageRange, ecogRange, surgicalStatus, etc.
+- Patient.profile is stored as Prisma `Json` — need `JSON.parse(JSON.stringify(...))` for type compatibility
+- The confirm page redirects to `/matches` after save — Session 4 needs to build that page
+- `CLAUDE_MODEL` constant exported from `apps/web/lib/ai.ts` — use for all AI calls
+- Extraction cost tracked in `claudeApiCost` on DocumentUpload records
+- `trackEvent()` from `apps/web/lib/events.ts` for analytics
+
 ---
 
 ## SESSION 4: Matching Engine + Results

@@ -27,7 +27,14 @@ export async function GET(req: NextRequest) {
     JSON.stringify({ userId: user.id, email: user.email, createdAt: new Date().toISOString(), expiresAt: expiresAt.toISOString() })
   );
 
-  const response = NextResponse.redirect(new URL('/dashboard', req.url));
+  // Support redirect param (validated as relative path)
+  const redirectParam = req.nextUrl.searchParams.get('redirect');
+  let redirectPath = '/dashboard';
+  if (redirectParam && redirectParam.startsWith('/') && !redirectParam.startsWith('//')) {
+    redirectPath = redirectParam;
+  }
+
+  const response = NextResponse.redirect(new URL(redirectPath, req.url));
   response.cookies.set('session_id', sessionId, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',

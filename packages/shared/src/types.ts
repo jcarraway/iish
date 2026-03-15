@@ -66,10 +66,52 @@ export interface MatchResult {
 
 export interface DocumentExtractionResult {
   documentType: string;
-  extraction: Record<string, unknown>;
+  extraction: PathologyExtraction | LabExtraction | TreatmentExtraction;
   fieldConfidence: Record<string, number>;
   needsReview: string[];
   couldNotExtract: string[];
   rawText: string;
   qualityIssues: string[];
+}
+
+export interface PathologyExtraction {
+  cancerType?: string;
+  cancerTypeNormalized?: string;
+  stage?: string;
+  histologicalGrade?: string;
+  receptorStatus?: {
+    er?: { status: string; percentage?: number };
+    pr?: { status: string; percentage?: number };
+    her2?: { status: string; method?: string };
+  };
+  biomarkers?: Record<string, string>;
+  specimenDate?: string;
+  facility?: string;
+}
+
+export interface LabExtraction {
+  biomarkers: Record<string, string>;
+  testDate?: string;
+  labName?: string;
+}
+
+export interface TreatmentExtraction {
+  treatments: {
+    name: string;
+    type: string;
+    startDate?: string;
+    endDate?: string;
+    response?: string;
+  }[];
+  ecogStatus?: number;
+}
+
+export interface ExtractionPipelineResult {
+  status: 'processing' | 'completed' | 'failed';
+  profile?: PatientProfile;
+  fieldSources?: Record<string, string>;
+  fieldConfidence?: Record<string, number>;
+  extractions?: DocumentExtractionResult[];
+  claudeApiCost?: number;
+  error?: string;
 }

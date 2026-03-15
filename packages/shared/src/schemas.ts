@@ -73,6 +73,61 @@ export const documentUploadSchema = z.object({
   s3Bucket: z.string(),
 });
 
+export const pathologyExtractionSchema = z.object({
+  cancerType: z.string().optional(),
+  cancerTypeNormalized: z.string().optional(),
+  stage: z.string().optional(),
+  histologicalGrade: z.string().optional(),
+  receptorStatus: z.object({
+    er: z.object({ status: z.string(), percentage: z.number().optional() }).optional(),
+    pr: z.object({ status: z.string(), percentage: z.number().optional() }).optional(),
+    her2: z.object({ status: z.string(), method: z.string().optional() }).optional(),
+  }).optional(),
+  biomarkers: z.record(z.string()).optional(),
+  specimenDate: z.string().optional(),
+  facility: z.string().optional(),
+});
+
+export const labExtractionSchema = z.object({
+  biomarkers: z.record(z.string()),
+  testDate: z.string().optional(),
+  labName: z.string().optional(),
+});
+
+export const treatmentExtractionSchema = z.object({
+  treatments: z.array(z.object({
+    name: z.string(),
+    type: z.string(),
+    startDate: z.string().optional(),
+    endDate: z.string().optional(),
+    response: z.string().optional(),
+  })),
+  ecogStatus: z.number().min(0).max(5).optional(),
+});
+
+export const documentExtractionResultSchema = z.object({
+  documentType: z.string(),
+  extraction: z.union([pathologyExtractionSchema, labExtractionSchema, treatmentExtractionSchema]),
+  fieldConfidence: z.record(z.number()),
+  needsReview: z.array(z.string()),
+  couldNotExtract: z.array(z.string()),
+  rawText: z.string(),
+  qualityIssues: z.array(z.string()),
+});
+
+export const presignedUrlRequestSchema = z.object({
+  filename: z.string().min(1),
+  contentType: z.string().regex(/^(image\/(jpeg|png|webp|heic)|application\/pdf)$/),
+  fileSize: z.number().max(20 * 1024 * 1024), // 20MB max
+});
+
+export const extractionRequestSchema = z.object({
+  s3Keys: z.array(z.string().min(1)).min(1).max(20),
+  mimeTypes: z.array(z.string().min(1)).min(1).max(20),
+});
+
 export type MagicLinkRequest = z.infer<typeof magicLinkRequestSchema>;
 export type PatientProfileInput = z.infer<typeof patientProfileSchema>;
 export type DocumentUploadInput = z.infer<typeof documentUploadSchema>;
+export type PresignedUrlRequest = z.infer<typeof presignedUrlRequestSchema>;
+export type ExtractionRequest = z.infer<typeof extractionRequestSchema>;
