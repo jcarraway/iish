@@ -1,0 +1,25 @@
+# dependencies
+node_modules/
+
+# build
+.next/
+dist/
+.turbo/
+
+# expo
+.expo/
+ios/
+android/
+
+# generated
+packages/db/src/generated/
+
+# env
+.env
+.env.local
+.env.production
+.env.*.local
+
+# misc
+.DS_Store
+*.tsbuildinfo

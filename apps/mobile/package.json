@@ -1,0 +1,32 @@
+{
+  "name": "@oncovax/mobile",
+  "version": "0.0.0",
+  "private": true,
+  "main": "expo-router/entry",
+  "scripts": {
+    "dev": "expo start",
+    "build": "expo export",
+    "lint": "echo 'no lint configured'"
+  },
+  "dependencies": {
+    "@oncovax/shared": "workspace:*",
+    "dripsy": "^4.3.8",
+    "expo": "~54.0.0",
+    "expo-camera": "~16.0.0",
+    "expo-constants": "~17.0.0",
+    "expo-file-system": "~18.0.0",
+    "expo-image-picker": "~16.0.0",
+    "expo-linking": "~7.0.0",
+    "expo-router": "~4.0.0",
+    "expo-secure-store": "~14.0.0",
+    "expo-status-bar": "~2.0.0",
+    "react": "19.0.0",
+    "react-native": "0.76.9",
+    "react-native-safe-area-context": "~5.0.0",
+    "react-native-screens": "~4.4.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "typescript": "5.7.2"
+  }
+}

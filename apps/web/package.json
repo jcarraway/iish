@@ -1,0 +1,40 @@
+{
+  "name": "@oncovax/web",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "next": "15.0.0",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "ioredis": "5.8.2",
+    "resend": "4.0.0",
+    "jose": "5.9.6",
+    "zod": "3.23.8",
+    "@anthropic-ai/sdk": "0.39.0",
+    "stripe": "20.3.1",
+    "cloudinary": "2.5.1",
+    "@aws-sdk/client-s3": "^3.0.0",
+    "@aws-sdk/s3-request-presigner": "^3.0.0",
+    "@prisma/adapter-pg": "^7.0.0",
+    "pg": "^8.13.0",
+    "@oncovax/db": "workspace:*",
+    "@oncovax/shared": "workspace:*",
+    "clsx": "^2.1.0",
+    "tailwind-merge": "^2.2.0"
+  },
+  "devDependencies": {
+    "typescript": "5.7.2",
+    "@types/node": "^20.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "tailwindcss": "^3.4.0",
+    "postcss": "^8.4.0",
+    "autoprefixer": "^10.4.0"
+  }
+}

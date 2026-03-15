@@ -1,0 +1,167 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                             String     @id @default(uuid()) @db.Uuid
+  email                          String     @unique @map("email")
+  name                           String?    @map("name")
+  role                           String     @default("patient") @map("role") @db.VarChar(50)
+  lastLoginAt                    DateTime?  @map("last_login_at")
+  stripeCustomerId               String?    @unique @map("stripe_customer_id")
+  subscriptionStatus             String?    @map("subscription_status") @db.VarChar(50)
+  subscriptionCurrentPeriodEnd   DateTime?  @map("subscription_current_period_end")
+  stripePriceId                  String?    @map("stripe_price_id")
+  createdAt                      DateTime   @default(now()) @map("created_at")
+  updatedAt                      DateTime   @updatedAt @map("updated_at")
+
+  patient Patient?
+  events  UserEvent[]
+
+  @@map("users")
+}
+
+model Trial {
+  id                  String   @id @default(uuid()) @db.Uuid
+  nctId               String   @unique @map("nct_id")
+  title               String   @map("title")
+  sponsor             String?  @map("sponsor")
+  phase               String?  @map("phase") @db.VarChar(50)
+  status              String   @map("status") @db.VarChar(50)
+  parsedEligibility   Json?    @map("parsed_eligibility")
+  rawEligibilityText  String?  @map("raw_eligibility_text")
+  interventionName    String?  @map("intervention_name")
+  interventionType    String?  @map("intervention_type") @db.VarChar(100)
+  interventionDesc    String?  @map("intervention_desc")
+  briefSummary        String?  @map("brief_summary")
+  lastSyncedAt        DateTime? @map("last_synced_at")
+  rawJson             Json?    @map("raw_json")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  sites   TrialSite[]
+  matches Match[]
+
+  @@index([status])
+  @@map("trials")
+}
+
+model TrialSite {
+  id        String  @id @default(uuid()) @db.Uuid
+  trialId   String  @map("trial_id") @db.Uuid
+  facility  String? @map("facility")
+  city      String? @map("city")
+  state     String? @map("state") @db.VarChar(100)
+  country   String? @map("country") @db.VarChar(100)
+  lat       Float?  @map("lat")
+  lng       Float?  @map("lng")
+  contactName  String? @map("contact_name")
+  contactEmail String? @map("contact_email")
+  contactPhone String? @map("contact_phone")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  trial Trial @relation(fields: [trialId], references: [id], onDelete: Cascade)
+
+  @@index([lat, lng])
+  @@index([trialId])
+  @@map("trial_sites")
+}
+
+model Patient {
+  id               String   @id @default(uuid()) @db.Uuid
+  userId           String   @unique @map("user_id") @db.Uuid
+  intakePath       String?  @map("intake_path") @db.VarChar(50)
+  profile          Json?    @map("profile")
+  fieldSources     Json?    @map("field_sources")
+  fieldConfidence  Json?    @map("field_confidence")
+  zipCode          String?  @map("zip_code") @db.VarChar(20)
+  lat              Float?   @map("lat")
+  lng              Float?   @map("lng")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documents        DocumentUpload[]
+  fhirConnections  FhirConnection[]
+  matches          Match[]
+
+  @@map("patients")
+}
+
+model DocumentUpload {
+  id                String   @id @default(uuid()) @db.Uuid
+  patientId         String   @map("patient_id") @db.Uuid
+  documentType      String   @map("document_type") @db.VarChar(100)
+  s3Key             String?  @map("s3_key")
+  s3Bucket          String?  @map("s3_bucket")
+  extractionStatus  String   @default("pending") @map("extraction_status") @db.VarChar(50)
+  extractionResult  Json?    @map("extraction_result")
+  qualityIssues     Json?    @map("quality_issues")
+  confidence        Float?   @map("confidence")
+  claudeApiCost     Float?   @map("claude_api_cost")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId, createdAt(sort: Desc)])
+  @@map("document_uploads")
+}
+
+model FhirConnection {
+  id              String    @id @default(uuid()) @db.Uuid
+  patientId       String    @map("patient_id") @db.Uuid
+  providerSystem  String    @map("provider_system") @db.VarChar(200)
+  accessToken     String?   @map("access_token")
+  refreshToken    String?   @map("refresh_token")
+  tokenExpiresAt  DateTime? @map("token_expires_at")
+  lastSyncedAt    DateTime? @map("last_synced_at")
+  syncStatus      String?   @map("sync_status") @db.VarChar(50)
+  consentGiven    Boolean   @default(false) @map("consent_given")
+  consentAt       DateTime? @map("consent_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId])
+  @@map("fhir_connections")
+}
+
+model Match {
+  id                String   @id @default(uuid()) @db.Uuid
+  patientId         String   @map("patient_id") @db.Uuid
+  trialId           String   @map("trial_id") @db.Uuid
+  matchScore        Float    @map("match_score")
+  matchBreakdown    Json?    @map("match_breakdown")
+  potentialBlockers Json?    @map("potential_blockers")
+  status            String   @default("new") @map("status") @db.VarChar(50)
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  trial   Trial   @relation(fields: [trialId], references: [id], onDelete: Cascade)
+
+  @@unique([patientId, trialId])
+  @@index([patientId, matchScore(sort: Desc)])
+  @@map("matches")
+}
+
+model UserEvent {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  event     String   @db.VarChar(100)
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([event, createdAt])
+  @@map("user_events")
+}
