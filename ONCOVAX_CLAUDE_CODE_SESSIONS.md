@@ -1382,6 +1382,86 @@ When the Treatment Translator estimates treatment costs or mentions specific dru
 
 ---END---
 
+### SESSION 5 — Implementation Notes (completed)
+
+**Deviations from the original session prompt (shared spec overrides applied):**
+
+| Original Session 5 Prompt | What Was Built | Why |
+|---|---|---|
+| `packages/api/src/routers/translator.ts` | `apps/web/lib/translator.ts` | Sessions 1-4 pattern: lib files in `apps/web/lib/`, not separate packages |
+| `packages/eligibility-engine/src/financial-matcher.ts` | `apps/web/lib/financial-matcher.ts` | Same — all lib files in web app |
+| `packages/db/prisma/seed-financial.ts` | `scripts/seed-financial-programs.ts` | Seed scripts live in `scripts/`, consistent with `scripts/trial-sync.ts` |
+| tRPC procedures | Next.js API routes | Shared spec mandates API routes over tRPC |
+| PDF output, shareable link, email features | Copy to clipboard + Print | PDF generation deferred (requires `@react-pdf/renderer`), email deferred |
+| Fund status monitor (Claude scraping status pages) | `scripts/financial-status-check.ts` CLI | Manual status update tool; automated scraping deferred to future cron |
+| Financial matcher with dollar value estimation | Benefit-amount sorting within status tiers | Estimation is per-program `maxBenefitAmount`, not computed per-patient |
+| Integration between translator + financial (drug→program links) | Separate modules with cross-linking via CTAs | Tight integration deferred; pages link to each other via navigation |
+
+**Key architectural decisions:**
+
+1. **Two-step Claude pipeline for translation:** Step 1 (clinical grounding) grounds the AI in NCCN guidelines and published evidence for the patient's specific diagnosis. Step 2 (patient translation) translates that into 8th-grade reading level content. Two calls ensure clinical accuracy isn't sacrificed for readability.
+
+2. **Second opinion trigger logic:** Rule-based (not LLM) — checks for TNBC without pembrolizumab, HER2+ without pertuzumab, high-risk ER+ without CDK4/6 inhibitor, and no genetic testing under age 50. Conservative framing: "worth discussing" not "your doctor is wrong."
+
+3. **Financial matching engine:** Pure deterministic matching against structured eligibility rules (no LLM needed). 6 check dimensions: cancer type, insurance, income (FPL-based), age, treatment drugs, geography. Three-tier result: eligible → likely_eligible → check_eligibility.
+
+4. **Translation caching:** Redis with 24hr TTL keyed by `translation:{patientId}`. GET returns cache, POST generates fresh. Avoids re-running the expensive two-step Claude pipeline on every page load.
+
+5. **Financial profile as nested JSON:** `financialProfile` stored inside the existing `Patient.profile` JSON field — no schema migration needed. Optional collapsible section at confirm step.
+
+6. **Local development database:** Created `oncovax_dev` PostgreSQL database on localhost. `.env` updated to `postgresql://rett@localhost:5432/oncovax_dev`.
+
+**What was built (14 new files, 7 modified):**
+
+New files:
+- `apps/web/lib/translator.ts` — Two-step Claude pipeline: clinical grounding (NCCN guidelines, drug mechanisms, side effects) → patient-facing translation (8th-grade reading level, honest but not terrifying). Second opinion trigger detection (4 rules: TNBC+pembro, HER2+pertuzumab, ER++CDK4/6i, genetic testing<50).
+- `apps/web/lib/financial-matcher.ts` — Deterministic matching engine: FPL income thresholds, cancer type fuzzy match, insurance/age/treatment/geographic checks. 3-tier eligibility: eligible/likely_eligible/check_eligibility. Upserts FinancialMatch records.
+- `apps/web/app/api/translator/route.ts` — GET: return cached translation from Redis. POST: generate fresh translation via two-step pipeline.
+- `apps/web/app/api/financial/route.ts` — GET: run matching engine (or return existing matches), return grouped results with total estimated savings.
+- `apps/web/app/api/financial/[programId]/route.ts` — GET: program detail with patient-specific match data.
+- `apps/web/app/api/financial/subscribe/route.ts` — POST: set `notifyOnReopen = true` on FinancialMatch.
+- `apps/web/app/translate/page.tsx` — Magazine-style treatment guide: diagnosis explainer (stage visual, subtype), drug cards (mechanism, side effects, tips), visual timeline, personalized doctor questions, additional considerations (genetic testing, fertility, clinical trials, mental health), second opinion triggers. Multi-step loading indicator. Copy + Print buttons.
+- `apps/web/app/financial/page.tsx` — Hero banner with estimated total savings, programs grouped by category (copay, living expenses, transportation, free medication, etc.), FinancialProgramCard grid.
+- `apps/web/app/financial/[programId]/page.tsx` — Full program detail: description, benefit, eligibility criteria, application process, required documents, contact info, patient-specific match status banner.
+- `apps/web/components/TranslationSection.tsx` — Reusable collapsible section with title, subtitle, expand/collapse toggle.
+- `apps/web/components/FinancialProgramCard.tsx` — Program card with status badge (open/closed/waitlist), match badge (eligible/likely/check), benefit estimate, apply/details buttons.
+- `scripts/seed-financial-programs.ts` — Seeds 30 real financial programs: 6 copay foundations (CancerCare, HealthWell, PAN, Good Days, PAF, TAF), 5 breast cancer nonprofits (Komen, Pink Fund, Sisters Network, YSC, BCRF), 8 pharma PAPs (Genentech, Pfizer, Lilly, Merck, AstraZeneca, Daiichi Sankyo, Novartis, BMS), 6 practical assistance (ACS Hope Lodge, Road to Recovery, Angel Flight, Family Reach, Meals on Wheels, Ronald McDonald House), 5 government programs (Medicaid, Medicare Extra Help, SSDI, SSI, SPAP).
+- `scripts/financial-status-check.ts` — CLI to list program statuses or update individual program status with notification check.
+
+Modified files:
+- `packages/db/prisma/schema.prisma` — Added `FinancialProgram` model (22 fields, 2 indexes) + `FinancialMatch` model (10 fields, unique constraint, index). Added `financialMatches` relation to `Patient`. Total: 10 models.
+- `packages/shared/src/types.ts` — Added `TreatmentTranslation` (diagnosis, treatmentPlan with DrugCard[], timeline with TimelinePhase[], questionsForDoctor, additionalConsiderations, secondOpinionTriggers), `FinancialProfile`, `FinancialProgramEligibility`, `FinancialMatchResult`.
+- `packages/shared/src/schemas.ts` — Added `financialProfileSchema`, `treatmentTranslationRequestSchema`.
+- `packages/shared/src/constants.ts` — Added `FINANCIAL_PROGRAM_TYPES` (7 types), `ASSISTANCE_CATEGORIES` (11 categories), `FINANCIAL_MATCH_STATUSES`, `FINANCIAL_APPLICATION_STATUSES`, `INSURANCE_TYPES`, `INCOME_RANGES`.
+- `packages/shared/src/index.ts` — Exports all new types, schemas, constants.
+- `apps/web/middleware.ts` — Added `/translate/:path*`, `/financial/:path*` to protected matcher.
+- `apps/web/app/start/confirm/page.tsx` — Added optional collapsible "Financial assistance" section: insurance type (radio pills), household size (dropdown), income range (radio pills), financial concerns (multi-select checkboxes). Stores as `financialProfile` in patient profile JSON.
+- `apps/web/app/dashboard/page.tsx` — Replaced stub with 3-card dashboard: Trial Matches (count + top score), Treatment Guide (link to /translate), Financial Help (eligible program count + estimated total). Loads data from matches + financial APIs in parallel.
+
+**Database changes:**
+- Added `FinancialProgram` + `FinancialMatch` models to Prisma schema
+- Created local `oncovax_dev` database, pushed schema (10 tables)
+- Seeded 30 financial programs
+
+**Verification:**
+- `pnpm install` — passed
+- `npx prisma generate` — passed (Prisma client with new models)
+- `npx prisma db push` — passed (local oncovax_dev database)
+- `pnpm --filter @oncovax/web build` — 0 type errors, 44 routes compiled
+- Financial program seed: 30 programs inserted and verified
+
+**What Session 6 needs to know:**
+- `generateTranslation(profile, patientId)` is the main entry point for treatment translation — caches in Redis for 24hrs
+- `matchFinancialPrograms(patientId)` runs the financial matching engine — upserts FinancialMatch records
+- `FinancialProfile` (optional) stored inside `Patient.profile` JSON under `financialProfile` key — no schema migration needed
+- Local dev database: `oncovax_dev` on localhost with `rett` user (no password)
+- `CLAUDE_MODEL` constant from `apps/web/lib/ai.ts` used for all AI calls
+- `requireSession()` from `apps/web/lib/session.ts` guards all new endpoints
+- Translation page shows a 3-step loading indicator (analyzing → reviewing → creating) to handle the ~20-30s Claude pipeline
+- Financial program data is best-effort research — `status` defaults to `unknown` for unchecked programs
+- `notifyOnReopen` flag exists on FinancialMatch but email notification system not yet implemented
+- Dashboard loads matches + financial data in parallel for fast rendering
+
 ---
 
 ## SESSION 6: MyChart FHIR Integration

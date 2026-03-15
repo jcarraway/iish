@@ -65,3 +65,58 @@ export const TRIAL_SYNC_STATUSES = {
   PRIMARY: ['RECRUITING', 'NOT_YET_RECRUITING', 'ENROLLING_BY_INVITATION'] as const,
   HISTORICAL: ['ACTIVE_NOT_RECRUITING', 'COMPLETED'] as const,
 } as const;
+
+export const FINANCIAL_PROGRAM_TYPES = {
+  COPAY_FOUNDATION: 'copay_foundation',
+  PHARMA_PAP: 'pharma_pap',
+  NONPROFIT_GRANT: 'nonprofit_grant',
+  GOVERNMENT_PROGRAM: 'government_program',
+  LODGING_PROGRAM: 'lodging_program',
+  TRANSPORTATION_PROGRAM: 'transportation_program',
+  GENERAL_ASSISTANCE: 'general_assistance',
+} as const;
+
+export const ASSISTANCE_CATEGORIES = {
+  COPAY_TREATMENT: 'copay_treatment',
+  COPAY_DIAGNOSTICS: 'copay_diagnostics',
+  TRANSPORTATION: 'transportation',
+  LODGING: 'lodging',
+  LIVING_EXPENSES: 'living_expenses',
+  FOOD: 'food',
+  CHILDCARE: 'childcare',
+  FREE_MEDICATION: 'free_medication',
+  FERTILITY_PRESERVATION: 'fertility_preservation',
+  MENTAL_HEALTH: 'mental_health',
+  GENERAL_FINANCIAL: 'general_financial',
+} as const;
+
+export const FINANCIAL_MATCH_STATUSES = {
+  ELIGIBLE: 'eligible',
+  LIKELY_ELIGIBLE: 'likely_eligible',
+  CHECK_ELIGIBILITY: 'check_eligibility',
+  INELIGIBLE: 'ineligible',
+} as const;
+
+export const FINANCIAL_APPLICATION_STATUSES = {
+  NEW: 'new',
+  APPLIED: 'applied',
+  APPROVED: 'approved',
+  DENIED: 'denied',
+} as const;
+
+export const INSURANCE_TYPES = [
+  'Commercial',
+  'Medicare',
+  'Medicaid',
+  'Uninsured',
+  'Other',
+] as const;
+
+export const INCOME_RANGES = [
+  '$0 – $30,000',
+  '$30,000 – $50,000',
+  '$50,000 – $75,000',
+  '$75,000 – $100,000',
+  '$100,000+',
+  'Prefer not to say',
+] as const;

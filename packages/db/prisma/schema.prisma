@@ -85,10 +85,11 @@ model Patient {
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")
 
-  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  documents        DocumentUpload[]
-  fhirConnections  FhirConnection[]
-  matches          Match[]
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documents         DocumentUpload[]
+  fhirConnections   FhirConnection[]
+  matches           Match[]
+  financialMatches  FinancialMatch[]
 
   @@map("patients")
 }
@@ -153,6 +154,60 @@ model Match {
   @@unique([patientId, trialId])
   @@index([patientId, matchScore(sort: Desc)])
   @@map("matches")
+}
+
+model FinancialProgram {
+  id                    String   @id @default(uuid()) @db.Uuid
+  name                  String
+  organization          String
+  type                  String   @db.VarChar(50)
+  assistanceCategories  String[] @map("assistance_categories")
+  description           String?
+  maxBenefitAmount      Float?   @map("max_benefit_amount")
+  benefitDescription    String?  @map("benefit_description")
+  eligibility           Json     @map("eligibility")
+  status                String   @default("unknown") @db.VarChar(50)
+  statusUrl             String?  @map("status_url")
+  lastStatusCheck       DateTime? @map("last_status_check")
+  applicationProcess    String?  @map("application_process") @db.VarChar(50)
+  applicationUrl        String?  @map("application_url")
+  applicationPhone      String?  @map("application_phone")
+  requiredDocuments     String[] @map("required_documents")
+  turnaroundTime        String?  @map("turnaround_time")
+  phone                 String?
+  website               String
+  email                 String?
+  hours                 String?
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  matches FinancialMatch[]
+
+  @@index([type])
+  @@index([status])
+  @@map("financial_programs")
+}
+
+model FinancialMatch {
+  id              String   @id @default(uuid()) @db.Uuid
+  patientId       String   @map("patient_id") @db.Uuid
+  programId       String   @map("program_id") @db.Uuid
+  matchStatus     String   @map("match_status") @db.VarChar(50)
+  estimatedBenefit String?  @map("estimated_benefit")
+  matchReasoning  String?  @map("match_reasoning")
+  missingInfo     Json?    @map("missing_info")
+  status          String   @default("new") @db.VarChar(50)
+  appliedAt       DateTime? @map("applied_at")
+  notifyOnReopen  Boolean  @default(false) @map("notify_on_reopen")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  patient  Patient          @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  program  FinancialProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@unique([patientId, programId])
+  @@index([patientId, matchStatus])
+  @@map("financial_matches")
 }
 
 model UserEvent {

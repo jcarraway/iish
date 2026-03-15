@@ -126,8 +126,20 @@ export const extractionRequestSchema = z.object({
   mimeTypes: z.array(z.string().min(1)).min(1).max(20),
 });
 
+export const financialProfileSchema = z.object({
+  insuranceType: z.string().optional(),
+  householdSize: z.number().min(1).max(20).optional(),
+  householdIncome: z.string().optional(),
+  financialConcerns: z.array(z.string()).optional(),
+});
+
+export const treatmentTranslationRequestSchema = z.object({
+  patientId: z.string().uuid().optional(),
+});
+
 export type MagicLinkRequest = z.infer<typeof magicLinkRequestSchema>;
 export type PatientProfileInput = z.infer<typeof patientProfileSchema>;
 export type DocumentUploadInput = z.infer<typeof documentUploadSchema>;
 export type PresignedUrlRequest = z.infer<typeof presignedUrlRequestSchema>;
 export type ExtractionRequest = z.infer<typeof extractionRequestSchema>;
+export type FinancialProfileInput = z.infer<typeof financialProfileSchema>;

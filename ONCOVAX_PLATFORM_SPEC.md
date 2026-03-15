@@ -31,7 +31,7 @@ Reduce the time from cancer diagnosis to personalized vaccine access from months
 Extends existing Turborepo. New packages live alongside art-cafe apps.
 
 ```
-oncovax/                                 # As built (Sessions 1-4)
+oncovax/                                 # As built (Sessions 1-5)
 ├── apps/
 │   ├── web/                             # Next.js 15 patient-facing app (App Router)
 │   │   ├── app/
@@ -44,54 +44,74 @@ oncovax/                                 # As built (Sessions 1-4)
 │   │   │   │   ├── documents/           # Upload URL, extraction pipeline (Session 3)
 │   │   │   │   │   ├── upload-url/      # POST: presigned S3 PUT URL
 │   │   │   │   │   └── extract/         # POST: trigger extraction, GET: re-fetch by ID
+│   │   │   │   ├── financial/           # Financial assistance matching (Session 5)
+│   │   │   │   │   ├── route.ts         # GET: matched programs grouped by category
+│   │   │   │   │   ├── [programId]/     # GET: program detail + patient match
+│   │   │   │   │   └── subscribe/       # POST: notify on fund reopen
 │   │   │   │   ├── matches/             # Match listing, detail, status, generation, brief (Session 4)
 │   │   │   │   │   ├── generate/        # POST: trigger match generation
 │   │   │   │   │   └── [matchId]/       # GET: detail, PATCH: status
 │   │   │   │   │       └── brief/       # GET: generate oncologist brief
 │   │   │   │   ├── patients/            # Create + get patient profile (Session 3)
 │   │   │   │   ├── stripe/              # Checkout + webhook (Session 1)
+│   │   │   │   ├── translator/          # Treatment translation pipeline (Session 5)
+│   │   │   │   │   └── route.ts         # GET: cached, POST: generate via 2-step Claude pipeline
 │   │   │   │   └── trials/              # Public trial search + detail (Session 2)
+│   │   │   ├── dashboard/               # Dashboard hub (Session 5)
+│   │   │   │   ├── page.tsx             # 3-card layout: trials, treatment guide, financial
+│   │   │   │   └── records/page.tsx     # Manage health records (stub)
+│   │   │   ├── financial/               # Financial assistance finder (Session 5)
+│   │   │   │   ├── page.tsx             # Programs grouped by category, hero savings banner
+│   │   │   │   └── [programId]/page.tsx # Program detail + eligibility + how to apply
 │   │   │   ├── matches/                 # Match results flow (Session 4)
 │   │   │   │   ├── page.tsx             # Ranked match list with filter tabs
 │   │   │   │   └── [trialId]/
 │   │   │   │       ├── page.tsx         # Trial detail + eligibility breakdown
 │   │   │   │       └── contact/page.tsx # Oncologist brief generator
-│   │   │   ├── start/                   # Patient intake flow (Session 3)
+│   │   │   ├── start/                   # Patient intake flow (Session 3, extended Session 5)
 │   │   │   │   ├── upload/              # Document upload page
 │   │   │   │   ├── manual/              # Manual intake wizard
-│   │   │   │   └── confirm/             # Convergence: review + auth + save
+│   │   │   │   └── confirm/             # Review + auth + save + optional financial profile
+│   │   │   ├── translate/               # Treatment translator (Session 5)
+│   │   │   │   └── page.tsx             # Magazine-style treatment guide with drug cards + timeline
 │   │   │   └── ...                      # Other pages (Session 1 stubs)
-│   │   ├── components/                  # Client components (Sessions 3-4)
+│   │   ├── components/                  # Client components (Sessions 3-5)
 │   │   │   ├── DocumentUploader.tsx     # Mobile-first S3 upload with quality checks
 │   │   │   ├── ManualIntakeWizard.tsx   # 4-step clinical data wizard
 │   │   │   ├── InlineMagicLink.tsx      # Inline auth with session polling
 │   │   │   ├── MatchCard.tsx            # Match card with score badge + breakdown pills (Session 4)
-│   │   │   └── EligibilityBreakdown.tsx # 6-dimension breakdown + LLM assessment (Session 4)
+│   │   │   ├── EligibilityBreakdown.tsx # 6-dimension breakdown + LLM assessment (Session 4)
+│   │   │   ├── TranslationSection.tsx   # Collapsible section for treatment guide (Session 5)
+│   │   │   └── FinancialProgramCard.tsx # Program card with status badge + apply button (Session 5)
 │   │   └── lib/
 │   │       ├── ai.ts                    # Claude Opus client + multi-image + PDF support
 │   │       ├── clinicaltrials.ts        # CTG v2 API client (Session 2)
 │   │       ├── eligibility-parser.ts    # Claude eligibility parser (Session 2)
 │   │       ├── extraction.ts            # Claude Vision extraction pipeline (Session 3)
+│   │       ├── financial-matcher.ts     # Financial program matching engine (Session 5)
 │   │       ├── image-quality.ts         # Client-side quality checks + HEIC (Session 3)
 │   │       ├── matcher.ts              # 3-tier matching engine with fuzzy + stage matching (Session 4)
 │   │       ├── oncologist-brief.ts     # Claude-powered oncologist brief generator (Session 4)
 │   │       ├── s3.ts                    # S3 presigned URL generation (Session 3)
+│   │       ├── translator.ts           # Two-step Claude translation pipeline (Session 5)
 │   │       ├── mapbox.ts                # Geocoding fallback (Session 2)
 │   │       ├── trial-sync.ts            # Sync worker (Session 2)
 │   │       ├── db.ts, redis.ts, session.ts, events.ts, stripe.ts, cloudinary.ts
 │   │       └── ...
 │   └── mobile/                          # Expo SDK 54 (Session 1 scaffold)
 ├── packages/
-│   ├── db/                              # Prisma 7 + PostgreSQL (8 models)
+│   ├── db/                              # Prisma 7 + PostgreSQL (10 models)
 │   └── shared/                          # Types, schemas, constants, auth
 ├── scripts/
-│   └── trial-sync.ts                    # CLI: pnpm trial-sync (Session 2)
+│   ├── trial-sync.ts                    # CLI: pnpm trial-sync (Session 2)
+│   ├── seed-financial-programs.ts       # Seed 30 financial programs (Session 5)
+│   └── financial-status-check.ts        # CLI: check/update fund statuses (Session 5)
 └── [future phases]
     ├── services/neoantigen-pipeline/    # Rust + Python (Phase 3)
     └── infrastructure/                  # Docker, Terraform, NATS (Phase 3+)
 ```
 
-> **Architecture note:** Sessions 1-4 established that all server logic (trial ingestion, eligibility parsing, document extraction, matching, sync) lives as lib files in `apps/web/lib/`, not as separate packages. Client components live in `apps/web/components/`. The original spec's `packages/trial-ingestion/`, `packages/eligibility-engine/`, `packages/doc-ingestion/` are implemented as `apps/web/lib/{clinicaltrials,trial-sync,eligibility-parser,extraction,matcher,oncologist-brief,s3,image-quality}.ts`.
+> **Architecture note:** Sessions 1-5 established that all server logic (trial ingestion, eligibility parsing, document extraction, matching, translation, financial matching, sync) lives as lib files in `apps/web/lib/`, not as separate packages. Client components live in `apps/web/components/`. The original spec's `packages/trial-ingestion/`, `packages/eligibility-engine/`, `packages/doc-ingestion/` are implemented as `apps/web/lib/{clinicaltrials,trial-sync,eligibility-parser,extraction,matcher,oncologist-brief,translator,financial-matcher,s3,image-quality}.ts`.
 
 ### 1.3 Core Tech Stack
 
@@ -972,7 +992,15 @@ interface OncologistBrief {
 }
 ```
 
-### 2.5 Treatment Translator
+### 2.5 Treatment Translator — IMPLEMENTED
+
+**Status:** Completed (Session 5). Two-step Claude pipeline with Redis caching and magazine-style UI.
+
+**Implementation files:**
+- `apps/web/lib/translator.ts` — Two-step Claude pipeline (clinical grounding → patient translation), second opinion trigger detection (4 rules)
+- `apps/web/app/api/translator/route.ts` — GET: cached translation from Redis. POST: generate fresh via pipeline.
+- `apps/web/app/translate/page.tsx` — Magazine-style reading experience with collapsible sections
+- `apps/web/components/TranslationSection.tsx` — Reusable collapsible section component
 
 **Purpose:** When a patient gets diagnosed, their oncologist communicates in clinical shorthand that's incomprehensible to most people. The Treatment Translator takes the patient's extracted clinical profile and generates a personalized, plain-language explainer of their diagnosis, treatment plan, and what to expect.
 
@@ -1080,7 +1108,21 @@ This is NOT about undermining their oncologist — it's about ensuring patients 
 
 **UX:** Magazine-style reading experience, not a data dump. Collapsible sections. "Save as PDF" for bringing to appointments. "Share with family" option (generates a simplified version for caregivers). Interactive drug timeline visualization.
 
-### 2.6 Financial Assistance Finder
+### 2.6 Financial Assistance Finder — IMPLEMENTED
+
+**Status:** Completed (Session 5). 30 programs seeded, deterministic matching engine, financial results UI.
+
+**Implementation files:**
+- `apps/web/lib/financial-matcher.ts` — Deterministic matching engine (6 dimensions: cancer type, insurance, income/FPL, age, treatment drugs, geography)
+- `apps/web/app/api/financial/route.ts` — GET: matched programs grouped by category
+- `apps/web/app/api/financial/[programId]/route.ts` — GET: program detail + patient match
+- `apps/web/app/api/financial/subscribe/route.ts` — POST: subscribe to fund reopen alerts
+- `apps/web/app/financial/page.tsx` — Hero banner with estimated savings, programs by category
+- `apps/web/app/financial/[programId]/page.tsx` — Program detail with eligibility, how to apply, contact
+- `apps/web/components/FinancialProgramCard.tsx` — Card with status badge + match badge + apply button
+- `scripts/seed-financial-programs.ts` — Seeds 30 programs (6 copay foundations, 5 breast cancer nonprofits, 8 pharma PAPs, 6 practical assistance, 5 government programs)
+- `scripts/financial-status-check.ts` — CLI to check/update fund statuses
+- `apps/web/app/start/confirm/page.tsx` — Extended with optional financial profile section (insurance, household, income, concerns)
 
 **Purpose:** Cancer is the #1 cause of medical bankruptcy in the US. There are 200+ financial assistance programs available to cancer patients — copay assistance, living expense grants, free medications, transportation help, lodging, childcare support — but most patients don't know they exist or can't navigate the eligibility requirements. This module matches patients to every program they qualify for, pre-fills applications, and tracks open/closed fund status.
 
@@ -2360,12 +2402,15 @@ SESSION 4: Matching engine + results — COMPLETED ✓
 
 → PHASE 1 MVP IS LIVE (Sessions 1-4: document upload + manual intake + matching + results)
 
-SESSION 5: Treatment Translator + Financial Assistance Finder — NEXT
-  TODO: Two-step Claude pipeline (clinical grounding → patient translation)
-        Financial programs database + matching engine
-        Treatment translation UI + financial results page
+SESSION 5: Treatment Translator + Financial Assistance Finder — COMPLETED
+  Built: Two-step Claude pipeline (clinical grounding → patient-facing translation),
+         30-program financial assistance database with deterministic matching engine,
+         magazine-style treatment guide UI, financial results + program detail pages,
+         confirm page financial profile section, dashboard 3-card layout
+  Deviations: No PDF export for translation yet, no email notifications for fund
+              reopening yet (flag stored), status check is manual CLI (not cron)
 
-SESSION 6: MyChart FHIR integration (after Epic approval lands)
+SESSION 6: MyChart FHIR integration (after Epic approval lands) — NEXT
   TODO: SMART on FHIR OAuth, health system directory, FHIR extraction,
         PatientProfile mapping, data access transparency UI
 

@@ -119,6 +119,96 @@ export interface TreatmentExtraction {
   ecogStatus?: number;
 }
 
+export interface DrugCard {
+  name: string;
+  genericName?: string;
+  mechanism: string;
+  whyThisDrug: string;
+  commonSideEffects: { effect: string; timing: string; management: string }[];
+  seriousSideEffects: string[];
+  tips: string[];
+}
+
+export interface TimelinePhase {
+  phase: string;
+  duration: string;
+  description: string;
+  whatToExpect: string[];
+}
+
+export interface DoctorQuestion {
+  question: string;
+  whyItMatters: string;
+}
+
+export interface SecondOpinionTrigger {
+  reason: string;
+  level: 'worth_discussing' | 'informational';
+}
+
+export interface TreatmentTranslation {
+  diagnosis: {
+    summary: string;
+    stageExplainer: string;
+    subtypeExplainer: string;
+    whatThisMeans: string;
+  };
+  treatmentPlan: {
+    overview: string;
+    drugs: DrugCard[];
+    guidelineAlignment: string;
+  };
+  timeline: {
+    overview: string;
+    phases: TimelinePhase[];
+  };
+  questionsForDoctor: DoctorQuestion[];
+  additionalConsiderations: {
+    geneticTesting?: string;
+    fertilityPreservation?: string;
+    clinicalTrials?: string;
+    mentalHealth?: string;
+  };
+  secondOpinionTriggers: SecondOpinionTrigger[];
+  generatedAt: string;
+}
+
+export interface FinancialProfile {
+  insuranceType?: string;
+  householdSize?: number;
+  householdIncome?: string;
+  financialConcerns?: string[];
+}
+
+export interface FinancialProgramEligibility {
+  cancerTypes: string[] | 'all';
+  insuranceRequired: boolean | null;
+  insuranceTypes: string[];
+  incomeLimit: { fplPercentage: number | null };
+  ageRange: { min: number | null; max: number | null };
+  treatmentTypes: string[] | 'all';
+  geographicRestrictions: string[];
+  citizenshipRequired: boolean;
+}
+
+export interface FinancialMatchResult {
+  programId: string;
+  programName: string;
+  organization: string;
+  type: string;
+  matchStatus: 'eligible' | 'likely_eligible' | 'check_eligibility' | 'ineligible';
+  estimatedBenefit: string | null;
+  matchReasoning: string;
+  missingInfo: string[];
+  status: string;
+  maxBenefitAmount: number | null;
+  benefitDescription: string | null;
+  applicationProcess: string | null;
+  applicationUrl: string | null;
+  website: string;
+  assistanceCategories: string[];
+}
+
 export interface ExtractionPipelineResult {
   status: 'processing' | 'completed' | 'failed';
   profile?: PatientProfile;

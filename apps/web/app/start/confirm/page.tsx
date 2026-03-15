@@ -3,7 +3,8 @@
 import { Suspense, useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import InlineMagicLink from '@/components/InlineMagicLink';
-import type { PatientProfile, ExtractionPipelineResult } from '@oncovax/shared';
+import type { PatientProfile, ExtractionPipelineResult, FinancialProfile } from '@oncovax/shared';
+import { INSURANCE_TYPES, INCOME_RANGES, ASSISTANCE_CATEGORIES } from '@oncovax/shared';
 
 type PageState = 'loading' | 'extracting' | 'editing' | 'auth_required' | 'saving' | 'error';
 
@@ -54,6 +55,8 @@ function ConfirmPageInner() {
   const [saveError, setSaveError] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [claudeApiCost, setClaudeApiCost] = useState(0);
+  const [financialOpen, setFinancialOpen] = useState(false);
+  const [financialProfile, setFinancialProfile] = useState<FinancialProfile>({});
 
   // Load data on mount
   useEffect(() => {
@@ -153,7 +156,7 @@ function ConfirmPageInner() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          profile,
+          profile: { ...profile, financialProfile: Object.keys(financialProfile).length > 0 ? financialProfile : undefined },
           fieldSources,
           fieldConfidence,
           intakePath: path,
@@ -182,7 +185,7 @@ function ConfirmPageInner() {
       setSaveError(err instanceof Error ? err.message : 'Save failed');
       setState('editing');
     }
-  }, [isAuthenticated, profile, fieldSources, fieldConfidence, path, uploadedFiles, claudeApiCost, router]);
+  }, [isAuthenticated, profile, fieldSources, fieldConfidence, path, uploadedFiles, claudeApiCost, financialProfile, router]);
 
   const handleAuthDetected = useCallback(() => {
     setIsAuthenticated(true);
@@ -440,6 +443,130 @@ function ConfirmPageInner() {
               placeholder="e.g., 94110"
             />
           </div>
+        </div>
+        {/* Financial assistance (optional) */}
+        <div className="mt-6 rounded-lg border border-gray-200">
+          <button
+            type="button"
+            onClick={() => setFinancialOpen(!financialOpen)}
+            className="flex w-full items-center justify-between px-4 py-3 text-left"
+          >
+            <div>
+              <span className="text-sm font-medium text-gray-700">Financial assistance</span>
+              <span className="ml-2 text-xs text-gray-400">(optional)</span>
+            </div>
+            <svg
+              className={`h-4 w-4 text-gray-400 transition-transform ${financialOpen ? 'rotate-180' : ''}`}
+              fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+            </svg>
+          </button>
+          {financialOpen && (
+            <div className="space-y-4 border-t border-gray-200 px-4 py-4">
+              <p className="text-xs text-gray-500">
+                Help us find financial assistance programs you may qualify for. All fields are optional and kept private.
+              </p>
+
+              {/* Insurance type */}
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Insurance type</label>
+                <div className="flex flex-wrap gap-2">
+                  {INSURANCE_TYPES.map((type) => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => setFinancialProfile(p => ({ ...p, insuranceType: p.insuranceType === type ? undefined : type }))}
+                      className={`rounded-full border px-3 py-1 text-xs ${
+                        financialProfile.insuranceType === type
+                          ? 'border-blue-600 bg-blue-50 text-blue-700'
+                          : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      {type}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Household size */}
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Household size</label>
+                <select
+                  value={financialProfile.householdSize?.toString() ?? ''}
+                  onChange={(e) => setFinancialProfile(p => ({ ...p, householdSize: e.target.value ? parseInt(e.target.value, 10) : undefined }))}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                >
+                  <option value="">Select...</option>
+                  {[1, 2, 3, 4, 5, 6, 7, 8].map(n => (
+                    <option key={n} value={n}>{n}{n === 8 ? '+' : ''}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Income range */}
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Household income (annual)</label>
+                <div className="flex flex-wrap gap-2">
+                  {INCOME_RANGES.map((range) => (
+                    <button
+                      key={range}
+                      type="button"
+                      onClick={() => setFinancialProfile(p => ({ ...p, householdIncome: p.householdIncome === range ? undefined : range }))}
+                      className={`rounded-full border px-3 py-1 text-xs ${
+                        financialProfile.householdIncome === range
+                          ? 'border-blue-600 bg-blue-50 text-blue-700'
+                          : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      {range}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Financial concerns */}
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">What costs concern you most?</label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { key: ASSISTANCE_CATEGORIES.COPAY_TREATMENT, label: 'Drug copays' },
+                    { key: ASSISTANCE_CATEGORIES.TRANSPORTATION, label: 'Transportation' },
+                    { key: ASSISTANCE_CATEGORIES.LIVING_EXPENSES, label: 'Living expenses' },
+                    { key: ASSISTANCE_CATEGORIES.CHILDCARE, label: 'Childcare' },
+                    { key: ASSISTANCE_CATEGORIES.FOOD, label: 'Food' },
+                    { key: ASSISTANCE_CATEGORIES.LODGING, label: 'Lodging' },
+                  ].map(({ key, label }) => {
+                    const selected = financialProfile.financialConcerns?.includes(key) ?? false;
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => {
+                          setFinancialProfile(p => {
+                            const current = p.financialConcerns ?? [];
+                            return {
+                              ...p,
+                              financialConcerns: selected
+                                ? current.filter(c => c !== key)
+                                : [...current, key],
+                            };
+                          });
+                        }}
+                        className={`rounded-full border px-3 py-1 text-xs ${
+                          selected
+                            ? 'border-blue-600 bg-blue-50 text-blue-700'
+                            : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
