@@ -1,0 +1,6 @@
+boto3>=1.34,<2
+nats-py>=2.7,<3
+requests>=2.31,<3
+biopython>=1.83,<2
+biotite>=1.0,<2
+numpy>=1.26,<2

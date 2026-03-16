@@ -1840,6 +1840,59 @@ CRITICAL DISCLAIMERS to include:
 
 ---END---
 
+### Session 14 — COMPLETED
+
+**What was built:**
+
+Three Python services completing the computational pipeline — structure predictor, ranking, and mRNA vaccine designer:
+
+**structure-predictor service** (Python, ~13 new files):
+- `main.py` — Async entry: download neoantigen_report.json + hla_genotype.json from S3 → select top 20 candidates by composite score → for each: template PDB lookup → peptide threading → SASA calculation → fallback to AlphaFold API → upload PDB files + `structure_report.json` → publish NATS. Progress events at 5/10/15-85/90%.
+- `mhc_templates.py` — Maps ~25 common HLA-A/B/C alleles to RCSB PDB IDs (e.g., HLA-A*02:01 → 3MRE). Supertype fallback matching (same 2-digit group). Downloads template PDBs from RCSB on demand.
+- `mhc_complex.py` — Biopython Bio.PDB-based peptide threading. Finds peptide chain (shortest 7-16 residue chain), replaces residue names with mutant peptide amino acids, anchor-based position mapping for length mismatches (±2 residues), keeps backbone atoms only (N, CA, C, O, CB).
+- `alphafold_client.py` — AlphaFold Server API fallback for rare alleles. Async with rate limiting (1 req/10s), 30min timeout, submit/poll pattern.
+- `accessibility.py` — SASA calculation via `biotite.structure.sasa()` (Shrake-Rupley algorithm). Per-amino-acid max SASA table (Tien et al. 2013). Identifies peptide chain by residue count, normalizes to [0,1].
+- `output.py` — StructureResult dataclass + build_structure_report() — patches structural_exposure values into neoantigen records.
+- `pipeline_common/` — Copied from neoantigen-predictor (identical 6 files).
+- `Dockerfile` — python:3.12-slim, lightweight (no ML frameworks).
+
+**ranking service** (Python, ~8 new files):
+- `main.py` — Downloads neoantigen_report.json + structure_report.json → patches structural_exposure from structure results into neoantigen dicts → rebuilds NeoantigenScore objects → re-runs `score_and_rank()` (identical scoring module copied from neoantigen-predictor) → uploads `ranked_neoantigens.json` → publishes NATS with topNeoantigens metadata.
+- `scoring.py` — Identical copy of neoantigen-predictor scoring (6-factor weighted composite, normalize_binding, compute_agretopicity, classify_confidence). Real structural_exposure now replaces default 0.5.
+
+**mrna-designer service** (Python, ~13 new files):
+- `main.py` — Full orchestration: download ranked_neoantigens.json → select epitopes → design construct → codon optimize → assemble mRNA → quality checks → formulation notes → Claude rationale → build VaccineBlueprint → upload → publish NATS.
+- `epitope_selector.py` — Select top 20 epitopes with min composite score 0.3, peptide deduplication, HLA diversity optimization (greedy — cover new alleles first, then prefer clonal variants).
+- `construct_designer.py` — Polyepitope assembly: tPA signal peptide (MFVFLVLLPLVSSQ) + epitopes joined by EAAAK rigid alpha-helical linkers + PADRE universal CD4+ epitope (AKFVAAWTLKAAA).
+- `codon_optimizer.py` — Full human codon usage table (weighted random selection), iterative GC content optimization (target 50-60%), homopolymer break-up (max 6nt), restriction site removal (EcoRI, BamHI, HindIII, XhoI, NotI, NdeI). Deterministic with seed.
+- `utr_designer.py` — 5' alpha-globin UTR + GCCACC Kozak, doubled 3' beta-globin UTR (2x for stability), 120nt poly(A) tail, TGA stop codon.
+- `mrna_assembler.py` — Full assembly: 5'UTR + ORF (starts with ATG from initial M) + stop + 3'UTR + polyA.
+- `sequence_checks.py` — 5 quality checks: GC content (50-60%), internal stop codons, homopolymer runs (>6nt, excludes polyA), back-translation verification, total length sanity.
+- `formulation.py` — LNP formulation guidance (SM-102/ALC-0315, DSPC, cholesterol, PEG2000-DMG, N:P ratio 6:1, 80-100nm target, m1Ψ modification, Cap1). Research disclaimer.
+- `rationale.py` — Claude-powered design rationale (claude-sonnet-4-5-20250929, 1500 max tokens). Graceful fallback to template-based rationale when API unavailable.
+- `output.py` — VaccineBlueprint dataclass with `to_dict()` camelCase serialization. Version 1.0.0.
+
+**Orchestrator updates:**
+- `job-manager.ts` — Added `structure_prediction` output handling in `markStepComplete` (saves topNeoantigens). Two new post-transaction blocks: (1) structure_prediction: downloads structure_report.json from S3, iterates structures array, updates NeoantigenCandidate records with `structuralExposure` + `structurePdbPath` via `updateMany`. (2) ranking: downloads ranked_neoantigens.json, updates NeoantigenCandidate records with re-ranked `compositeScore`, `rank`, `confidence`.
+- `dispatcher.ts` — Passes `ANTHROPIC_API_KEY` env var to mrna_design step containers.
+
+**Terraform updates:**
+- `ecr.tf` — 3 new ECR repos: `oncovax/structure-predictor`, `oncovax/ranking`, `oncovax/mrna-designer`, each with keep-last-5 lifecycle policies.
+- `batch.tf` — Replaced 3 `alpine:latest` placeholder job definitions with real ECR images + scratch volume mounts. Resources: structure_prediction 2 vCPU/8GB, ranking 2 vCPU/4GB, mrna_design 2 vCPU/8GB.
+
+**Tests:**
+- 42 Python tests: 11 structure-predictor (4 template lookup, 4 SASA constants, 3 structure report), 6 ranking (3 re-ranking, 2 order, 1 output format), 25 mrna-designer (4 epitope selection, 4 construct design, 5 codon optimization, 3 UTR design, 2 mRNA assembly, 3 sequence checks, 2 formulation, 2 blueprint output).
+
+**Verification:** `python3 -m pytest` — 42 tests passing across all 3 services. `tsc --noEmit` — 0 TypeScript errors. Docker `--check` — no warnings on all 3 Dockerfiles.
+
+**Files:** ~43 new files (3 services × [~8-13 src + 6 pipeline_common + 1 test + 1 Dockerfile + 1 requirements.txt]), 4 modified files (job-manager.ts, dispatcher.ts, ecr.tf, batch.tf)
+
+**Deviations from plan:**
+- Added separate `ranking` service (plan spec had it as a combined step; implemented as its own service for separation of concerns, matching the 3-node pipeline DAG: structure_prediction → ranking → mrna_design)
+- Template PDB approach is primary (not AlphaFold) — AlphaFold is fallback for rare alleles (cheaper, faster, no API key required for common alleles)
+- mRNA assembler does not add separate ATG start codon — `optimize_codons()` already generates ATG for the initial methionine
+- Ranking service memory reduced to 4GB (from placeholder 8GB) since it's the lightest service
+
 ---
 
 ## SESSION 15: Report Generation + Patient/Clinician UI

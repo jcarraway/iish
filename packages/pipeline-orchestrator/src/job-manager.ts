@@ -62,6 +62,9 @@ export async function markStepComplete(
         if (outputs.neoantigenReportPath) updateData.neoantigenReportPath = outputs.neoantigenReportPath;
         if (outputs.topNeoantigens) updateData.topNeoantigens = outputs.topNeoantigens;
       }
+      if (step === 'structure_prediction') {
+        if (outputs.topNeoantigens) updateData.topNeoantigens = outputs.topNeoantigens;
+      }
       if (step === 'ranking' && outputs.topNeoantigens) {
         updateData.topNeoantigens = outputs.topNeoantigens;
       }
@@ -102,6 +105,93 @@ export async function markStepComplete(
   }, {
     isolationLevel: 'Serializable',
   });
+
+  // Post-transaction: update NeoantigenCandidate records with structural exposure
+  if (step === 'structure_prediction' && outputs?.structureReportPath) {
+    try {
+      const reportPath = outputs.structureReportPath as string;
+      const bucket = process.env.AWS_S3_PIPELINE_BUCKET!;
+
+      const response = await s3.send(new GetObjectCommand({
+        Bucket: bucket,
+        Key: reportPath,
+      }));
+      const chunks: Buffer[] = [];
+      const stream = response.Body as AsyncIterable<Buffer>;
+      for await (const chunk of stream) {
+        chunks.push(chunk);
+      }
+      const body = Buffer.concat(chunks).toString('utf-8');
+      const report = JSON.parse(body);
+      const structures = report.structures as Array<Record<string, unknown>>;
+
+      if (structures && structures.length > 0) {
+        await Promise.all(
+          structures
+            .filter((s) => s.structuralExposure != null)
+            .map((s) =>
+              prisma.neoantigenCandidate.updateMany({
+                where: {
+                  jobId,
+                  gene: s.gene as string,
+                  mutation: s.mutation as string,
+                  mutantPeptide: s.mutantPeptide as string,
+                },
+                data: {
+                  structuralExposure: s.structuralExposure as number,
+                  structurePdbPath: (s.pdbPath as string) ?? null,
+                },
+              })
+            )
+        );
+      }
+    } catch (err) {
+      console.error('Failed to update NeoantigenCandidate structural exposure:', err);
+    }
+  }
+
+  // Post-transaction: update NeoantigenCandidate records with re-ranked scores
+  if (step === 'ranking' && outputs?.rankedReportPath) {
+    try {
+      const reportPath = outputs.rankedReportPath as string;
+      const bucket = process.env.AWS_S3_PIPELINE_BUCKET!;
+
+      const response = await s3.send(new GetObjectCommand({
+        Bucket: bucket,
+        Key: reportPath,
+      }));
+      const chunks: Buffer[] = [];
+      const stream = response.Body as AsyncIterable<Buffer>;
+      for await (const chunk of stream) {
+        chunks.push(chunk);
+      }
+      const body = Buffer.concat(chunks).toString('utf-8');
+      const report = JSON.parse(body);
+      const neoantigens = report.neoantigens as Array<Record<string, unknown>>;
+
+      if (neoantigens && neoantigens.length > 0) {
+        await Promise.all(
+          neoantigens.map((n) =>
+            prisma.neoantigenCandidate.updateMany({
+              where: {
+                jobId,
+                gene: n.gene as string,
+                mutation: n.mutation as string,
+                mutantPeptide: n.mutantPeptide as string,
+              },
+              data: {
+                compositeScore: n.compositeScore as number,
+                rank: n.rank as number,
+                confidence: n.confidence as string,
+              },
+            })
+          )
+        );
+      }
+    } catch (err) {
+      console.error('Failed to update NeoantigenCandidate re-ranked scores:', err);
+    }
+  }
 
   // Post-transaction: bulk-insert NeoantigenCandidate records
   if (step === 'neoantigen_prediction' && outputs?.neoantigenReportPath) {

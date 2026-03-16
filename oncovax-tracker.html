@@ -832,6 +832,7 @@
         "phase3:11": "complete",
         "phase3:12": "complete",
         "phase3:13": "complete",
+        "phase3:14": "complete",
       };
 
       const DEFAULT_NOTES = {
@@ -864,6 +865,8 @@
           "~25 new files. HLA Typer (Rust): OptiType + HLA-HD wrappers, consensus genotype, quality gates, 8 tests. Peptide Generator (Python, first Python service): VEP VCF parsing, sliding window 8-11mer MHC-I + 15mer MHC-II peptides, Python pipeline-common package, 28 tests. DAG orchestrator refactoring: fan-out (variant_calling → [hla_typing, peptide_generation]), fan-in with Serializable transaction isolation. ECR repos, Batch job defs, 8-step progress bar.",
         "phase3:13":
           "20 new files. Neoantigen Predictor (Python): MHCflurry 2.0 Class I binding predictions (batch mode), Class II placeholder, BLOSUM62 dissimilarity + hydrophobicity immunogenicity scoring, composite scoring (6 weighted factors: binding 0.25, agretopicity 0.20, immunogenicity 0.20, expression 0.15, clonality 0.10, structural 0.10), confidence classification, cancer cell fraction from VAF, optional RNA-seq expression filtering, quality gates. Job manager extended: S3 report download + NeoantigenCandidate bulk insert via createMany. ECR repo, Batch job def (replaced placeholder), IAM permissions. 27 Python tests passing, 0 TypeScript errors.",
+        "phase3:14":
+          "~43 new files, 4 modified. Three services completing the pipeline: structure-predictor (template PDB for ~25 HLA alleles, Biopython threading, AlphaFold fallback, biotite SASA), ranking (re-scores with real structural_exposure replacing default 0.5), mrna-designer (epitope selection with HLA diversity, polyepitope construct with tPA signal + EAAAK linkers + PADRE, human codon optimization targeting 50-60% GC, alpha/beta-globin UTRs + 120nt polyA, sequence QC, LNP formulation notes, Claude-powered rationale with fallback). 3 ECR repos, 3 Batch job defs updated from placeholders. Job manager: structure_prediction + ranking post-transaction DB updates. 42 Python tests, 0 TS errors.",
       };
 
       let state = { statuses: {}, notes: {}, expanded: {}, filter: "all" };

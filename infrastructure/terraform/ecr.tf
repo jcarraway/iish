@@ -169,3 +169,105 @@ resource "aws_ecr_lifecycle_policy" "neoantigen_predictor" {
     }]
   })
 }
+
+resource "aws_ecr_repository" "structure_predictor" {
+  name                 = "oncovax/structure-predictor"
+  image_tag_mutability = "MUTABLE"
+  force_delete         = false
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  tags = {
+    Environment = var.environment
+    Service     = "structure-predictor"
+  }
+}
+
+resource "aws_ecr_lifecycle_policy" "structure_predictor" {
+  repository = aws_ecr_repository.structure_predictor.name
+
+  policy = jsonencode({
+    rules = [{
+      rulePriority = 1
+      description  = "Keep last 5 images"
+      selection = {
+        tagStatus   = "any"
+        countType   = "imageCountMoreThan"
+        countNumber = 5
+      }
+      action = {
+        type = "expire"
+      }
+    }]
+  })
+}
+
+resource "aws_ecr_repository" "ranking" {
+  name                 = "oncovax/ranking"
+  image_tag_mutability = "MUTABLE"
+  force_delete         = false
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  tags = {
+    Environment = var.environment
+    Service     = "ranking"
+  }
+}
+
+resource "aws_ecr_lifecycle_policy" "ranking" {
+  repository = aws_ecr_repository.ranking.name
+
+  policy = jsonencode({
+    rules = [{
+      rulePriority = 1
+      description  = "Keep last 5 images"
+      selection = {
+        tagStatus   = "any"
+        countType   = "imageCountMoreThan"
+        countNumber = 5
+      }
+      action = {
+        type = "expire"
+      }
+    }]
+  })
+}
+
+resource "aws_ecr_repository" "mrna_designer" {
+  name                 = "oncovax/mrna-designer"
+  image_tag_mutability = "MUTABLE"
+  force_delete         = false
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  tags = {
+    Environment = var.environment
+    Service     = "mrna-designer"
+  }
+}
+
+resource "aws_ecr_lifecycle_policy" "mrna_designer" {
+  repository = aws_ecr_repository.mrna_designer.name
+
+  policy = jsonencode({
+    rules = [{
+      rulePriority = 1
+      description  = "Keep last 5 images"
+      selection = {
+        tagStatus   = "any"
+        countType   = "imageCountMoreThan"
+        countNumber = 5
+      }
+      action = {
+        type = "expire"
+      }
+    }]
+  })
+}

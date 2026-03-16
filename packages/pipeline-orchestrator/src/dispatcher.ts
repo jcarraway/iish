@@ -40,6 +40,11 @@ export async function dispatchStep(
     }
   }
 
+  // Pass ANTHROPIC_API_KEY for mRNA design step (Claude-powered rationale)
+  if (step === 'mrna_design' && process.env.ANTHROPIC_API_KEY) {
+    envOverrides.push({ name: 'ANTHROPIC_API_KEY', value: process.env.ANTHROPIC_API_KEY });
+  }
+
   const command = new SubmitJobCommand({
     jobName: `${step}-${jobId.slice(0, 8)}`,
     jobDefinition: config.definition,

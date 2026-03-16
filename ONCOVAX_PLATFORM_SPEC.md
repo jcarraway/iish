@@ -2739,6 +2739,37 @@ SESSION 13: Neoantigen Prediction + Binding + Immunogenicity Scoring — COMPLET
   Files: 20 new, 5 modified
 
 → PHASE 3 SESSION 13 COMPLETE (alignment → variant calling → [HLA typing ∥ peptide generation] → neoantigen prediction working, Session 14 builds structure prediction + mRNA designer)
+
+SESSION 14: Structure Prediction + Ranking + mRNA Vaccine Designer — COMPLETED ✓
+  Scope: Template-based structure prediction, re-ranking with structural exposure, full mRNA vaccine design
+  Deliverables: Three new Python services completing the pipeline:
+    structure-predictor: Template PDB mapping for ~25 common HLA-A/B/C alleles, Biopython threading
+         (mutant peptide onto MHC backbone), AlphaFold Server API fallback for rare alleles, biotite SASA
+         calculation (Shrake-Rupley, normalized per-AA max SASA table), uploads PDB files + structure_report.json.
+    ranking: Lightweight re-ranker that patches real structural_exposure values from structure_report into
+         neoantigen candidates, re-runs score_and_rank() with actual exposure data (replacing default 0.5),
+         outputs ranked_neoantigens.json.
+    mrna-designer: Full vaccine design pipeline — epitope selection (top 20, min score 0.3, HLA diversity,
+         clonality preference, deduplication), polyepitope construct (tPA signal peptide MFVFLVLLPLVSSQ +
+         EAAAK rigid linkers + PADRE universal CD4+ epitope AKFVAAWTLKAAA), human codon optimization
+         (weighted random + GC targeting 50-60% + homopolymer/restriction site removal), alpha-globin 5'UTR
+         + Kozak + doubled beta-globin 3'UTR + 120nt poly(A), sequence quality checks (GC%, internal stops,
+         homopolymers, back-translation, length), LNP formulation guidance (with research disclaimer),
+         Claude-powered design rationale (claude-sonnet-4-5-20250929, graceful fallback template), VaccineBlueprint
+         JSON output.
+  Orchestrator updates: job-manager.ts extended with structure_prediction output handling (topNeoantigens
+         update) + two new post-transaction blocks: (1) structure_prediction downloads structure_report.json,
+         updates NeoantigenCandidate records with structuralExposure + structurePdbPath; (2) ranking downloads
+         ranked_neoantigens.json, updates NeoantigenCandidate records with re-ranked compositeScore, rank,
+         confidence. dispatcher.ts passes ANTHROPIC_API_KEY env var for mrna_design step.
+  Terraform: 3 ECR repos (oncovax/structure-predictor, oncovax/ranking, oncovax/mrna-designer) with
+         keep-last-5 lifecycle policies. 3 Batch job defs updated from alpine:latest placeholders to real
+         ECR images with scratch volumes (structure_prediction: 2 vCPU/8GB, ranking: 2 vCPU/4GB,
+         mrna_design: 2 vCPU/8GB).
+  Tests: 42 Python tests (11 structure-predictor + 6 ranking + 25 mrna-designer)
+  Files: ~43 new, 4 modified
+
+→ PHASE 3 SESSION 14 COMPLETE (full pipeline operational: alignment → variant calling → [HLA typing ∥ peptide generation] → neoantigen prediction → structure prediction → ranking → mRNA design. Session 15 builds report generation + pipeline UI)
 ```
 
 ---

@@ -211,14 +211,26 @@ resource "aws_batch_job_definition" "structure_prediction" {
   type = "container"
 
   container_properties = jsonencode({
-    image      = "alpine:latest"
-    command    = ["echo", "structure_prediction placeholder"]
-    vcpus      = 2
-    memory     = 8192
-    jobRoleArn = aws_iam_role.batch_job.arn
+    image            = "${aws_ecr_repository.structure_predictor.repository_url}:latest"
+    vcpus            = 2
+    memory           = 8192
+    jobRoleArn       = aws_iam_role.batch_job.arn
     executionRoleArn = aws_iam_role.batch_execution.arn
     environment = [
       { name = "PIPELINE_STEP", value = "structure_prediction" }
+    ]
+    mountPoints = [
+      {
+        sourceVolume  = "scratch"
+        containerPath = "/scratch"
+        readOnly      = false
+      }
+    ]
+    volumes = [
+      {
+        name = "scratch"
+        host = { sourcePath = "/tmp/pipeline-scratch" }
+      }
     ]
   })
 }
@@ -228,14 +240,26 @@ resource "aws_batch_job_definition" "ranking" {
   type = "container"
 
   container_properties = jsonencode({
-    image      = "alpine:latest"
-    command    = ["echo", "ranking placeholder"]
-    vcpus      = 2
-    memory     = 8192
-    jobRoleArn = aws_iam_role.batch_job.arn
+    image            = "${aws_ecr_repository.ranking.repository_url}:latest"
+    vcpus            = 2
+    memory           = 4096
+    jobRoleArn       = aws_iam_role.batch_job.arn
     executionRoleArn = aws_iam_role.batch_execution.arn
     environment = [
       { name = "PIPELINE_STEP", value = "ranking" }
+    ]
+    mountPoints = [
+      {
+        sourceVolume  = "scratch"
+        containerPath = "/scratch"
+        readOnly      = false
+      }
+    ]
+    volumes = [
+      {
+        name = "scratch"
+        host = { sourcePath = "/tmp/pipeline-scratch" }
+      }
     ]
   })
 }
@@ -245,14 +269,26 @@ resource "aws_batch_job_definition" "mrna_design" {
   type = "container"
 
   container_properties = jsonencode({
-    image      = "alpine:latest"
-    command    = ["echo", "mrna_design placeholder"]
-    vcpus      = 2
-    memory     = 8192
-    jobRoleArn = aws_iam_role.batch_job.arn
+    image            = "${aws_ecr_repository.mrna_designer.repository_url}:latest"
+    vcpus            = 2
+    memory           = 8192
+    jobRoleArn       = aws_iam_role.batch_job.arn
     executionRoleArn = aws_iam_role.batch_execution.arn
     environment = [
       { name = "PIPELINE_STEP", value = "mrna_design" }
+    ]
+    mountPoints = [
+      {
+        sourceVolume  = "scratch"
+        containerPath = "/scratch"
+        readOnly      = false
+      }
+    ]
+    volumes = [
+      {
+        name = "scratch"
+        host = { sourcePath = "/tmp/pipeline-scratch" }
+      }
     ]
   })
 }
