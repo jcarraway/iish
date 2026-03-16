@@ -263,3 +263,56 @@ export interface SmartEndpoints {
   tokenUrl: string;
   fhirBaseUrl: string;
 }
+
+// Sequencing Provider Directory Types
+
+export interface SequencingProviderDetails {
+  testNames: string[];
+  geneCount: number;
+  sampleTypes: string[];
+  turnaroundDays: { min: number; max: number };
+  costRange: { min: number; max: number };
+  fdaApproved: boolean;
+  fdaClearance?: string;
+  orderingProcess: string;
+  reportFormat: string;
+  contactPhone?: string;
+  contactEmail?: string;
+  contactUrl?: string;
+  clinicalUtility: string;
+  limitations?: string;
+}
+
+export interface InsuranceCoverageResult {
+  status: 'covered' | 'likely_covered' | 'prior_auth_required' | 'not_covered' | 'unknown';
+  insurer: string;
+  testType: string;
+  reasoning: string;
+  conditions: string[];
+  cptCodes: string[];
+  icdCodes?: string[];
+  priorAuthRequired: boolean;
+  estimatedOutOfPocket?: string;
+  policyReference?: string;
+  sourceUrl?: string;
+  missingInfo: string[];
+}
+
+export interface LetterOfMedicalNecessity {
+  content: string;
+  patientName?: string;
+  testType: string;
+  providerName: string;
+  cptCodes: string[];
+  icdCodes: string[];
+  nccnGuidelines: string;
+  generatedAt: string;
+}
+
+export interface SequencingOncologistBrief {
+  content: string;
+  patientSummary: string;
+  recommendedTests: string[];
+  coverageSummary: string;
+  generatedAt: string;
+}

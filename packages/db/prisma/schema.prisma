@@ -90,6 +90,7 @@ model Patient {
   fhirConnections   FhirConnection[]
   matches           Match[]
   financialMatches  FinancialMatch[]
+  sequencingOrders  SequencingOrder[]
 
   @@map("patients")
 }
@@ -235,6 +236,58 @@ model FinancialMatch {
   @@unique([patientId, programId])
   @@index([patientId, matchStatus])
   @@map("financial_matches")
+}
+
+model SequencingProvider {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  type        String   @db.VarChar(50)
+  testTypes   String[] @map("test_types")
+  details     Json     @map("details")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  orders SequencingOrder[]
+
+  @@index([type])
+  @@map("sequencing_providers")
+}
+
+model SequencingOrder {
+  id                  String   @id @default(uuid()) @db.Uuid
+  patientId           String   @map("patient_id") @db.Uuid
+  providerId          String   @map("provider_id") @db.Uuid
+  testType            String   @map("test_type") @db.VarChar(100)
+  status              String   @default("pending") @map("status") @db.VarChar(50)
+  insuranceCoverage   Json?    @map("insurance_coverage")
+  lomnContent         String?  @map("lomn_content")
+  results             Json?    @map("results")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  patient  Patient            @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  provider SequencingProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([patientId, createdAt(sort: Desc)])
+  @@index([providerId])
+  @@map("sequencing_orders")
+}
+
+model InsuranceCoverageRule {
+  id              String   @id @default(uuid()) @db.Uuid
+  insurer         String   @db.VarChar(100)
+  testType        String   @map("test_type") @db.VarChar(100)
+  cancerType      String?  @map("cancer_type") @db.VarChar(200)
+  stage           String?  @db.VarChar(50)
+  coverageStatus  String   @map("coverage_status") @db.VarChar(50)
+  conditions      String[] @map("conditions")
+  cptCodes        String[] @map("cpt_codes")
+  sourceUrl       String?  @map("source_url")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@index([insurer, testType])
+  @@map("insurance_coverage_rules")
 }
 
 model UserEvent {

@@ -163,3 +163,59 @@ export const LAB_LOINCS: Record<string, string> = {
   '1975-2': 'bilirubin',
   '1751-7': 'albumin',
 } as const;
+
+export const SEQUENCING_TEST_TYPES = {
+  CGP: 'comprehensive_genomic_profiling',
+  TARGETED_PANEL: 'targeted_panel',
+  WES: 'whole_exome_sequencing',
+  WGS: 'whole_genome_sequencing',
+  LIQUID_BIOPSY: 'liquid_biopsy',
+  RNA_SEQ: 'rna_sequencing',
+  MSI_TMB: 'msi_tmb_testing',
+} as const;
+
+export const SEQUENCING_PROVIDER_TYPES = {
+  COMMERCIAL: 'commercial',
+  ACADEMIC: 'academic',
+  EMERGING: 'emerging',
+} as const;
+
+export const SEQUENCING_ORDER_STATUSES = {
+  PENDING: 'pending',
+  INSURANCE_CHECK: 'insurance_check',
+  PRIOR_AUTH: 'prior_auth',
+  SAMPLE_NEEDED: 'sample_needed',
+  SAMPLE_RECEIVED: 'sample_received',
+  PROCESSING: 'processing',
+  RESULTS_READY: 'results_ready',
+  COMPLETED: 'completed',
+  CANCELLED: 'cancelled',
+} as const;
+
+export const INSURANCE_COVERAGE_STATUSES = {
+  COVERED: 'covered',
+  LIKELY_COVERED: 'likely_covered',
+  PRIOR_AUTH_REQUIRED: 'prior_auth_required',
+  NOT_COVERED: 'not_covered',
+  UNKNOWN: 'unknown',
+} as const;
+
+export const CPT_CODES: Record<string, { code: string; description: string }> = {
+  CGP_SOLID: { code: '81455', description: 'Comprehensive genomic profiling, solid tumor' },
+  CGP_HEME: { code: '81456', description: 'Comprehensive genomic profiling, hematologic' },
+  TARGETED_PANEL: { code: '81445', description: 'Targeted genomic sequence analysis panel, solid organ neoplasm, 5-50 genes' },
+  LIQUID_BIOPSY: { code: '81479', description: 'Unlisted molecular pathology procedure (liquid biopsy)' },
+  MSI: { code: '81301', description: 'Microsatellite instability analysis' },
+  TMB: { code: '81479', description: 'Tumor mutational burden' },
+  PD_L1: { code: '88360', description: 'PD-L1 immunohistochemistry' },
+} as const;
+
+export const NGS_INSURERS = [
+  'Medicare',
+  'UnitedHealthcare',
+  'Aetna',
+  'Cigna',
+  'BCBS',
+  'Humana',
+  'Medicaid',
+] as const;

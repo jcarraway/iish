@@ -305,8 +305,22 @@ export default function TranslatePage() {
         </div>
       </TranslationSection>
 
+      {/* Sequencing CTA */}
+      <div className="mt-10 rounded-xl bg-gradient-to-r from-indigo-50 to-violet-50 border border-indigo-200 p-6 print:hidden">
+        <h3 className="font-semibold text-indigo-900">Consider genomic sequencing</h3>
+        <p className="mt-1 text-sm text-indigo-800">
+          Genomic testing can identify specific mutations in your tumor that may open the door to targeted therapies or clinical trials.
+        </p>
+        <button
+          onClick={() => router.push('/sequencing')}
+          className="mt-3 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+        >
+          Explore sequencing options
+        </button>
+      </div>
+
       {/* CTA */}
-      <div className="mt-10 flex flex-col gap-3 sm:flex-row print:hidden">
+      <div className="mt-6 flex flex-col gap-3 sm:flex-row print:hidden">
         <button
           onClick={() => router.push('/matches')}
           className="flex-1 rounded-lg bg-blue-600 px-6 py-3 text-center text-sm font-semibold text-white hover:bg-blue-700"
