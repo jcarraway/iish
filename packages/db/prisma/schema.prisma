@@ -92,6 +92,7 @@ model Patient {
   financialMatches  FinancialMatch[]
   sequencingOrders  SequencingOrder[]
   genomicResults    GenomicResult[]
+  pipelineJobs      PipelineJob[]
 
   @@map("patients")
 }
@@ -269,6 +270,7 @@ model SequencingOrder {
   patient        Patient            @relation(fields: [patientId], references: [id], onDelete: Cascade)
   provider       SequencingProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
   genomicResult  GenomicResult?
+  pipelineJobs   PipelineJob[]
 
   @@index([patientId, createdAt(sort: Desc)])
   @@index([providerId])
@@ -334,4 +336,87 @@ model GenomicResult {
 
   @@index([patientId, createdAt(sort: Desc)])
   @@map("genomic_results")
+}
+
+model PipelineJob {
+  id                    String    @id @default(uuid()) @db.Uuid
+  patientId             String    @map("patient_id") @db.Uuid
+  sequencingOrderId     String?   @map("sequencing_order_id") @db.Uuid
+  tumorDataPath         String    @map("tumor_data_path")
+  normalDataPath        String    @map("normal_data_path")
+  rnaDataPath           String?   @map("rna_data_path")
+  inputFormat           String    @map("input_format") @db.VarChar(20)
+  referenceGenome       String    @default("GRCh38") @map("reference_genome") @db.VarChar(20)
+  status                String    @default("queued") @map("status") @db.VarChar(20)
+  currentStep           String?   @map("current_step") @db.VarChar(50)
+  stepsCompleted        String[]  @default([]) @map("steps_completed")
+  stepErrors            Json?     @map("step_errors")
+  retryCount            Int       @default(0) @map("retry_count")
+  maxRetries            Int       @default(3) @map("max_retries")
+  alignedBamPath        String?   @map("aligned_bam_path")
+  vcfPath               String?   @map("vcf_path")
+  annotatedVcfPath      String?   @map("annotated_vcf_path")
+  variantCount          Int?      @map("variant_count")
+  tmb                   Float?    @map("tmb")
+  hlaGenotype           Json?     @map("hla_genotype")
+  neoantigenCount       Int?      @map("neoantigen_count")
+  topNeoantigens        Json?     @map("top_neoantigens")
+  vaccineBlueprint      Json?     @map("vaccine_blueprint")
+  neoantigenReportPath  String?   @map("neoantigen_report_path")
+  vaccineBlueprintPath  String?   @map("vaccine_blueprint_path")
+  fullReportPdfPath     String?   @map("full_report_pdf_path")
+  patientSummaryPath    String?   @map("patient_summary_path")
+  totalComputeSeconds   Int?      @map("total_compute_seconds")
+  estimatedCostUsd      Float?    @map("estimated_cost_usd")
+  startedAt             DateTime? @map("started_at")
+  completedAt           DateTime? @map("completed_at")
+  estimatedCompletion   DateTime? @map("estimated_completion")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  patient          Patient              @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  sequencingOrder  SequencingOrder?     @relation(fields: [sequencingOrderId], references: [id])
+  neoantigens      NeoantigenCandidate[]
+
+  @@index([patientId, createdAt(sort: Desc)])
+  @@index([status])
+  @@map("pipeline_jobs")
+}
+
+model NeoantigenCandidate {
+  id                      String  @id @default(uuid()) @db.Uuid
+  jobId                   String  @map("job_id") @db.Uuid
+  gene                    String  @map("gene")
+  mutation                String  @map("mutation")
+  chromosome              String  @map("chromosome") @db.VarChar(10)
+  position                Int     @map("position")
+  refAllele               String  @map("ref_allele")
+  altAllele               String  @map("alt_allele")
+  variantType             String  @map("variant_type") @db.VarChar(30)
+  vaf                     Float   @map("vaf")
+  wildtypePeptide         String  @map("wildtype_peptide")
+  mutantPeptide           String  @map("mutant_peptide")
+  peptideLength           Int     @map("peptide_length")
+  hlaAllele               String  @map("hla_allele") @db.VarChar(30)
+  bindingAffinityNm       Float   @map("binding_affinity_nm")
+  bindingRankPercentile   Float   @map("binding_rank_percentile")
+  wildtypeBindingNm       Float?  @map("wildtype_binding_nm")
+  bindingClass            String  @map("binding_class") @db.VarChar(20)
+  immunogenicityScore     Float   @map("immunogenicity_score")
+  agretopicity            Float   @map("agretopicity")
+  expressionLevel         Float?  @map("expression_level")
+  clonality               Float   @map("clonality")
+  structurePdbPath        String? @map("structure_pdb_path")
+  structuralExposure      Float?  @map("structural_exposure")
+  compositeScore          Float   @map("composite_score")
+  rank                    Int     @map("rank")
+  confidence              String  @map("confidence") @db.VarChar(20)
+  details                 Json    @map("details")
+  createdAt               DateTime @default(now()) @map("created_at")
+
+  job PipelineJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([jobId, rank])
+  @@index([gene])
+  @@map("neoantigen_candidates")
 }

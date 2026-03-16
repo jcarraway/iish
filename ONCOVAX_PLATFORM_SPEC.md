@@ -69,6 +69,12 @@ oncovax/                                 # As built (Sessions 1-8)
 │   │   │   │   │   ├── interpretation/  # POST: generate/get Claude interpretation (cached)
 │   │   │   │   │   ├── rematch/         # POST: re-run trial matching with genomic data
 │   │   │   │   │   └── results/         # GET: list results; [resultId]: GET detail
+│   │   │   │   ├── pipeline/             # Neoantigen pipeline (Session 10)
+│   │   │   │   │   ├── upload-url/      # POST: presigned S3 URL for FASTQ/BAM upload
+│   │   │   │   │   ├── submit/          # POST: submit pipeline job (validate S3 → create job → publish NATS)
+│   │   │   │   │   └── jobs/            # GET: list patient's pipeline jobs
+│   │   │   │   │       └── [jobId]/     # GET: job detail + top 20 neoantigens, DELETE: cancel
+│   │   │   │   │           └── results/ # GET: presigned download URLs for completed job outputs
 │   │   │   │   ├── sequencing/           # Sequencing navigation (Sessions 7-8)
 │   │   │   │   │   ├── brief/           # POST: generate oncologist sequencing brief (Session 7)
 │   │   │   │   │   ├── coverage/        # POST: check insurance coverage (Session 7)
@@ -101,6 +107,12 @@ oncovax/                                 # As built (Sessions 1-8)
 │   │   │   │   ├── mychart/             # MyChart connect — health system search + OAuth + extraction (Session 6)
 │   │   │   │   ├── manual/              # Manual intake wizard
 │   │   │   │   └── confirm/             # Review + auth + save + FHIR badges + financial profile
+│   │   │   ├── pipeline/                  # Neoantigen pipeline (Session 10)
+│   │   │   │   ├── page.tsx             # Pipeline home — job list or upload CTA
+│   │   │   │   ├── upload/page.tsx      # Dual drop-zone upload (tumor + normal) with XHR progress
+│   │   │   │   └── jobs/
+│   │   │   │       ├── page.tsx         # Job list with status badges + progress bars
+│   │   │   │       └── [jobId]/page.tsx # Job detail: 7-step progress bar, neoantigen table, downloads
 │   │   │   ├── sequencing/               # Sequencing navigation (Sessions 7-9)
 │   │   │   │   ├── page.tsx             # Sequencing hub — 3 pathway cards, dynamic state (Sessions 7, 9)
 │   │   │   │   ├── confirm/page.tsx     # Genomic report confirm — review mutations + biomarkers (Session 9)
@@ -127,7 +139,8 @@ oncovax/                                 # As built (Sessions 1-8)
 │   │   │   ├── FinancialProgramCard.tsx # Program card with status badge + apply button (Session 5)
 │   │   │   ├── HealthSystemSearch.tsx   # Searchable health system directory with debounce (Session 6)
 │   │   │   ├── SequencingProviderCard.tsx # Provider card with details + compare toggle (Session 7)
-│   │   │   └── OrderProgressBar.tsx     # Horizontal order status progress bar (Session 8)
+│   │   │   ├── OrderProgressBar.tsx     # Horizontal order status progress bar (Session 8)
+│   │   │   └── PipelineProgressBar.tsx # 7-step pipeline progress visualization (Session 10)
 │   │   └── lib/
 │   │       ├── ai.ts                    # Claude Opus client + multi-image + PDF support
 │   │       ├── clinicaltrials.ts        # CTG v2 API client (Session 2)
@@ -154,27 +167,40 @@ oncovax/                                 # As built (Sessions 1-8)
 │   │       ├── waiting-content.ts      # Claude-powered educational content by cancer type (Session 8)
 │   │       ├── genomic-extraction.ts  # Claude Vision genomic report extraction pipeline (Session 9)
 │   │       ├── genomic-interpreter.ts # Two-step Claude genomic interpretation (clinical grounding → patient translation) (Session 9)
+│   │       ├── nats.ts                # NATS JetStream client singleton for pipeline events (Session 10)
 │   │       ├── mapbox.ts                # Geocoding fallback (Session 2)
 │   │       ├── trial-sync.ts            # Sync worker (Session 2)
 │   │       ├── db.ts, redis.ts, session.ts, events.ts, stripe.ts, cloudinary.ts
 │   │       └── ...
 │   └── mobile/                          # Expo SDK 54 (Session 1 scaffold)
 ├── packages/
-│   ├── db/                              # Prisma 7 + PostgreSQL (15 models)
-│   └── shared/                          # Types, schemas, constants, auth
+│   ├── db/                              # Prisma 7 + PostgreSQL (17 models)
+│   ├── shared/                          # Types, schemas, constants, auth
+│   ├── pipeline-storage/                # S3 client for pipeline data (Session 10)
+│   │   └── src/{client,paths,upload,download}.ts
+│   └── pipeline-orchestrator/           # NATS JetStream orchestrator (Session 10)
+│       └── src/{index,nats,events,consumers,dispatcher,retry,job-manager}.ts
 ├── scripts/
 │   ├── trial-sync.ts                    # CLI: pnpm trial-sync (Session 2)
 │   ├── seed-financial-programs.ts       # Seed 30 financial programs (Session 5)
 │   ├── financial-status-check.ts        # CLI: check/update fund statuses (Session 5)
 │   ├── seed-health-systems.ts           # Seed 30 health systems with FHIR URLs (Session 6)
 │   ├── seed-sequencing-providers.ts    # Seed 10 sequencing providers (Session 7)
-│   └── seed-insurance-rules.ts         # Seed insurance coverage rules (Session 7)
+│   ├── seed-insurance-rules.ts         # Seed insurance coverage rules (Session 7)
+│   └── setup-reference-genome.sh       # Download + index GRCh38, upload to S3 (Session 10)
+├── infrastructure/
+│   └── terraform/                       # AWS infra: VPC, S3, IAM, Batch, NATS ECS (Session 10)
+│       ├── main.tf, variables.tf, outputs.tf
+│       ├── vpc.tf                       # VPC, subnets, NAT gateway, security groups
+│       ├── s3.tf                        # Pipeline bucket (AES-256, versioning, Glacier lifecycle)
+│       ├── iam.tf                       # Batch execution/job roles, NATS execution role
+│       ├── batch.tf                     # 2 compute envs (spot), 2 queues, 7 job definitions
+│       └── nats.tf                      # ECS Fargate NATS service + EFS + NLB
 └── [future phases]
-    ├── services/neoantigen-pipeline/    # Rust + Python (Phase 3)
-    └── infrastructure/                  # Docker, Terraform, NATS (Phase 3+)
+    └── services/neoantigen-pipeline/    # Rust + Python (Sessions 11-15)
 ```
 
-> **Architecture note:** Sessions 1-9 established that all server logic lives as lib files in `apps/web/lib/`, not as separate packages. Client components live in `apps/web/components/`. Phase 1 libs: `{clinicaltrials,trial-sync,eligibility-parser,extraction,matcher,oncologist-brief,translator,financial-matcher,s3,image-quality}.ts`. FHIR integration: `apps/web/lib/fhir/` (6 files). Phase 2 libs (Sessions 7-9): `{coverage,sequencing-brief,sequencing-recommendation,test-recommendation,conversation-guide,waiting-content,genomic-extraction,genomic-interpreter}.ts`. All Claude calls use Redis caching (24h TTL). Test recommendation is fully deterministic (no Claude). Matcher dynamically weights 7 dimensions when genomic data is present (6 original × 0.75 + genomics at 0.25).
+> **Architecture note:** Sessions 1-9 established that all server logic lives as lib files in `apps/web/lib/`, not as separate packages. Client components live in `apps/web/components/`. Phase 1 libs: `{clinicaltrials,trial-sync,eligibility-parser,extraction,matcher,oncologist-brief,translator,financial-matcher,s3,image-quality}.ts`. FHIR integration: `apps/web/lib/fhir/` (6 files). Phase 2 libs (Sessions 7-9): `{coverage,sequencing-brief,sequencing-recommendation,test-recommendation,conversation-guide,waiting-content,genomic-extraction,genomic-interpreter}.ts`. All Claude calls use Redis caching (24h TTL). Test recommendation is fully deterministic (no Claude). Matcher dynamically weights 7 dimensions when genomic data is present (6 original × 0.75 + genomics at 0.25). Session 10 introduced the first separate packages (`pipeline-storage`, `pipeline-orchestrator`) since pipeline orchestration runs as a standalone process and S3 storage is shared across the orchestrator and web app. NATS JetStream client also added to `apps/web/lib/nats.ts` for publishing events from API routes.
 
 ### 1.3 Core Tech Stack
 
@@ -2058,11 +2084,19 @@ CREATE INDEX idx_neoantigens_gene ON neoantigen_candidates(gene);
 ### 4.5 Phase 3 Build Sequence
 
 ```
-TASK 1: Set up compute infrastructure
-  - AWS Batch or ECS for pipeline jobs
-  - S3 buckets for genomic data (HIPAA-compliant)
-  - NATS JetStream for orchestration
-  - Reference genome download + indexing (GRCh38)
+TASK 1: Set up compute infrastructure — COMPLETED (Session 10) ✓
+  - PipelineJob + NeoantigenCandidate Prisma models (17 models total)
+  - pipeline-storage package: S3 client, presigned upload/download URLs, multipart upload, path conventions
+  - pipeline-orchestrator package: NATS JetStream stream + consumers, AWS Batch dispatcher (7 job defs),
+    exponential backoff retry, Prisma job manager (status transitions)
+  - Terraform infrastructure: VPC (public/private subnets, NAT gateway), S3 bucket (AES-256,
+    versioning, Glacier lifecycle), IAM roles, Batch compute envs (EC2 spot r6i), 2 queues,
+    7 placeholder job definitions, NATS ECS Fargate service with EFS persistence + NLB
+  - Reference genome setup script (GRCh38 download + BWA-MEM2/samtools indexing + S3 upload)
+  - 5 API routes: upload-url, submit, jobs, jobs/[jobId], jobs/[jobId]/results
+  - 4 pipeline pages: home, upload (dual drop-zone), job list, job detail (7-step progress bar)
+  - PipelineProgressBar component, NATS client for web app, pipeline constants/types/schemas in shared
+  - 36 new files, 9 modified files, 0 type errors
 
 TASK 2: Build alignment step (Rust wrapper around BWA-MEM2)
   - Input: FASTQ → Output: sorted BAM
@@ -2103,17 +2137,11 @@ TASK 8: Build report generator
   - Manufacturer-facing blueprint (technical spec)
   - PDF generation
 
-TASK 9: Build pipeline orchestrator
-  - NATS JetStream job queue
-  - Step dependency management
-  - Error handling + retry logic
-  - Status tracking + patient notifications
+TASK 9: Build pipeline orchestrator — COMPLETED (Session 10, merged into Task 1) ✓
+  - Merged with infra setup since orchestrator is infrastructure, not bioinformatics logic
 
-TASK 10: Build web interface for pipeline
-  - Data upload page (FASTQ/BAM)
-  - Pipeline status tracking
-  - Results dashboard
-  - Report download
+TASK 10: Build web interface for pipeline — COMPLETED (Session 10, merged into Task 1) ✓
+  - Merged with infra setup: upload flow, job tracking UI, progress bar, results download
 ```
 
 ---
@@ -2556,6 +2584,34 @@ SESSION 9: Genomic Results Interpretation + Genomically-Informed Trial Matching 
               6 shared types not 8 (fewer intermediate types needed)
 
 → PHASE 2 COMPLETE (all 9 sessions: intake → matching → translation → financial → FHIR → sequencing → genomics)
+
+SESSION 10: Compute Infrastructure + Pipeline Orchestration — COMPLETED ✓
+  Built: PipelineJob + NeoantigenCandidate Prisma models (30+ fields each, 17 models total),
+         pipeline-storage package (S3 client singleton, path conventions, presigned upload/download
+         URLs with 1hr expiry, multipart upload via @aws-sdk/lib-storage), pipeline-orchestrator
+         package (NATS JetStream stream "PIPELINE" with wildcard subjects, 3 durable consumers
+         for job.submitted/step.*.complete/step.failed, AWS Batch dispatcher with 7 job definitions
+         split across cpu-intensive and standard queues, exponential backoff retry with jitter,
+         Prisma job manager for status transitions and step output mapping), NATS client for web app
+         (globalThis singleton), 5 pipeline API routes (upload-url, submit with S3 validation,
+         jobs list, job detail with top 20 neoantigens, results with presigned download URLs),
+         Terraform infrastructure (VPC with public/private subnets + NAT gateway, S3 bucket with
+         AES-256 + versioning + Glacier lifecycle at 90 days, IAM roles for Batch + NATS, 2 Batch
+         compute envs on EC2 spot r6i instances, 2 job queues, 7 placeholder job definitions with
+         resource specs from 2-8 vCPU / 8-32GB RAM, ECS Fargate NATS service with EFS persistence
+         + internal NLB), reference genome setup script (GRCh38 + VEP cache download, BWA-MEM2 +
+         samtools indexing, S3 upload with verification), 4 pipeline pages (home with job cards,
+         dual drop-zone upload with XHR progress tracking, job list, job detail with 7-step
+         PipelineProgressBar + neoantigen table + download links + 10s polling), pipeline constants
+         + types + Zod schemas in shared package
+  New files: 36 (2 packages × ~6 files each, 5 API routes, 4 pages, 1 component, 7 Terraform, 1 script)
+  Modified files: 9 (schema.prisma, 4 shared files, web package.json, .env.example, turbo.json, root package.json)
+  Deviations: Merged spec Tasks 1+9+10 into single session (orchestrator + UI are infrastructure,
+              not separate from compute setup), used Next.js API routes (not tRPC, consistent with
+              Sessions 1-9), intermediate/ paths use jobId only (not patientId/jobId) for simpler
+              structure, NATS retention set to workqueue (not limits-based) for automatic cleanup
+
+→ PHASE 3 SESSION 10 COMPLETE (infrastructure ready — no bioinformatics logic yet, Sessions 11-15 build the pipeline steps)
 ```
 
 ---

@@ -182,6 +182,21 @@ export const genomicReportExtractionSchema = z.object({
   extractionConfidence: z.number().min(0).max(1),
 });
 
+export const pipelineUploadUrlSchema = z.object({
+  fileName: z.string().min(1),
+  fileSize: z.number().max(50 * 1024 * 1024 * 1024), // 50GB max
+  fileType: z.enum(['fastq', 'fastq_gz', 'bam']),
+  sampleType: z.enum(['tumor', 'normal', 'rna']),
+});
+
+export const pipelineSubmitJobSchema = z.object({
+  tumorDataPath: z.string().min(1),
+  normalDataPath: z.string().min(1),
+  rnaDataPath: z.string().optional(),
+  inputFormat: z.enum(['fastq', 'bam']),
+  sequencingOrderId: z.string().uuid().optional(),
+});
+
 export type MagicLinkRequest = z.infer<typeof magicLinkRequestSchema>;
 export type PatientProfileInput = z.infer<typeof patientProfileSchema>;
 export type DocumentUploadInput = z.infer<typeof documentUploadSchema>;
@@ -189,3 +204,5 @@ export type PresignedUrlRequest = z.infer<typeof presignedUrlRequestSchema>;
 export type ExtractionRequest = z.infer<typeof extractionRequestSchema>;
 export type FinancialProfileInput = z.infer<typeof financialProfileSchema>;
 export type GenomicReportExtractionInput = z.infer<typeof genomicReportExtractionSchema>;
+export type PipelineUploadUrlInput = z.infer<typeof pipelineUploadUrlSchema>;
+export type PipelineSubmitJobInput = z.infer<typeof pipelineSubmitJobSchema>;

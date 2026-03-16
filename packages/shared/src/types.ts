@@ -458,3 +458,59 @@ export interface MatchDelta {
   totalBefore: number;
   totalAfter: number;
 }
+
+// --- Pipeline Types ---
+
+export interface PipelineJobSummary {
+  id: string;
+  status: string;
+  currentStep: string | null;
+  stepsCompleted: string[];
+  inputFormat: string;
+  referenceGenome: string;
+  startedAt: string | null;
+  completedAt: string | null;
+  estimatedCompletion: string | null;
+  createdAt: string;
+}
+
+export interface PipelineJobDetail extends PipelineJobSummary {
+  tumorDataPath: string;
+  normalDataPath: string;
+  rnaDataPath: string | null;
+  stepErrors: Record<string, string> | null;
+  retryCount: number;
+  maxRetries: number;
+  alignedBamPath: string | null;
+  vcfPath: string | null;
+  annotatedVcfPath: string | null;
+  variantCount: number | null;
+  tmb: number | null;
+  hlaGenotype: Record<string, string[]> | null;
+  neoantigenCount: number | null;
+  topNeoantigens: NeoantigenCandidateSummary[] | null;
+  vaccineBlueprint: Record<string, unknown> | null;
+  neoantigenReportPath: string | null;
+  vaccineBlueprintPath: string | null;
+  fullReportPdfPath: string | null;
+  patientSummaryPath: string | null;
+  totalComputeSeconds: number | null;
+  estimatedCostUsd: number | null;
+}
+
+export interface PipelineProgressEvent {
+  jobId: string;
+  step: string;
+  percentComplete: number;
+  message: string;
+}
+
+export interface NeoantigenCandidateSummary {
+  gene: string;
+  mutation: string;
+  mutantPeptide: string;
+  hlaAllele: string;
+  compositeScore: number;
+  rank: number;
+  confidence: string;
+}

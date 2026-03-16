@@ -220,3 +220,48 @@ export const NGS_INSURERS = [
   'Humana',
   'Medicaid',
 ] as const;
+
+export const PIPELINE_STATUSES = {
+  QUEUED: 'queued',
+  RUNNING: 'running',
+  COMPLETE: 'complete',
+  FAILED: 'failed',
+  CANCELLED: 'cancelled',
+} as const;
+
+export const PIPELINE_STEPS = {
+  ALIGNMENT: 'alignment',
+  VARIANT_CALLING: 'variant_calling',
+  HLA_TYPING: 'hla_typing',
+  NEOANTIGEN_PREDICTION: 'neoantigen_prediction',
+  STRUCTURE_PREDICTION: 'structure_prediction',
+  RANKING: 'ranking',
+  MRNA_DESIGN: 'mrna_design',
+} as const;
+
+export const PIPELINE_STEP_ORDER = [
+  'alignment',
+  'variant_calling',
+  'hla_typing',
+  'neoantigen_prediction',
+  'structure_prediction',
+  'ranking',
+  'mrna_design',
+] as const;
+
+export const PIPELINE_INPUT_FORMATS = {
+  FASTQ: 'fastq',
+  BAM: 'bam',
+} as const;
+
+export const NEOANTIGEN_CONFIDENCE = {
+  HIGH: 'high',
+  MEDIUM: 'medium',
+  LOW: 'low',
+} as const;
+
+export const NEOANTIGEN_BINDING_CLASS = {
+  STRONG_BINDER: 'strong_binder',
+  WEAK_BINDER: 'weak_binder',
+  NON_BINDER: 'non_binder',
+} as const;

@@ -10,7 +10,8 @@
     "db:generate": "turbo run db:generate",
     "db:migrate": "turbo run db:migrate",
     "db:push": "turbo run db:push",
-    "trial-sync": "tsx scripts/trial-sync.ts"
+    "trial-sync": "tsx scripts/trial-sync.ts",
+    "orchestrator:dev": "turbo run orchestrator:dev --filter=@oncovax/pipeline-orchestrator"
   },
   "devDependencies": {
     "dotenv": "^16.0.0",
