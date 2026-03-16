@@ -1,5 +1,8 @@
 import type { MonitoringReportType, AdverseEventSeverity } from '@oncovax/shared';
+import { ADVERSE_EVENT_OPTIONS } from '@oncovax/shared';
 import { MONITORING_SCHEDULE } from './providers';
+export type { AdverseEventOption } from '@oncovax/shared';
+export { ADVERSE_EVENT_OPTIONS };
 
 export interface ScheduleEntry {
   reportType: MonitoringReportType;
@@ -64,33 +67,3 @@ export function checkAdverseEventEscalation(adverseEvents: { severity: AdverseEv
 
   return { requiresEscalation: false, reason: null };
 }
-
-export interface AdverseEventOption {
-  event: string;
-  category: 'injection_site' | 'systemic' | 'serious';
-}
-
-export const ADVERSE_EVENT_OPTIONS: AdverseEventOption[] = [
-  // Injection site
-  { event: 'Injection site pain', category: 'injection_site' },
-  { event: 'Injection site swelling', category: 'injection_site' },
-  { event: 'Injection site redness', category: 'injection_site' },
-  { event: 'Injection site warmth', category: 'injection_site' },
-  { event: 'Injection site itching', category: 'injection_site' },
-  // Systemic
-  { event: 'Fatigue', category: 'systemic' },
-  { event: 'Headache', category: 'systemic' },
-  { event: 'Muscle pain', category: 'systemic' },
-  { event: 'Joint pain', category: 'systemic' },
-  { event: 'Chills', category: 'systemic' },
-  { event: 'Fever', category: 'systemic' },
-  { event: 'Nausea', category: 'systemic' },
-  { event: 'Diarrhea', category: 'systemic' },
-  { event: 'Lymph node swelling', category: 'systemic' },
-  // Serious
-  { event: 'Difficulty breathing', category: 'serious' },
-  { event: 'Chest pain', category: 'serious' },
-  { event: 'Severe allergic reaction', category: 'serious' },
-  { event: 'Seizure', category: 'serious' },
-  { event: 'Loss of consciousness', category: 'serious' },
-];

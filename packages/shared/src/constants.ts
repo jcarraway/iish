@@ -291,3 +291,33 @@ export const NEOANTIGEN_BINDING_CLASS = {
   WEAK_BINDER: 'weak_binder',
   NON_BINDER: 'non_binder',
 } as const;
+
+export interface AdverseEventOption {
+  event: string;
+  category: 'injection_site' | 'systemic' | 'serious';
+}
+
+export const ADVERSE_EVENT_OPTIONS: AdverseEventOption[] = [
+  // Injection site
+  { event: 'Injection site pain', category: 'injection_site' },
+  { event: 'Injection site swelling', category: 'injection_site' },
+  { event: 'Injection site redness', category: 'injection_site' },
+  { event: 'Injection site warmth', category: 'injection_site' },
+  { event: 'Injection site itching', category: 'injection_site' },
+  // Systemic
+  { event: 'Fatigue', category: 'systemic' },
+  { event: 'Headache', category: 'systemic' },
+  { event: 'Muscle pain', category: 'systemic' },
+  { event: 'Joint pain', category: 'systemic' },
+  { event: 'Chills', category: 'systemic' },
+  { event: 'Fever', category: 'systemic' },
+  { event: 'Nausea', category: 'systemic' },
+  { event: 'Diarrhea', category: 'systemic' },
+  { event: 'Lymph node swelling', category: 'systemic' },
+  // Serious
+  { event: 'Difficulty breathing', category: 'serious' },
+  { event: 'Chest pain', category: 'serious' },
+  { event: 'Severe allergic reaction', category: 'serious' },
+  { event: 'Seizure', category: 'serious' },
+  { event: 'Loss of consciousness', category: 'serious' },
+];

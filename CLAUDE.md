@@ -13,10 +13,15 @@ oncovax/
 │   │   ├── app/                # App Router — pages + 87 API route files
 │   │   ├── components/         # 24 React components (web-only, Tailwind)
 │   │   └── lib/                # 40 library files (see below)
-│   └── mobile/                 # Expo SDK 54, React Native 0.76.9 (skeleton)
-│       └── lib/api.ts          # HTTP client with expo-secure-store auth
+│   └── mobile/                 # Expo SDK 54, React Native 0.76.9, Dripsy + Solito
+│       └── lib/apollo.ts       # Apollo Client with expo-secure-store auth
 ├── docker-compose.yml          # Local dev: postgres:15-alpine + redis:7-alpine
 ├── packages/
+│   ├── ui/                     # Thin RN + Solito re-exports (@oncovax/ui)
+│   ├── app/                    # Shared screens, 22 Dripsy components, theme (@oncovax/app)
+│   │   └── src/{components,providers,theme,index}.ts
+│   ├── api/                    # Apollo Server schema + resolvers (@oncovax/api)
+│   │   └── src/{schema,resolvers,context,index}.ts
 │   ├── db/                     # Prisma 7 + PostgreSQL (23 models)
 │   │   ├── prisma/schema.prisma
 │   │   └── prisma.config.ts    # defineConfig — url goes HERE, not in schema
@@ -68,11 +73,14 @@ export async function POST(req: NextRequest) {
 | `publicProcedure` | No session check |
 | `packages/api/src/routers/X.ts` | `apps/web/app/api/X/route.ts` |
 
-### UI: Hand-Built Tailwind Components (NOT shadcn lib, NOT Dripsy on web)
-- Web uses Tailwind with shadcn-style CSS variables (HSL custom properties) but NO shadcn/ui package installed
-- Has `cn()` utility (clsx + tailwind-merge) in `apps/web/lib/utils.ts`
-- All 24 components are hand-built with raw Tailwind classes, inline SVG icons
-- Mobile has Dripsy installed but currently uses raw `StyleSheet.create()` — Dripsy is the target pattern for mobile
+### UI: Dual Component Sets (Migration in Progress)
+- **Web (original):** 24 Tailwind components in `apps/web/components/` — still used by web pages
+- **Shared (new):** 22 Dripsy components in `packages/app/src/components/` — cross-platform ready
+- Both sets coexist until screen migration (D3-D6) re-points web pages to shared components
+- Shared components use Dripsy `sx` prop with theme tokens, Solito `Link` for navigation
+- Web-only components (not shared): `DocumentUploader` (File API), `AdministrationSiteMap` (Mapbox)
+- Custom `Picker` component replaces `<select>` cross-platform (web: native select, native: Modal list)
+- Has `cn()` utility (clsx + tailwind-merge) in `apps/web/lib/utils.ts` (used by web components only)
 
 ### Prisma 7 (Critical Differences from Prisma 5/6)
 - No `url` in `datasource` block — use `prisma.config.ts` with `defineConfig`
@@ -104,6 +112,10 @@ export async function POST(req: NextRequest) {
 **Phase 4 — MANUFACTURE (complete):**
 - *M1:* Manufacturing partner directory (15 CDMOs seeded across 3 tiers), regulatory pathway advisor (decision tree + 8 Claude-powered document templates), 3 Prisma models (ManufacturingPartner, RegulatoryPathwayAssessment, RegulatoryDocument), 10 API routes (4 manufacturing + 6 regulatory), 3 components, 8 pages under `/manufacture/`.
 - *M2:* Order workflow (9-stage lifecycle: inquiry → quote → production → QC → shipping → administration), provider network (12 administration sites seeded, proximity search with Haversine distance), post-administration monitoring (8-timepoint schedule, AE escalation checking), provider portal. 3 Prisma models (ManufacturingOrder, AdministrationSite, PostAdministrationReport), 11 API routes, 7 components, 12 pages, 3 lib files. Dashboard + nav integration.
+
+**Cross-Platform Foundation (D0-D1):**
+- *D0:* `packages/ui/` (RN + Solito re-exports), `packages/app/` (Dripsy theme, providers, Apollo cache config), `packages/api/` (Apollo Server schema + resolvers wrapping lib/). Web + mobile configured with Apollo Client, DripsyProvider, react-native-web.
+- *D1:* 22 of 24 components migrated from Tailwind to Dripsy in `packages/app/src/components/`. Custom cross-platform Picker. `ADVERSE_EVENT_OPTIONS` moved to shared constants. Web-only: DocumentUploader, AdministrationSiteMap. Both old (web) and new (shared) components coexist until D3-D6 screen migration.
 
 ## What's NOT Built Yet
 
@@ -160,6 +172,6 @@ export async function POST(req: NextRequest) {
 
 - **No tests** — zero test files in web/mobile (only Rust unit tests)
 - **No error monitoring** — no Sentry, no error boundaries
-- **No state management lib** — all local useState + useEffect + fetch
-- **Mobile is skeleton** — auth not wired, screens are placeholders
+- **No state management lib** — web uses local useState + useEffect + fetch (Apollo Client available but screens not yet migrated)
+- **Mobile is skeleton** — providers configured but screens are placeholders (shared components ready, screen migration pending D3-D6)
 - **No notification system** — only magic link email via Resend

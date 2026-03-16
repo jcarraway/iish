@@ -6,7 +6,8 @@
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
     "outDir": "./dist",
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "types": ["react", "node"]
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]

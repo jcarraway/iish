@@ -163,58 +163,86 @@ All packages installed, all 3 new packages type-check clean, web build succeeds.
 
 ---
 
-## Session D1: Component Migration (24 components)
+## Session D1: Component Migration (22 of 24 components) ✅ COMPLETE
 
-All 24 components move from `apps/web/components/` to `packages/app/src/components/`.
+Migrated 22 components from `apps/web/components/` (Tailwind) to `packages/app/src/components/` (Dripsy). 2 web-only components remain in place.
 
-### Migration pattern for each component:
+### Pre-migration: Shared constants
+- Moved `ADVERSE_EVENT_OPTIONS` (19 adverse events, 3 categories) + `AdverseEventOption` interface from `apps/web/lib/monitoring.ts` to `packages/shared/src/constants.ts`
+- `apps/web/lib/monitoring.ts` now imports/re-exports from `@oncovax/shared`
 
-1. `<div>` → `<View>`, `<p>`/`<span>`/`<h1-h6>` → `<Text>`, `<button>` → `<Pressable>`, `<a>` → `<Link>` (Solito)
+### Cross-platform Picker component
+- `packages/app/src/components/Picker.tsx` — custom cross-platform select replacement
+- Web: renders native `<select>` via `Platform.OS === 'web'` check
+- Native: renders `Pressable` that opens a `Modal` with scrollable option list
+- Used by MonitoringReportForm (7 selects) and ManualIntakeWizard (6+ selects)
+
+### Migration pattern applied:
+
+1. `<div>` → `<View>`, `<p>`/`<span>`/`<h1-h6>` → `<Text>`, `<button>` → `<Pressable>`, `<a>` → `<Link>` (Solito) or `Linking.openURL`
 2. Tailwind classes → `sx` prop with theme tokens (e.g., `className="bg-green-50 text-green-700"` → `sx={{ bg: 'green50', color: 'green700' }}`)
-3. `import Link from 'next/link'` → `import { Link } from '@oncovax/ui'`
+3. `import Link from 'next/link'` → `import { Link } from 'solito/link'`
 4. `cn()` calls → inline `sx` prop (no class merging needed)
-5. Inline SVGs → keep as-is initially (React Native renders SVG components via react-native-svg on native; on web they work as-is)
+5. Inline SVGs → Unicode character fallbacks (`\u2713` checkmark, `\u25BC` dropdown, `\u2191`/`\u2193` sort arrows)
 6. `line-clamp-2` → `numberOfLines={2}` on Text
-7. `hover:` states → skip initially (web polish, add back via `.web.tsx` later if needed)
+7. `hover:` states → skipped (not supported natively)
+8. `<select>` → custom `Picker` component
+9. `<textarea>` → `<TextInput multiline>`
+10. `<input type="range">` → tappable number buttons (1-10 Pressable grid)
+11. `<input type="date">` → `<TextInput>` with "YYYY-MM-DD" placeholder
+12. `<table>` → `<View>` rows with `flexDirection: 'row'` and fixed column widths
+13. `onKeyDown` (Enter-to-submit) → removed (not available in React Native)
+14. `window.open(url)` → `Platform.OS === 'web' ? window.open(url) : Linking.openURL(url)`
 
-### Component migration order:
+### Components migrated:
 
-**Tier 1 — Pure display (no Link, no fetch):**
-1. `TranslationSection.tsx` (39 lines) — simplest, good first migration
-2. `OrderProgressBar.tsx` (73 lines) — step indicator
-3. `PipelineProgressBar.tsx` (80 lines) — same pattern
-4. `MonitoringScheduleWidget.tsx` (76 lines)
-5. `OrderTimeline.tsx` (81 lines)
-6. `AdverseEventSummary.tsx` (101 lines)
-7. `EligibilityBreakdown.tsx` (168 lines)
-8. `BlueprintVisualization.tsx` (183 lines)
-9. `NeoantigenTable.tsx` (159 lines) — `<table>` → `<View>` rows with flex
+**Tier 1 — Pure display (11 components):** ✅
+1. `TranslationSection.tsx` — collapsible section with Unicode arrows
+2. `OrderProgressBar.tsx` — 8-step sequencing progress, imports `SEQUENCING_ORDER_STATUSES` from shared
+3. `PipelineProgressBar.tsx` — 8-step pipeline progress, imports `PIPELINE_STEP_ORDER` from shared
+4. `MonitoringScheduleWidget.tsx` — post-vaccination schedule with status badges
+5. `OrderTimeline.tsx` — horizontal ScrollView timeline, 9 manufacturing stages
+6. `AdverseEventSummary.tsx` — severity-sorted adverse events with color-coded badges
+7. `RegulatoryDocumentCard.tsx` — document status card with action buttons
+8. `EligibilityBreakdown.tsx` — 6-dimension scoring with StatusIcon/ScoreBar sub-components
+9. `BlueprintVisualization.tsx` — vaccine blueprint with responsive grid layout
+10. `NeoantigenTable.tsx` — sortable data table with expandable detail rows
+11. `PathwayRecommendation.tsx` — regulatory pathway with accordion alternatives
 
-**Tier 2 — Cards with Link navigation:**
-10. `AdministrationSiteCard.tsx` (103 lines) — no Link, callbacks only
-11. `RegulatoryDocumentCard.tsx` (94 lines) — no Link, callbacks
-12. `PathwayRecommendation.tsx` (160 lines) — no Link, display + callbacks
-13. `OrderStatusCard.tsx` (105 lines) — entire card is a Link
-14. `SequencingProviderCard.tsx` (106 lines) — 2 Links
-15. `FinancialProgramCard.tsx` (120 lines) — 2 Links + external `<a>`
-16. `ManufacturingPartnerCard.tsx` (165 lines) — 1 Link
-17. `ReportCard.tsx` (143 lines) — has fetch() for report gen → use Apollo mutation
-18. `MatchCard.tsx` (172 lines) — 3 Links, callbacks, status badges
+**Tier 2 — Cards with navigation (7 components):** ✅
+12. `AdministrationSiteCard.tsx` — `Linking.openURL` for external links, capability badges
+13. `OrderStatusCard.tsx` — entire card wrapped in Solito `Link`, currency formatting
+14. `SequencingProviderCard.tsx` — 3 Solito Links, custom View-based checkbox
+15. `FinancialProgramCard.tsx` — Solito Links + `Linking.openURL` for external URLs
+16. `ReportCard.tsx` — state machine (idle/generating/ready/error), Platform-aware PDF open
+17. `ManufacturingPartnerCard.tsx` — capability/certification lists, match score bar
+18. `MatchCard.tsx` — internal BreakdownPills sub-component, status badges, 3 Links
 
-**Tier 3 — Forms/interactive:**
-19. `InlineMagicLink.tsx` (105 lines) — input + Apollo mutation
-20. `HealthSystemSearch.tsx` (111 lines) — debounced search
-21. `MonitoringReportForm.tsx` (274 lines) — complex form
-22. `ManualIntakeWizard.tsx` (349 lines) — multi-step wizard
+**Tier 3 — Forms/interactive (4 components):** ✅
+19. `InlineMagicLink.tsx` — TextInput with email keyboard, polling for session
+20. `HealthSystemSearch.tsx` — debounced TextInput, ScrollView results list
+21. `MonitoringReportForm.tsx` — 7 Pickers, toggle buttons for adverse events, tappable QoL score
+22. `ManualIntakeWizard.tsx` — 4-step wizard, 6+ Pickers, dynamic list add/remove
 
-**Tier 4 — Web-only (stay in `apps/web/components/`, NOT migrated):**
-23. `DocumentUploader.tsx` (276 lines) — File drag-drop, camera, XHR upload (web APIs)
-24. `AdministrationSiteMap.tsx` (82 lines) — Mapbox map (web-only for now)
+**Web-only — NOT migrated (2 components):**
+23. `DocumentUploader.tsx` — File API, drag-drop, XMLHttpRequest (web APIs)
+24. `AdministrationSiteMap.tsx` — Mapbox map (web-only)
 
-### D1 Deliverables
-- 22 components migrated to `packages/app/src/components/`
-- 2 web-only components remain in `apps/web/components/`
-- All exported from `packages/app/src/components/index.ts`
+### Dependencies added
+- `@react-native-community/slider@^5.1.2` — installed but deferred (QoL uses tappable buttons instead)
+- `@types/node` — dev dependency for `process.env` in shared/auth.ts
+
+### Build verification ✅
+- `@oncovax/shared` — builds clean
+- `@oncovax/app` (tsc) — builds clean
+- `@oncovax/api` — builds clean
+- `@oncovax/web` (Next.js) — builds clean (95 pages)
+
+### D1 Build Notes
+- `@ts-ignore` needed on web-only `<select>` in Picker.tsx (TypeScript doesn't error, so `@ts-expect-error` fails)
+- `packages/app/tsconfig.json` needs `"types": ["react", "node"]` for `process.env` in shared/auth.ts
+- Inline SVGs render on web via react-native-web but won't render natively — acceptable for D1, will be replaced with react-native-svg or icon libraries later
+- Both old (web/Tailwind) and new (shared/Dripsy) components coexist — web pages still import from `apps/web/components/` until screen migration in D3-D6
 
 ---
 

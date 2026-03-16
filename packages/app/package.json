@@ -21,8 +21,9 @@
   },
   "dependencies": {
     "@apollo/client": "^3.12.3",
-    "@oncovax/ui": "workspace:*",
     "@oncovax/shared": "workspace:*",
+    "@oncovax/ui": "workspace:*",
+    "@react-native-community/slider": "^5.1.2",
     "dripsy": "^4.3.8",
     "graphql": "^16.9.0",
     "solito": "^5.0.0"
@@ -32,6 +33,7 @@
     "@graphql-codegen/typescript": "^5.0.7",
     "@graphql-codegen/typescript-operations": "^5.0.7",
     "@graphql-codegen/typescript-react-apollo": "^4.3.4",
+    "@types/node": "^20.0.0",
     "@types/react": "^19.0.0",
     "react-native": ">=0.76.0",
     "typescript": "^5.7.2"
