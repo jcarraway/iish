@@ -10,14 +10,14 @@ Personalized cancer vaccine intelligence platform. Monorepo covering the full pa
 oncovax/
 ├── apps/
 │   ├── web/                    # Next.js 15.0.0, React 19.0.0, Tailwind CSS 3.4
-│   │   ├── app/                # App Router — pages + 76 API route files
-│   │   ├── components/         # 17 React components (web-only, Tailwind)
-│   │   └── lib/                # 37 library files (see below)
+│   │   ├── app/                # App Router — pages + 87 API route files
+│   │   ├── components/         # 24 React components (web-only, Tailwind)
+│   │   └── lib/                # 40 library files (see below)
 │   └── mobile/                 # Expo SDK 54, React Native 0.76.9 (skeleton)
 │       └── lib/api.ts          # HTTP client with expo-secure-store auth
 ├── docker-compose.yml          # Local dev: postgres:15-alpine + redis:7-alpine
 ├── packages/
-│   ├── db/                     # Prisma 7 + PostgreSQL (20 models)
+│   ├── db/                     # Prisma 7 + PostgreSQL (23 models)
 │   │   ├── prisma/schema.prisma
 │   │   └── prisma.config.ts    # defineConfig — url goes HERE, not in schema
 │   ├── shared/                 # Types (720+ lines), Zod schemas, constants, auth
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
 ### UI: Hand-Built Tailwind Components (NOT shadcn lib, NOT Dripsy on web)
 - Web uses Tailwind with shadcn-style CSS variables (HSL custom properties) but NO shadcn/ui package installed
 - Has `cn()` utility (clsx + tailwind-merge) in `apps/web/lib/utils.ts`
-- All 14 components are hand-built with raw Tailwind classes, inline SVG icons
+- All 24 components are hand-built with raw Tailwind classes, inline SVG icons
 - Mobile has Dripsy installed but currently uses raw `StyleSheet.create()` — Dripsy is the target pattern for mobile
 
 ### Prisma 7 (Critical Differences from Prisma 5/6)
@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
 - Package: `@anthropic-ai/sdk@0.39.0`
 - Used for: document extraction, eligibility parsing, trial matching, treatment translation, genomic interpretation, report generation, regulatory document drafting
 
-## What's Built (Phases 1-3 + Partial Phase 4)
+## What's Built (Phases 1-4)
 
 **Phase 1 — MATCH:** Auth, patient profiles (3 intake paths), document ingestion (Claude Vision), trial matching (ClinicalTrials.gov sync + eligibility parsing + multi-dimension scoring), Treatment Translator (two-step Claude pipeline), Oncologist Brief, Financial Assistance Finder, MyChart/FHIR (SMART on FHIR OAuth), Stripe billing.
 
@@ -101,11 +101,11 @@ export async function POST(req: NextRequest) {
 
 **Phase 3 — PREDICT:** 8-step neoantigen pipeline with DAG orchestration via NATS JetStream. Rust services (alignment, variant-caller, hla-typer) + TypeScript (remaining 5 steps). AWS Batch dispatch with 2 compute tiers. PDF report generation (@react-pdf/renderer) + interactive UI.
 
-**Phase 4 — MANUFACTURE (M1 complete, M2 planned):** Manufacturing partner directory (15 CDMOs seeded across 3 tiers), regulatory pathway advisor (decision tree + 8 Claude-powered document templates), 3 Prisma models (ManufacturingPartner, RegulatoryPathwayAssessment, RegulatoryDocument), 10 API routes (4 manufacturing + 6 regulatory), 3 components, 8 pages under `/manufacture/`, dashboard + nav integration.
+**Phase 4 — MANUFACTURE (complete):**
+- *M1:* Manufacturing partner directory (15 CDMOs seeded across 3 tiers), regulatory pathway advisor (decision tree + 8 Claude-powered document templates), 3 Prisma models (ManufacturingPartner, RegulatoryPathwayAssessment, RegulatoryDocument), 10 API routes (4 manufacturing + 6 regulatory), 3 components, 8 pages under `/manufacture/`.
+- *M2:* Order workflow (9-stage lifecycle: inquiry → quote → production → QC → shipping → administration), provider network (12 administration sites seeded, proximity search with Haversine distance), post-administration monitoring (8-timepoint schedule, AE escalation checking), provider portal. 3 Prisma models (ManufacturingOrder, AdministrationSite, PostAdministrationReport), 11 API routes, 7 components, 12 pages, 3 lib files. Dashboard + nav integration.
 
 ## What's NOT Built Yet
-
-**Phase 4 remaining (M2):** ManufacturingOrder, AdministrationSite, PostAdministrationReport, order lifecycle (inquiry → quote → production → QC → shipping → delivery), provider network (oncologist/infusion center directory), post-administration monitoring.
 
 **Phase 5 — SURVIVE** (Sessions S1-S8): Survivorship care plans, surveillance scheduling, symptom journal, lifestyle engine, psychosocial support, ctDNA monitoring, recurrence cascade.
 

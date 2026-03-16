@@ -88,6 +88,26 @@ oncovax/                                 # As built (Sessions 1-8)
 │   │   │   │   │   │   └── [orderId]/  # GET: detail, PATCH: update status (Session 7)
 │   │   │   │   │   ├── providers/      # GET: list, detail (Session 7)
 │   │   │   │   │   └── waiting-content/ # POST: educational content while waiting (Session 8)
+│   │   │   │   ├── manufacturing/        # Manufacturing workflow (Sessions M1-M2)
+│   │   │   │   │   ├── route.ts         # GET: list partners (Session M1)
+│   │   │   │   │   ├── [partnerId]/     # GET: partner detail (Session M1)
+│   │   │   │   │   ├── recommend/       # POST: recommend partner for blueprint (Session M1)
+│   │   │   │   │   ├── inquire/         # POST: send inquiry to manufacturer (Session M1)
+│   │   │   │   │   ├── orders/          # GET: list orders, POST: create order (Session M2)
+│   │   │   │   │   │   └── [id]/        # GET: detail, PATCH: update status (Session M2)
+│   │   │   │   │   │       ├── quote-accept/  # POST: accept manufacturer quote
+│   │   │   │   │   │       ├── note/          # POST: add timestamped note
+│   │   │   │   │   │       └── connect-site/  # POST: link administration site
+│   │   │   │   │   └── monitoring/      # Post-administration monitoring (Session M2)
+│   │   │   │   │       └── [orderId]/   # report (POST), schedule (GET), history (GET)
+│   │   │   │   ├── providers/           # Administration site directory (Session M2)
+│   │   │   │   │   ├── route.ts         # GET: search by zip/radius/capabilities
+│   │   │   │   │   ├── [id]/            # GET: site detail
+│   │   │   │   │   └── register/        # POST: public self-registration
+│   │   │   │   ├── regulatory/          # Regulatory pathway advisor (Session M1)
+│   │   │   │   │   ├── assess/          # POST: pathway assessment
+│   │   │   │   │   ├── [assessmentId]/  # GET: assessment detail
+│   │   │   │   │   └── documents/       # POST: generate, GET: list, PATCH: status
 │   │   │   │   ├── translator/          # Treatment translation pipeline (Session 5)
 │   │   │   │   │   └── route.ts         # GET: cached, POST: generate via 2-step Claude pipeline
 │   │   │   │   └── trials/              # Public trial search + detail (Session 2)
@@ -128,8 +148,24 @@ oncovax/                                 # As built (Sessions 1-8)
 │   │   │   │   └── upload/page.tsx      # Genomic report upload — drag-drop + extraction pipeline (Session 9)
 │   │   │   ├── translate/               # Treatment translator (Session 5)
 │   │   │   │   └── page.tsx             # Magazine-style treatment guide with drug cards + timeline
+│   │   │   ├── manufacture/              # Manufacturing workflow (Sessions M1-M2)
+│   │   │   │   ├── page.tsx             # Manufacturing landing (partners + orders + monitoring)
+│   │   │   │   ├── partners/            # Partner directory (M1)
+│   │   │   │   ├── regulatory/          # Regulatory pathway advisor (M1)
+│   │   │   │   ├── orders/              # Order lifecycle (M2)
+│   │   │   │   │   ├── page.tsx         # Order list
+│   │   │   │   │   ├── new/page.tsx     # Create order
+│   │   │   │   │   └── [orderId]/       # Order detail + tracking
+│   │   │   │   ├── providers/           # Administration site directory (M2)
+│   │   │   │   └── monitoring/          # Post-administration monitoring (M2)
+│   │   │   │       ├── page.tsx         # Monitoring dashboard
+│   │   │   │       └── [orderId]/       # Report submission + history
+│   │   │   ├── provider/                 # Provider portal (M2)
+│   │   │   │   ├── register/page.tsx    # Public self-registration
+│   │   │   │   ├── orders/page.tsx      # Provider order dashboard
+│   │   │   │   └── monitoring/          # Provider monitoring view
 │   │   │   └── ...                      # Other pages (Session 1 stubs)
-│   │   ├── components/                  # Client components (Sessions 3-8)
+│   │   ├── components/                  # Client components (Sessions 3-M2)
 │   │   │   ├── DocumentUploader.tsx     # Mobile-first S3 upload with quality checks
 │   │   │   ├── ManualIntakeWizard.tsx   # 4-step clinical data wizard
 │   │   │   ├── InlineMagicLink.tsx      # Inline auth with session polling
@@ -140,7 +176,16 @@ oncovax/                                 # As built (Sessions 1-8)
 │   │   │   ├── HealthSystemSearch.tsx   # Searchable health system directory with debounce (Session 6)
 │   │   │   ├── SequencingProviderCard.tsx # Provider card with details + compare toggle (Session 7)
 │   │   │   ├── OrderProgressBar.tsx     # Horizontal order status progress bar (Session 8)
-│   │   │   └── PipelineProgressBar.tsx # 8-step pipeline progress visualization (Sessions 10, 12)
+│   │   │   ├── PipelineProgressBar.tsx # 8-step pipeline progress visualization (Sessions 10, 12)
+│   │   │   ├── ManufacturingPartnerCard.tsx # Partner capability badges + cost (M1)
+│   │   │   ├── RegulatoryDocumentCard.tsx # Document status + workflow actions (M1)
+│   │   │   ├── OrderTimeline.tsx        # 9-stage manufacturing order timeline (M2)
+│   │   │   ├── OrderStatusCard.tsx      # Order summary with status badge (M2)
+│   │   │   ├── AdministrationSiteCard.tsx # Site card with capabilities + distance (M2)
+│   │   │   ├── AdministrationSiteMap.tsx # Map placeholder with site chips (M2)
+│   │   │   ├── MonitoringReportForm.tsx # AE checkboxes + vitals + QOL + tumor response (M2)
+│   │   │   ├── MonitoringScheduleWidget.tsx # Color-coded monitoring checklist (M2)
+│   │   │   └── AdverseEventSummary.tsx  # AE severity aggregation across reports (M2)
 │   │   └── lib/
 │   │       ├── ai.ts                    # Claude Opus client + multi-image + PDF support
 │   │       ├── clinicaltrials.ts        # CTG v2 API client (Session 2)
@@ -170,11 +215,16 @@ oncovax/                                 # As built (Sessions 1-8)
 │   │       ├── nats.ts                # NATS JetStream client singleton for pipeline events (Session 10)
 │   │       ├── mapbox.ts                # Geocoding fallback (Session 2)
 │   │       ├── trial-sync.ts            # Sync worker (Session 2)
+│   │       ├── pathway-advisor.ts       # Regulatory pathway decision tree (Session M1)
+│   │       ├── regulatory-documents.ts  # 8 Claude-powered document templates (Session M1)
+│   │       ├── manufacturing-orders.ts  # Order lifecycle, blueprint packaging, timeline builder (Session M2)
+│   │       ├── providers.ts             # Haversine distance, ZIP geocoding, monitoring schedule (Session M2)
+│   │       ├── monitoring.ts            # AE escalation, schedule computation, 19 AE options (Session M2)
 │   │       ├── db.ts, redis.ts, session.ts, events.ts, stripe.ts, cloudinary.ts
 │   │       └── ...
 │   └── mobile/                          # Expo SDK 54 (Session 1 scaffold)
 ├── packages/
-│   ├── db/                              # Prisma 7 + PostgreSQL (20 models)
+│   ├── db/                              # Prisma 7 + PostgreSQL (23 models)
 │   ├── shared/                          # Types, schemas, constants, auth
 │   ├── pipeline-storage/                # S3 client for pipeline data (Session 10)
 │   │   └── src/{client,paths,upload,download}.ts
@@ -187,6 +237,8 @@ oncovax/                                 # As built (Sessions 1-8)
 │   ├── seed-health-systems.ts           # Seed 30 health systems with FHIR URLs (Session 6)
 │   ├── seed-sequencing-providers.ts    # Seed 10 sequencing providers (Session 7)
 │   ├── seed-insurance-rules.ts         # Seed insurance coverage rules (Session 7)
+│   ├── seed-manufacturing-partners.ts  # Seed 15 CDMOs across 3 tiers (Session M1)
+│   ├── seed-administration-sites.ts    # Seed 12 major US cancer centers (Session M2)
 │   └── setup-reference-genome.sh       # Download + index GRCh38, upload to S3 (Session 10)
 ├── infrastructure/
 │   └── terraform/                       # AWS infra: VPC, S3, IAM, Batch, NATS ECS (Session 10)
@@ -2826,6 +2878,30 @@ SESSION M1: Manufacturing Directory + Regulatory Pathway Advisor — COMPLETED �
               added state-level Right to Try validation, 8 document templates (spec listed 4 explicitly)
 
 → PHASE 4 SESSION M1 COMPLETE (manufacturing directory + regulatory pathway advisor + full UI — Session M2 builds order workflow + provider network)
+
+SESSION M2: Order Workflow + Provider Network + Administration — COMPLETED ✓
+  Built: 3 new Prisma models (ManufacturingOrder, AdministrationSite, PostAdministrationReport — 23 models total),
+         seed script for 12 major US cancer centers (MD Anderson, MSK, Dana-Farber, Mayo, UCSF, Moffitt, etc.).
+         manufacturing-orders.ts: 9-stage order lifecycle (inquiry_sent → ready_for_administration), status
+         transition validation, blueprint packaging with PII stripping, timeline builder.
+         providers.ts: Haversine distance calculation, ZIP geocoding, monitoring schedule definition (8 timepoints).
+         monitoring.ts: schedule computation from administeredAt, AE escalation checking (severe/life_threatening
+         triggers notification), 19 adverse event options categorized as injection_site/systemic/serious.
+         11 API routes: 5 manufacturing orders (list+create, detail+update, quote-accept, note, connect-site)
+         + 3 providers (search by zip/radius/capabilities, detail, self-registration) + 3 monitoring
+         (report submission with AE escalation, schedule with status, history with AE summary).
+         7 components: OrderTimeline (9-stage visual), OrderStatusCard (status badge + quote info),
+         AdministrationSiteCard (capability badges + distance), AdministrationSiteMap (placeholder chip layout),
+         MonitoringReportForm (AE checkboxes + severity + vitals + QOL + tumor response),
+         MonitoringScheduleWidget (color-coded checklist), AdverseEventSummary (severity aggregation).
+         12 pages: orders (list, new, detail, tracking), providers (directory, detail, register),
+         monitoring (dashboard, report, history), provider portal (orders, monitoring).
+         Dashboard: manufacturing order count. Middleware: route protection for /manufacture/* and /provider/*.
+  New files: ~34, Modified: 5 (schema, shared types/exports, middleware, manufacture landing, dashboard)
+  Deviations: Next.js API routes (not tRPC), Haversine distance (not Mapbox Distance API),
+              placeholder map component (Mapbox GL JS for production), dynamic monitoring schedule
+
+→ PHASE 4 SESSION M2 COMPLETE — PHASE 4 COMPLETE (full manufacturing workflow: partner directory + regulatory advisor + order lifecycle + provider network + post-administration monitoring)
 ```
 
 ---

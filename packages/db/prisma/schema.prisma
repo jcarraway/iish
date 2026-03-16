@@ -94,6 +94,7 @@ model Patient {
   genomicResults    GenomicResult[]
   pipelineJobs      PipelineJob[]
   regulatoryAssessments RegulatoryPathwayAssessment[]
+  manufacturingOrders   ManufacturingOrder[]
 
   @@map("patients")
 }
@@ -380,6 +381,7 @@ model PipelineJob {
   sequencingOrder      SequencingOrder?     @relation(fields: [sequencingOrderId], references: [id])
   neoantigens          NeoantigenCandidate[]
   regulatoryAssessments RegulatoryPathwayAssessment[]
+  manufacturingOrders   ManufacturingOrder[]
 
   @@index([patientId, createdAt(sort: Desc)])
   @@index([status])
@@ -445,6 +447,8 @@ model ManufacturingPartner {
   createdAt             DateTime @default(now()) @map("created_at")
   updatedAt             DateTime @updatedAt @map("updated_at")
 
+  manufacturingOrders ManufacturingOrder[]
+
   @@index([type])
   @@index([country])
   @@index([status])
@@ -474,9 +478,10 @@ model RegulatoryPathwayAssessment {
   createdAt             DateTime @default(now()) @map("created_at")
   updatedAt             DateTime @updatedAt @map("updated_at")
 
-  patient      Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  pipelineJob  PipelineJob? @relation(fields: [pipelineJobId], references: [id])
-  documents    RegulatoryDocument[]
+  patient             Patient              @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  pipelineJob         PipelineJob?         @relation(fields: [pipelineJobId], references: [id])
+  documents           RegulatoryDocument[]
+  manufacturingOrders ManufacturingOrder[]
 
   @@index([patientId, createdAt(sort: Desc)])
   @@map("regulatory_pathway_assessments")
@@ -504,4 +509,160 @@ model RegulatoryDocument {
   @@index([assessmentId, documentType])
   @@index([status])
   @@map("regulatory_documents")
+}
+
+model ManufacturingOrder {
+  id                    String    @id @default(uuid()) @db.Uuid
+  patientId             String    @map("patient_id") @db.Uuid
+  partnerId             String    @map("partner_id") @db.Uuid
+  pipelineJobId         String    @map("pipeline_job_id") @db.Uuid
+  assessmentId          String?   @map("assessment_id") @db.Uuid
+  administrationSiteId  String?   @map("administration_site_id") @db.Uuid
+
+  status                String    @default("inquiry_sent") @map("status") @db.VarChar(50)
+
+  // Blueprint transfer
+  blueprintSentAt       DateTime? @map("blueprint_sent_at")
+  blueprintFormat       String?   @map("blueprint_format") @db.VarChar(50)
+  blueprintVersion      String?   @map("blueprint_version") @db.VarChar(20)
+
+  // Quote
+  quotePrice            Float?    @map("quote_price")
+  quoteCurrency         String?   @map("quote_currency") @db.VarChar(10)
+  quoteTurnaroundWeeks  Int?      @map("quote_turnaround_weeks")
+  quoteExpiresAt        DateTime? @map("quote_expires_at")
+  quoteDocumentPath     String?   @map("quote_document_path")
+
+  // Production
+  productionStartedAt       DateTime? @map("production_started_at")
+  productionEstimatedCompletion DateTime? @map("production_estimated_completion")
+  batchNumber               String?   @map("batch_number") @db.VarChar(100)
+
+  // QC
+  qcStartedAt          DateTime? @map("qc_started_at")
+  qcCompletedAt        DateTime? @map("qc_completed_at")
+  qcPassed             Boolean?  @map("qc_passed")
+  qcReportPath         String?   @map("qc_report_path")
+  qcNotes              String?   @map("qc_notes")
+
+  // Shipping
+  shippedAt             DateTime? @map("shipped_at")
+  trackingNumber        String?   @map("tracking_number")
+  shippingCarrier       String?   @map("shipping_carrier") @db.VarChar(100)
+  shippingConditions    String?   @map("shipping_conditions")
+  deliveredAt           DateTime? @map("delivered_at")
+
+  // Administration
+  administeredAt        DateTime? @map("administered_at")
+  administeredBy        String?   @map("administered_by")
+
+  // Cost
+  totalCost             Float?    @map("total_cost")
+  paymentStatus         String?   @map("payment_status") @db.VarChar(50)
+  financialAssistance   Json?     @map("financial_assistance")
+
+  // Notes
+  notes                 Json?     @map("notes")
+  message               String?   @map("message")
+
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  patient            Patient                     @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  partner            ManufacturingPartner         @relation(fields: [partnerId], references: [id])
+  pipelineJob        PipelineJob                  @relation(fields: [pipelineJobId], references: [id])
+  assessment         RegulatoryPathwayAssessment? @relation(fields: [assessmentId], references: [id])
+  administrationSite AdministrationSite?          @relation(fields: [administrationSiteId], references: [id])
+  reports            PostAdministrationReport[]
+
+  @@index([patientId, createdAt(sort: Desc)])
+  @@index([status])
+  @@map("manufacturing_orders")
+}
+
+model AdministrationSite {
+  id                    String    @id @default(uuid()) @db.Uuid
+  name                  String
+  type                  String    @db.VarChar(50) // academic_medical_center | community_oncology | infusion_center | hospital
+  contactName           String?   @map("contact_name")
+  contactEmail          String?   @map("contact_email")
+  contactPhone          String?   @map("contact_phone")
+  website               String?
+
+  // Address
+  address               String?
+  city                  String?
+  state                 String?   @db.VarChar(100)
+  zip                   String?   @db.VarChar(20)
+  country               String    @default("United States") @db.VarChar(100)
+  lat                   Float?
+  lng                   Float?
+
+  // Capabilities
+  canAdministerMrna     Boolean   @default(false) @map("can_administer_mrna")
+  hasInfusionCenter     Boolean   @default(false) @map("has_infusion_center")
+  hasEmergencyResponse  Boolean   @default(false) @map("has_emergency_response")
+  hasMonitoringCapacity Boolean   @default(false) @map("has_monitoring_capacity")
+  investigationalExp    Boolean   @default(false) @map("investigational_exp")
+  irbAffiliation        String?   @map("irb_affiliation")
+
+  // Status
+  verified              Boolean   @default(false)
+  willingToAdminister   Boolean   @default(false) @map("willing_to_administer")
+  verifiedAt            DateTime? @map("verified_at")
+
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  manufacturingOrders ManufacturingOrder[]
+
+  @@index([city, state])
+  @@index([verified])
+  @@map("administration_sites")
+}
+
+model PostAdministrationReport {
+  id                    String    @id @default(uuid()) @db.Uuid
+  orderId               String    @map("order_id") @db.Uuid
+
+  reportType            String    @map("report_type") @db.VarChar(30) // immediate|24hr|48hr|7day|14day|28day|3month|6month
+  daysPostAdministration Int      @map("days_post_administration")
+
+  // Adverse events
+  hasAdverseEvents      Boolean   @default(false) @map("has_adverse_events")
+  adverseEvents         Json?     @map("adverse_events")
+
+  // Vitals
+  temperature           Float?    @map("temperature")
+  bloodPressure         String?   @map("blood_pressure") @db.VarChar(20)
+  heartRate             Int?      @map("heart_rate")
+
+  // Immune markers
+  labResults            Json?     @map("lab_results")
+
+  // Tumor response
+  imagingResults        String?   @map("imaging_results")
+  tumorResponse         String?   @map("tumor_response") @db.VarChar(50)
+
+  // Patient-reported
+  narrative             String?   @map("narrative")
+  qualityOfLifeScore    Int?      @map("quality_of_life_score")
+
+  // Physician
+  physicianNotes        String?   @map("physician_notes")
+  physicianReportedAE   Json?     @map("physician_reported_ae")
+
+  // Status
+  status                String    @default("submitted") @map("status") @db.VarChar(30)
+  reviewedBy            String?   @map("reviewed_by")
+  reviewedAt            DateTime? @map("reviewed_at")
+
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  order ManufacturingOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId, reportType])
+  @@index([status])
+  @@map("post_administration_reports")
 }

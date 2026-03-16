@@ -1168,3 +1168,34 @@ Add to the existing admin dashboard:
 - **Adverse events:** Summary of all reported AEs, severity distribution, flagged cases
 
 ---END---
+
+### M2 Implementation Notes — COMPLETED ✓
+
+**Implemented:** 2026-03-16
+
+**Key adaptations from spec:**
+- Used Next.js API Route Handlers (not tRPC routers) — consistent with all prior sessions
+- ManufacturingOrder: 9-stage status lifecycle (inquiry_sent → quote_received → quote_accepted → blueprint_transferred → in_production → qc_in_progress → shipped → delivered → ready_for_administration). Blueprint packaging strips PII before transfer. Quote acceptance validates expiry. Status transitions validated server-side.
+- AdministrationSite: Facility registry with capability flags (canAdministerMrna, hasInfusionCenter, hasEmergencyResponse, hasMonitoringCapacity, investigationalExp). Geocoded with lat/lng. Provider self-registration (public, unverified).
+- PostAdministrationReport: 8 monitoring timepoints (immediate, 24hr, 48hr, 7day, 14day, 28day, 3month, 6month). Adverse event escalation checking for severe/life_threatening events. Later timepoints (28day+) include tumor response and imaging fields.
+- Provider search uses Haversine distance calculation (not Mapbox Distance API) for proximity filtering
+- AdministrationSiteMap is a placeholder chip-based layout (Mapbox GL JS to be integrated in production)
+- Monitoring schedule computed dynamically from administeredAt timestamp
+
+**Files created (~34 new, 5 modified):**
+- 3 Prisma models: ManufacturingOrder, AdministrationSite, PostAdministrationReport (+ reverse relations on Patient, ManufacturingPartner, PipelineJob, RegulatoryPathwayAssessment)
+- `scripts/seed-administration-sites.ts` — 12 major US cancer centers (MD Anderson, MSK, Dana-Farber, Mayo, UCSF, Moffitt, Seattle CCA, Northwestern, Arizona Oncology, Emory Winship, UCLA, Penn Medicine)
+- `apps/web/lib/manufacturing-orders.ts` — Order status labels, transition validation, timeline builder, blueprint packaging
+- `apps/web/lib/providers.ts` — Haversine distance, ZIP geocoding, monitoring schedule definition
+- `apps/web/lib/monitoring.ts` — Schedule computation, AE escalation checking, 19 adverse event options (injection_site/systemic/serious)
+- 5 API routes under `apps/web/app/api/manufacturing/orders/` (list+create, detail+update, quote-accept, note, connect-site)
+- 3 API routes under `apps/web/app/api/providers/` (search, detail, register)
+- 3 API routes under `apps/web/app/api/manufacturing/monitoring/[orderId]/` (report, schedule, history)
+- 7 components: OrderTimeline, OrderStatusCard, AdministrationSiteCard, AdministrationSiteMap, MonitoringReportForm, MonitoringScheduleWidget, AdverseEventSummary
+- 4 order pages: list, new, detail, tracking
+- 3 provider pages: directory, detail, register (public)
+- 3 monitoring pages: dashboard, report submission, history
+- 2 provider portal pages: orders, monitoring
+- Modified: schema.prisma (3 models + 4 reverse relations), shared types + index exports, middleware (route protection), manufacture landing page (M2 section), dashboard (order count)
+
+→ SESSION M2 COMPLETE — PHASE 4 COMPLETE (full manufacturing workflow: partner directory + regulatory advisor + order lifecycle + provider network + post-administration monitoring — 23 Prisma models total)

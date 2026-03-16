@@ -877,8 +877,9 @@
         "phase3:13": "complete",
         "phase3:14": "complete",
         "phase3:15": "complete",
-        // Phase 4 — M1 complete
+        // Phase 4 — complete
         "phase4:M1": "complete",
+        "phase4:M2": "complete",
       };
 
       const DEFAULT_NOTES = {
@@ -918,6 +919,8 @@
         // Phase 4
         "phase4:M1":
           "~25 new files, 6 modified. 3 Prisma models (ManufacturingPartner, RegulatoryPathwayAssessment, RegulatoryDocument), 15 CDMOs seeded (3 tiers). pathway-advisor.ts (decision tree: trial→expanded_access→right_to_try→physician_ind), regulatory-documents.ts (8 Claude-powered templates with AI disclaimers). 10 API routes (4 manufacturing, 6 regulatory). 3 components (ManufacturingPartnerCard, PathwayRecommendation, RegulatoryDocumentCard). 8 pages under /manufacture/. Dashboard + nav integration. Docker Compose for local dev (postgres:15-alpine + redis:7-alpine). 0 type errors.",
+        "phase4:M2":
+          "~34 new files, 5 modified. PHASE 4 COMPLETE. 3 Prisma models (ManufacturingOrder, AdministrationSite, PostAdministrationReport — 23 total). manufacturing-orders.ts (9-stage lifecycle, blueprint packaging with PII stripping), providers.ts (Haversine distance, ZIP geocoding), monitoring.ts (8-timepoint schedule, AE escalation). 11 API routes (5 orders, 3 providers, 3 monitoring). 7 components (OrderTimeline, OrderStatusCard, AdministrationSiteCard, AdministrationSiteMap, MonitoringReportForm, MonitoringScheduleWidget, AdverseEventSummary). 12 pages (orders, providers, monitoring, provider portal). 12 admin sites seeded. 0 type errors.",
       };
 
       let state = { statuses: {}, notes: {}, expanded: {}, filter: "all" };

@@ -18,20 +18,21 @@ interface DashboardData {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [data, setData] = useState<DashboardData & { pipelineJobCount?: number } | null>(null);
+  const [data, setData] = useState<DashboardData & { pipelineJobCount?: number; manufacturingOrderCount?: number } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadDashboard() {
       try {
         // Load matches and financial data in parallel
-        const [matchRes, financialRes, fhirRes, ordersRes, genomicRes, pipelineRes] = await Promise.all([
+        const [matchRes, financialRes, fhirRes, ordersRes, genomicRes, pipelineRes, mfgOrderRes] = await Promise.all([
           fetch('/api/matches').then(r => r.ok ? r.json() : null).catch(() => null),
           fetch('/api/financial').then(r => r.ok ? r.json() : null).catch(() => null),
           fetch('/api/fhir/connections').then(r => r.ok ? r.json() : null).catch(() => null),
           fetch('/api/sequencing/orders').then(r => r.ok ? r.json() : null).catch(() => null),
           fetch('/api/genomics/results').then(r => r.ok ? r.json() : null).catch(() => null),
           fetch('/api/pipeline/jobs').then(r => r.ok ? r.json() : null).catch(() => null),
+          fetch('/api/manufacturing/orders').then(r => r.ok ? r.json() : null).catch(() => null),
         ]);
 
         const activeConnections = (fhirRes?.connections ?? []).filter(
@@ -51,9 +52,10 @@ export default function DashboardPage() {
           sequencingLatestStatus: orders[0]?.status ?? null,
           genomicResultCount: genomicRes?.results?.length ?? 0,
           pipelineJobCount: pipelineRes?.jobs?.length ?? 0,
+          manufacturingOrderCount: mfgOrderRes?.orders?.length ?? 0,
         });
       } catch {
-        setData({ matchCount: 0, topMatchScore: null, financialEligibleCount: 0, financialTotalEstimated: 0, hasProfile: false, fhirConnectionCount: 0, sequencingOrderCount: 0, sequencingLatestStatus: null, genomicResultCount: 0, pipelineJobCount: 0 });
+        setData({ matchCount: 0, topMatchScore: null, financialEligibleCount: 0, financialTotalEstimated: 0, hasProfile: false, fhirConnectionCount: 0, sequencingOrderCount: 0, sequencingLatestStatus: null, genomicResultCount: 0, pipelineJobCount: 0, manufacturingOrderCount: 0 });
       } finally {
         setLoading(false);
       }
@@ -228,7 +230,7 @@ export default function DashboardPage() {
 
         {/* Manufacturing */}
         <Link
-          href="/manufacture"
+          href={(data?.manufacturingOrderCount ?? 0) > 0 ? '/manufacture/orders' : '/manufacture'}
           className="rounded-xl border border-gray-200 p-5 hover:border-orange-300 hover:shadow-sm transition-all"
         >
           <div className="flex items-center gap-2">
@@ -239,7 +241,14 @@ export default function DashboardPage() {
             </div>
             <h2 className="font-semibold text-gray-900">Manufacturing</h2>
           </div>
-          {(data?.pipelineJobCount ?? 0) > 0 ? (
+          {(data?.manufacturingOrderCount ?? 0) > 0 ? (
+            <>
+              <p className="mt-3 text-2xl font-bold text-gray-900">{data?.manufacturingOrderCount}</p>
+              <p className="text-xs text-gray-500">
+                active order{data?.manufacturingOrderCount !== 1 ? 's' : ''}
+              </p>
+            </>
+          ) : (data?.pipelineJobCount ?? 0) > 0 ? (
             <>
               <p className="mt-3 text-sm text-gray-600">Blueprint ready — explore manufacturing partners and regulatory pathways</p>
               <p className="mt-1 text-xs text-blue-600">Get started &rarr;</p>

@@ -675,3 +675,99 @@ export interface NeoantigenTrialMatch {
   relevanceExplanation: string;
   matchedNeoantigens: string[];
 }
+
+// --- Manufacturing Order Types ---
+
+export type ManufacturingOrderStatus =
+  | 'inquiry_sent'
+  | 'quote_received'
+  | 'quote_accepted'
+  | 'blueprint_transferred'
+  | 'in_production'
+  | 'qc_in_progress'
+  | 'shipped'
+  | 'delivered'
+  | 'ready_for_administration';
+
+export interface ManufacturingOrderSummary {
+  id: string;
+  status: ManufacturingOrderStatus;
+  partnerName: string;
+  partnerId: string;
+  pipelineJobId: string;
+  quotePrice: number | null;
+  quoteCurrency: string | null;
+  quoteTurnaroundWeeks: number | null;
+  totalCost: number | null;
+  batchNumber: string | null;
+  trackingNumber: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdministrationSiteSummary {
+  id: string;
+  name: string;
+  type: string;
+  city: string | null;
+  state: string | null;
+  distance?: number;
+  canAdministerMrna: boolean;
+  hasInfusionCenter: boolean;
+  hasEmergencyResponse: boolean;
+  hasMonitoringCapacity: boolean;
+  investigationalExp: boolean;
+  irbAffiliation: string | null;
+  verified: boolean;
+  contactPhone: string | null;
+  website: string | null;
+}
+
+export type MonitoringReportType =
+  | 'immediate'
+  | '24hr'
+  | '48hr'
+  | '7day'
+  | '14day'
+  | '28day'
+  | '3month'
+  | '6month';
+
+export type AdverseEventSeverity =
+  | 'mild'
+  | 'moderate'
+  | 'severe'
+  | 'life_threatening';
+
+export type TumorResponse =
+  | 'complete_response'
+  | 'partial_response'
+  | 'stable_disease'
+  | 'progressive_disease'
+  | 'not_evaluated';
+
+export interface AdverseEvent {
+  event: string;
+  severity: AdverseEventSeverity;
+  onset: string;
+  duration: string | null;
+  resolved: boolean;
+  treatment: string | null;
+}
+
+export interface PostAdministrationReportSummary {
+  id: string;
+  orderId: string;
+  reportType: MonitoringReportType;
+  daysPostAdministration: number;
+  hasAdverseEvents: boolean;
+  adverseEvents: AdverseEvent[] | null;
+  temperature: number | null;
+  bloodPressure: string | null;
+  heartRate: number | null;
+  qualityOfLifeScore: number | null;
+  tumorResponse: TumorResponse | null;
+  narrative: string | null;
+  status: string;
+  createdAt: string;
+}
