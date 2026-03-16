@@ -810,6 +810,49 @@
             },
           ],
         },
+        {
+          id: "visual",
+          name: "Visual science library",
+          badge: "LEARN",
+          badgeClass: "badge-learn",
+          sessions: [
+            {
+              id: "VZ1",
+              name: "Core library + Tier 1 visualizations (8)",
+              weeks: "W1-3",
+            },
+            { id: "VZ2", name: "Tier 2 visualizations (7)", weeks: "W3-5" },
+            {
+              id: "VZ3",
+              name: "Tier 3 visualizations + polish (7)",
+              weeks: "W5-7",
+            },
+            { id: "VZ4", name: "Tier 4 + GIF/video export (8)", weeks: "W7-9" },
+          ],
+        },
+        {
+          id: "cool",
+          name: "Cold capping access service",
+          badge: "CARE",
+          badgeClass: "badge-care",
+          sessions: [
+            {
+              id: "CL1",
+              name: "Assessment + system matching + insurance",
+              weeks: "W1-2",
+            },
+            {
+              id: "CL2",
+              name: "Hair-type protocols + prep kits + fitting",
+              weeks: "W2-4",
+            },
+            {
+              id: "CL3",
+              name: "Outcome tracking + community + LEARN",
+              weeks: "W4-6",
+            },
+          ],
+        },
       ];
 
       const STORAGE_KEY = "oncovax-build-tracker";
@@ -833,6 +876,7 @@
         "phase3:12": "complete",
         "phase3:13": "complete",
         "phase3:14": "complete",
+        "phase3:15": "complete",
       };
 
       const DEFAULT_NOTES = {
@@ -867,6 +911,8 @@
           "20 new files. Neoantigen Predictor (Python): MHCflurry 2.0 Class I binding predictions (batch mode), Class II placeholder, BLOSUM62 dissimilarity + hydrophobicity immunogenicity scoring, composite scoring (6 weighted factors: binding 0.25, agretopicity 0.20, immunogenicity 0.20, expression 0.15, clonality 0.10, structural 0.10), confidence classification, cancer cell fraction from VAF, optional RNA-seq expression filtering, quality gates. Job manager extended: S3 report download + NeoantigenCandidate bulk insert via createMany. ECR repo, Batch job def (replaced placeholder), IAM permissions. 27 Python tests passing, 0 TypeScript errors.",
         "phase3:14":
           "~43 new files, 4 modified. Three services completing the pipeline: structure-predictor (template PDB for ~25 HLA alleles, Biopython threading, AlphaFold fallback, biotite SASA), ranking (re-scores with real structural_exposure replacing default 0.5), mrna-designer (epitope selection with HLA diversity, polyepitope construct with tPA signal + EAAAK linkers + PADRE, human codon optimization targeting 50-60% GC, alpha/beta-globin UTRs + 120nt polyA, sequence QC, LNP formulation notes, Claude-powered rationale with fallback). 3 ECR repos, 3 Batch job defs updated from placeholders. Job manager: structure_prediction + ranking post-transaction DB updates. 42 Python tests, 0 TS errors.",
+        "phase3:15":
+          "14 new files, 4 modified. PHASE 3 COMPLETE. Three Claude-powered report generators (two-step: clinical grounding → audience translation) for patient/clinician/manufacturer. @react-pdf/renderer PDF generation (3 layouts). 4 API routes (report JSON, PDF with S3 upload, paginated neoantigens with sort/filter, trial cross-reference). NeoantigenTable (sortable, expandable), ReportCard (state machine), BlueprintVisualization (construct diagram, mRNA display, HLA grid). 4 new pages: neoantigen explorer, vaccine blueprint viewer, clinical trials, report download center. Job detail page extended with results navigation. 0 type errors.",
       };
 
       let state = { statuses: {}, notes: {}, expanded: {}, filter: "all" };

@@ -515,3 +515,95 @@ export interface NeoantigenCandidateSummary {
   rank: number;
   confidence: string;
 }
+
+// --- Report Types ---
+
+export interface PatientReportData {
+  summary: string;
+  whatAreNeoantigens: string;
+  topCandidates: { gene: string; mutation: string; explanation: string }[];
+  vaccineExplanation: string;
+  nextSteps: string[];
+  questionsForOncologist: { question: string; whyItMatters: string }[];
+  disclaimer: string;
+  generatedAt: string;
+}
+
+export interface ClinicianReportData {
+  sampleInfo: { patientId: string; cancerType: string; referenceGenome: string; inputFormat: string; completedAt: string };
+  genomicLandscape: {
+    totalVariants: number;
+    tmb: number | null;
+    significantGenes: string[];
+  };
+  hlaGenotype: Record<string, string[]>;
+  neoantigenAnalysis: {
+    methodology: string;
+    totalCandidates: number;
+    topCandidates: {
+      rank: number;
+      gene: string;
+      mutation: string;
+      mutantPeptide: string;
+      wildtypePeptide: string;
+      hlaAllele: string;
+      bindingAffinityNm: number;
+      bindingClass: string;
+      immunogenicityScore: number;
+      compositeScore: number;
+      confidence: string;
+    }[];
+  };
+  vaccineDesignSummary: {
+    epitopeCount: number;
+    targetedGenes: string[];
+    constructLength: number | null;
+    deliveryMethod: string | null;
+  };
+  clinicalImplications: string;
+  relevantTrials: { nctId: string; title: string; relevance: string }[];
+  limitations: string;
+  references: string[];
+  generatedAt: string;
+}
+
+export interface ManufacturerBlueprintData {
+  mRnaSequenceSpec: {
+    sequence: string;
+    lengthNt: number;
+    gcContent: number | null;
+    codonOptimization: string | null;
+    fivePrimeUtr: string | null;
+    threePrimeUtr: string | null;
+    polyATailLength: number | null;
+  };
+  constructDesign: {
+    signalPeptide: string | null;
+    epitopes: { gene: string; peptide: string; hlaAllele: string; linker: string | null }[];
+    universalHelper: string | null;
+    totalLength: number | null;
+  };
+  lnpFormulation: {
+    ionizableLipid: string | null;
+    helperLipid: string | null;
+    cholesterol: string | null;
+    pegLipid: string | null;
+    nPRatio: number | null;
+    particleSizeNm: string | null;
+  };
+  qcCriteria: { test: string; specification: string; method: string }[];
+  storageAndStability: { condition: string; shelfLife: string }[];
+  regulatoryNotes: string;
+  generatedAt: string;
+}
+
+export interface NeoantigenTrialMatch {
+  trialId: string;
+  nctId: string;
+  title: string;
+  phase: string | null;
+  trialType: string | null;
+  relevanceScore: number;
+  relevanceExplanation: string;
+  matchedNeoantigens: string[];
+}

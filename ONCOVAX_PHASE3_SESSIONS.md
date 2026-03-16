@@ -2204,3 +2204,46 @@ Run the complete pipeline with test data and verify:
 This completes Phase 3 — the platform can now take raw sequencing data and produce a ranked neoantigen report with structural predictions and a draft mRNA vaccine blueprint, with professional reports for patients, clinicians, and manufacturers.
 
 ---END---
+
+### Session 15 — COMPLETED
+
+**What was built:**
+
+Three Claude-powered report generators, PDF rendering, 4 new API routes, 3 new components, and 4 new pipeline UI pages — completing Phase 3.
+
+**Report generation library** (3 new lib files):
+- `report-generator.ts` — Three two-step Claude report generators following `genomic-interpreter.ts` pattern (clinical grounding → audience translation). `generatePatientReport` (8th-grade reading level, warm tone, summary + what are neoantigens + top vaccine targets + how vaccine works + next steps + questions for oncologist + disclaimer). `generateClinicianReport` (8-section formal clinical report: sample info, genomic landscape with TMB, HLA genotype, neoantigen analysis with full binding data table, vaccine design summary, clinical implications, limitations, references). `generateManufacturerBlueprint` (technical spec from vaccineBlueprint JSON: mRNA sequence spec, construct design with epitopes/linkers, LNP formulation, QC criteria, storage/stability, regulatory notes). Internal `loadJobData(jobId)` loads PipelineJob with top 30 NeoantigenCandidates + patient profile. All cached in Redis (`report:{type}:{jobId}`, 24hr TTL).
+- `neoantigen-trials.ts` — `crossReferenceTrials(jobId)`: queries Trial table for vaccine/neoantigen/immunotherapy trials (recruiting status, various OR conditions on title/type/conditions), sends top 20 neoantigens + patient HLA/cancer info + up to 50 trials to Claude for relevance assessment. Returns `NeoantigenTrialMatch[]` sorted by relevanceScore. Cached in Redis (`neoantigen-trials:{jobId}`, 24hr).
+- `report-pdf.ts` — Three PDF renderers using `@react-pdf/renderer` with `React.createElement` (not JSX) + `renderToBuffer()`. Patient PDF (large fonts, patient-friendly layout, purple branding, disclaimer footer). Clinician PDF (2-page clinical layout with 9-column data tables, page numbers). Manufacturer PDF (2-page technical spec, blue branding, epitope table, QC criteria table, LNP specs).
+
+**API routes** (4 new, all follow same auth pattern: requireSession → find patient → verify ownership → check job.status === 'complete'):
+- `reports/route.ts` — `GET ?type=patient|clinician|manufacturer` returns report JSON.
+- `reports/pdf/route.ts` — `GET ?type=patient|clinician|manufacturer` generates PDF → uploads to S3 → returns presigned URL. Checks for existing PDF path first (patientSummaryPath / fullReportPdfPath / vaccineBlueprintPath). Maps type to DB field for caching.
+- `neoantigens/route.ts` — `GET` with sort/order/confidence/gene/page/limit query params, returns paginated NeoantigenCandidate records with all 27 fields. Dynamic `where` and `orderBy` from params.
+- `trials/route.ts` — `GET` returns `NeoantigenTrialMatch[]` from `crossReferenceTrials(jobId)`.
+
+**Components** (3 new):
+- `NeoantigenTable.tsx` — Sortable 10-column table with expandable row detail (variant info, wildtype peptide, binding details, expression/clonality, structural exposure). Confidence and binding class color badges.
+- `ReportCard.tsx` — State machine: idle → generating (spinner) → ready (Preview + Download PDF buttons) → downloading. Error state with retry.
+- `BlueprintVisualization.tsx` — Summary stats grid, polyepitope construct diagram (colored segments for UTR/signal/epitope/linker/helper/polyA), mRNA sequence display with color-coded regions, HLA coverage grid, delivery specs card.
+
+**Pages** (4 new + 1 modified):
+- Modified `jobs/[jobId]/page.tsx` — Added 4-card results navigation grid when `job.status === 'complete'` (Neoantigen Explorer, Vaccine Blueprint, Clinical Trials, Reports).
+- `jobs/[jobId]/neoantigens/page.tsx` — Full neoantigen explorer with filter bar (confidence dropdown, gene search, sort selector), NeoantigenTable component, pagination controls.
+- `jobs/[jobId]/blueprint/page.tsx` — BlueprintVisualization rendering vaccineBlueprint JSON, "Download Manufacturer Blueprint" button.
+- `jobs/[jobId]/trials/page.tsx` — Loading state with AI assessment message, trial cards with NCT ID links (clinicaltrials.gov), phase badges, relevance score bars, matched gene pills, empty state.
+- `jobs/[jobId]/reports/page.tsx` — 3 ReportCard grid + inline preview section with PatientPreview, ClinicianPreview, ManufacturerPreview sub-components.
+
+**Types** (4 new in `packages/shared/src/types.ts`):
+- `PatientReportData` — summary, whatAreNeoantigens, topCandidates (gene/mutation/explanation), vaccineExplanation, nextSteps, questionsForOncologist (question/whyItMatters), disclaimer, generatedAt.
+- `ClinicianReportData` — sampleInfo, genomicLandscape (TMB, variants, genes), hlaGenotype, neoantigenAnalysis (methodology + top candidates with full binding data), vaccineDesignSummary, clinicalImplications, relevantTrials, limitations, references, generatedAt.
+- `ManufacturerBlueprintData` — mRnaSequenceSpec (length, GC, codon optimization), constructDesign (epitopes with gene/peptide/hlaAllele/linker), lnpFormulation, qcCriteria (test/specification/method), storageAndStability, regulatoryNotes, generatedAt.
+- `NeoantigenTrialMatch` — trialId, nctId, title, phase, trialType, relevanceScore, relevanceExplanation, matchedNeoantigens.
+
+**Verification:** `pnpm build` — 0 type errors, all 5 new pipeline sub-pages generating correctly. All API routes follow established auth/error patterns (401/404/400).
+
+**Files:** 14 new files (3 lib, 4 API routes, 3 components, 4 pages), 4 modified files (package.json, types.ts, index.ts, job detail page)
+
+**Deviations from plan:**
+- No CSV export button on neoantigen explorer (not in initial scope, straightforward to add later)
+- UI remains Tailwind-based (not Dripsy cross-platform) — consistent with all existing web pages; Dripsy migration deferred to dedicated session

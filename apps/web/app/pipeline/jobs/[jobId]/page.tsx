@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import PipelineProgressBar from '@/components/PipelineProgressBar';
 
 interface Neoantigen {
@@ -221,6 +222,52 @@ export default function PipelineJobDetailPage() {
               <p className="text-xs text-gray-500">Neoantigens</p>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Results Navigation */}
+      {job.status === 'complete' && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          <Link
+            href={`/pipeline/jobs/${job.id}/neoantigens`}
+            className="rounded-xl border border-gray-200 p-4 hover:border-purple-300 hover:bg-purple-50 transition-colors group"
+          >
+            <svg className="h-6 w-6 text-purple-500 mb-2 group-hover:text-purple-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+            </svg>
+            <p className="text-sm font-semibold text-gray-900">Neoantigen Explorer</p>
+            <p className="text-xs text-gray-500">Browse all candidates</p>
+          </Link>
+          <Link
+            href={`/pipeline/jobs/${job.id}/blueprint`}
+            className="rounded-xl border border-gray-200 p-4 hover:border-purple-300 hover:bg-purple-50 transition-colors group"
+          >
+            <svg className="h-6 w-6 text-purple-500 mb-2 group-hover:text-purple-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5" />
+            </svg>
+            <p className="text-sm font-semibold text-gray-900">Vaccine Blueprint</p>
+            <p className="text-xs text-gray-500">View construct design</p>
+          </Link>
+          <Link
+            href={`/pipeline/jobs/${job.id}/trials`}
+            className="rounded-xl border border-gray-200 p-4 hover:border-purple-300 hover:bg-purple-50 transition-colors group"
+          >
+            <svg className="h-6 w-6 text-purple-500 mb-2 group-hover:text-purple-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+            </svg>
+            <p className="text-sm font-semibold text-gray-900">Clinical Trials</p>
+            <p className="text-xs text-gray-500">Cross-reference trials</p>
+          </Link>
+          <Link
+            href={`/pipeline/jobs/${job.id}/reports`}
+            className="rounded-xl border border-gray-200 p-4 hover:border-purple-300 hover:bg-purple-50 transition-colors group"
+          >
+            <svg className="h-6 w-6 text-purple-500 mb-2 group-hover:text-purple-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+            </svg>
+            <p className="text-sm font-semibold text-gray-900">Reports</p>
+            <p className="text-xs text-gray-500">Generate & download</p>
+          </Link>
         </div>
       )}
 

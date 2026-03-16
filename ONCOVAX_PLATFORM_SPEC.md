@@ -2770,6 +2770,34 @@ SESSION 14: Structure Prediction + Ranking + mRNA Vaccine Designer — COMPLETED
   Files: ~43 new, 4 modified
 
 → PHASE 3 SESSION 14 COMPLETE (full pipeline operational: alignment → variant calling → [HLA typing ∥ peptide generation] → neoantigen prediction → structure prediction → ranking → mRNA design. Session 15 builds report generation + pipeline UI)
+
+Session 15 — Report Generation + Pipeline UI:
+  report-generator.ts: Three Claude-powered report generators (two-step: clinical grounding → audience
+       translation). generatePatientReport (8th-grade reading level, warm tone, questions for oncologist),
+       generateClinicianReport (8-section formal clinical report with full binding data),
+       generateManufacturerBlueprint (technical manufacturing spec from vaccineBlueprint JSON).
+       All cached in Redis (report:{type}:{jobId}, 24hr TTL). Data: top 30 neoantigens + patient profile.
+  neoantigen-trials.ts: crossReferenceTrials(jobId) — queries Trial table for vaccine/neoantigen/immunotherapy
+       trials, Claude relevance assessment against patient mutations + HLA type, returns NeoantigenTrialMatch[]
+       sorted by relevanceScore. Redis cached (neoantigen-trials:{jobId}, 24hr).
+  report-pdf.ts: Three @react-pdf/renderer PDF generators using React.createElement + renderToBuffer().
+       Patient (large fonts, purple branding, disclaimer), Clinician (2-page clinical layout, 9-column data
+       tables, page numbers), Manufacturer (2-page technical spec, blue branding, epitope + QC tables, LNP specs).
+  API routes: 4 new — reports/ (GET ?type= → report JSON), reports/pdf/ (GET ?type= → generate PDF → S3 upload
+       → presigned URL, caches on PipelineJob path fields), neoantigens/ (GET with sort/order/confidence/gene/
+       page/limit → paginated NeoantigenCandidate records), trials/ (GET → NeoantigenTrialMatch[]).
+  Components: NeoantigenTable (sortable 10-column table, expandable row detail, confidence/binding badges),
+       ReportCard (state machine: idle→generating→ready→downloading→error, Preview + Download PDF),
+       BlueprintVisualization (construct diagram, mRNA sequence with color-coded regions, HLA coverage grid,
+       delivery specs).
+  Pages: 4 new sub-routes under /pipeline/jobs/[jobId]/: neoantigens/ (full explorer with filter bar +
+       pagination), blueprint/ (construct visualization + download), trials/ (AI-scored trial cards with
+       NCT links), reports/ (3 ReportCard grid + inline preview). Modified job detail page with 4-card
+       results navigation when status === 'complete'.
+  Types: PatientReportData, ClinicianReportData, ManufacturerBlueprintData, NeoantigenTrialMatch in shared pkg.
+  Files: 14 new, 4 modified
+
+→ PHASE 3 SESSION 15 COMPLETE — PHASE 3 COMPLETE (full neoantigen vaccine platform: raw sequencing → 8-step compute pipeline → 3 audience-specific reports with PDF export → neoantigen explorer → vaccine blueprint viewer → clinical trial cross-reference)
 ```
 
 ---
