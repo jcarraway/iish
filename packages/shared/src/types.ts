@@ -316,3 +316,65 @@ export interface SequencingOncologistBrief {
   coverageSummary: string;
   generatedAt: string;
 }
+
+// Sequencing Journey Wizard Types
+
+export interface SequencingRecommendation {
+  level: 'strongly_recommended' | 'recommended' | 'optional' | 'not_typically_indicated';
+  headline: string;
+  personalizedReasoning: string;
+  whatItCouldReveal: string[];
+  howItHelpsRightNow: string;
+  howItHelpsLater: string;
+  guidelineRecommendation: string;
+  generatedAt: string;
+}
+
+export interface SequencingExplanation {
+  whatIsIt: string;
+  howItWorks: string;
+  whatItFinds: string;
+  personalRelevance: string;
+  commonConcerns: { concern: string; answer: string }[];
+  generatedAt: string;
+}
+
+export interface TestRecommendation {
+  primary: {
+    providerId: string;
+    providerName: string;
+    testName: string;
+    testType: string;
+    geneCount: number;
+    whyThisTest: string;
+    sampleType: string;
+    turnaroundDays: number;
+    fdaApproved: boolean;
+  };
+  alternatives: {
+    providerId: string;
+    providerName: string;
+    testName: string;
+    geneCount: number;
+    tradeoff: string;
+  }[];
+  reasoning: string;
+  generatedAt: string;
+}
+
+export interface ConversationGuide {
+  talkingPoints: { point: string; detail: string }[];
+  questionsToAsk: { question: string; whyItMatters: string }[];
+  emailTemplate: string;
+  orderingInstructions: string;
+  generatedAt: string;
+}
+
+export interface WaitingContent {
+  cancerType: string;
+  commonMutations: { name: string; frequency: string; significance: string; drugs: string[] }[];
+  whatMutationsMean: string;
+  clinicalTrialContext: string;
+  timelineExpectations: string;
+  generatedAt: string;
+}

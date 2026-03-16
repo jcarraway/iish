@@ -31,7 +31,7 @@ Reduce the time from cancer diagnosis to personalized vaccine access from months
 Extends existing Turborepo. New packages live alongside art-cafe apps.
 
 ```
-oncovax/                                 # As built (Sessions 1-6)
+oncovax/                                 # As built (Sessions 1-8)
 ├── apps/
 │   ├── web/                             # Next.js 15 patient-facing app (App Router)
 │   │   ├── app/
@@ -62,11 +62,24 @@ oncovax/                                 # As built (Sessions 1-6)
 │   │   │   │   │       └── brief/       # GET: generate oncologist brief
 │   │   │   │   ├── patients/            # Create + get patient profile (Session 3)
 │   │   │   │   ├── stripe/              # Checkout + webhook (Session 1)
+│   │   │   │   ├── sequencing/           # Sequencing navigation (Sessions 7-8)
+│   │   │   │   │   ├── brief/           # POST: generate oncologist sequencing brief (Session 7)
+│   │   │   │   │   ├── coverage/        # POST: check insurance coverage (Session 7)
+│   │   │   │   │   ├── guide/           # Sequencing journey wizard APIs (Session 8)
+│   │   │   │   │   │   ├── recommendation/    # POST: personalized sequencing recommendation
+│   │   │   │   │   │   ├── explanation/       # POST: personalized "what is sequencing" content
+│   │   │   │   │   │   ├── test-recommendation/ # POST: which test for this patient
+│   │   │   │   │   │   └── conversation/      # POST: conversation guide + email template
+│   │   │   │   │   ├── lomn/           # POST: letter of medical necessity (Session 7)
+│   │   │   │   │   ├── orders/         # GET: list, POST: create (Session 7)
+│   │   │   │   │   │   └── [orderId]/  # GET: detail, PATCH: update status (Session 7)
+│   │   │   │   │   ├── providers/      # GET: list, detail (Session 7)
+│   │   │   │   │   └── waiting-content/ # POST: educational content while waiting (Session 8)
 │   │   │   │   ├── translator/          # Treatment translation pipeline (Session 5)
 │   │   │   │   │   └── route.ts         # GET: cached, POST: generate via 2-step Claude pipeline
 │   │   │   │   └── trials/              # Public trial search + detail (Session 2)
-│   │   │   ├── dashboard/               # Dashboard hub (Sessions 5-6)
-│   │   │   │   ├── page.tsx             # 4-card layout: trials, treatment guide, financial, records
+│   │   │   ├── dashboard/               # Dashboard hub (Sessions 5-6, 8)
+│   │   │   │   ├── page.tsx             # 5-card layout: trials, treatment guide, financial, sequencing, records
 │   │   │   │   └── records/page.tsx     # Data access transparency — what FHIR accessed, revoke, re-sync
 │   │   │   ├── financial/               # Financial assistance finder (Session 5)
 │   │   │   │   ├── page.tsx             # Programs grouped by category, hero savings banner
@@ -81,10 +94,22 @@ oncovax/                                 # As built (Sessions 1-6)
 │   │   │   │   ├── mychart/             # MyChart connect — health system search + OAuth + extraction (Session 6)
 │   │   │   │   ├── manual/              # Manual intake wizard
 │   │   │   │   └── confirm/             # Review + auth + save + FHIR badges + financial profile
+│   │   │   ├── sequencing/               # Sequencing navigation (Sessions 7-8)
+│   │   │   │   ├── page.tsx             # Sequencing hub — 3 pathway cards (Session 7)
+│   │   │   │   ├── guide/page.tsx       # 5-step sequencing journey wizard (Session 8)
+│   │   │   │   ├── insurance/page.tsx   # Insurance coverage checker (Session 7)
+│   │   │   │   ├── orders/              # Order tracking (Session 8)
+│   │   │   │   │   ├── page.tsx         # Order list with progress bars + waiting content
+│   │   │   │   │   └── [orderId]/page.tsx # Order detail + status timeline + advance/cancel
+│   │   │   │   ├── providers/           # Provider directory (Session 7)
+│   │   │   │   │   ├── page.tsx         # Filterable provider list + comparison
+│   │   │   │   │   └── [providerId]/page.tsx # Provider detail
+│   │   │   │   ├── results/page.tsx     # Results placeholder (Session 7)
+│   │   │   │   └── upload/page.tsx      # Results upload placeholder (Session 7)
 │   │   │   ├── translate/               # Treatment translator (Session 5)
 │   │   │   │   └── page.tsx             # Magazine-style treatment guide with drug cards + timeline
 │   │   │   └── ...                      # Other pages (Session 1 stubs)
-│   │   ├── components/                  # Client components (Sessions 3-6)
+│   │   ├── components/                  # Client components (Sessions 3-8)
 │   │   │   ├── DocumentUploader.tsx     # Mobile-first S3 upload with quality checks
 │   │   │   ├── ManualIntakeWizard.tsx   # 4-step clinical data wizard
 │   │   │   ├── InlineMagicLink.tsx      # Inline auth with session polling
@@ -92,7 +117,9 @@ oncovax/                                 # As built (Sessions 1-6)
 │   │   │   ├── EligibilityBreakdown.tsx # 6-dimension breakdown + LLM assessment (Session 4)
 │   │   │   ├── TranslationSection.tsx   # Collapsible section for treatment guide (Session 5)
 │   │   │   ├── FinancialProgramCard.tsx # Program card with status badge + apply button (Session 5)
-│   │   │   └── HealthSystemSearch.tsx   # Searchable health system directory with debounce (Session 6)
+│   │   │   ├── HealthSystemSearch.tsx   # Searchable health system directory with debounce (Session 6)
+│   │   │   ├── SequencingProviderCard.tsx # Provider card with details + compare toggle (Session 7)
+│   │   │   └── OrderProgressBar.tsx     # Horizontal order status progress bar (Session 8)
 │   │   └── lib/
 │   │       ├── ai.ts                    # Claude Opus client + multi-image + PDF support
 │   │       ├── clinicaltrials.ts        # CTG v2 API client (Session 2)
@@ -111,25 +138,33 @@ oncovax/                                 # As built (Sessions 1-6)
 │   │       ├── oncologist-brief.ts     # Claude-powered oncologist brief generator (Session 4)
 │   │       ├── s3.ts                    # S3 presigned URL generation (Session 3)
 │   │       ├── translator.ts           # Two-step Claude translation pipeline (Session 5)
+│   │       ├── coverage.ts             # Insurance coverage determination engine (Session 7)
+│   │       ├── sequencing-brief.ts     # Claude-powered sequencing oncologist brief (Session 7)
+│   │       ├── sequencing-recommendation.ts # Deterministic recommendation level + Claude personalization (Session 8)
+│   │       ├── test-recommendation.ts  # Deterministic test selection (Foundation/Guardant/Tempus) (Session 8)
+│   │       ├── conversation-guide.ts   # Claude-powered doctor conversation guide + email template (Session 8)
+│   │       ├── waiting-content.ts      # Claude-powered educational content by cancer type (Session 8)
 │   │       ├── mapbox.ts                # Geocoding fallback (Session 2)
 │   │       ├── trial-sync.ts            # Sync worker (Session 2)
 │   │       ├── db.ts, redis.ts, session.ts, events.ts, stripe.ts, cloudinary.ts
 │   │       └── ...
 │   └── mobile/                          # Expo SDK 54 (Session 1 scaffold)
 ├── packages/
-│   ├── db/                              # Prisma 7 + PostgreSQL (11 models)
+│   ├── db/                              # Prisma 7 + PostgreSQL (14 models)
 │   └── shared/                          # Types, schemas, constants, auth
 ├── scripts/
 │   ├── trial-sync.ts                    # CLI: pnpm trial-sync (Session 2)
 │   ├── seed-financial-programs.ts       # Seed 30 financial programs (Session 5)
 │   ├── financial-status-check.ts        # CLI: check/update fund statuses (Session 5)
-│   └── seed-health-systems.ts           # Seed 30 health systems with FHIR URLs (Session 6)
+│   ├── seed-health-systems.ts           # Seed 30 health systems with FHIR URLs (Session 6)
+│   ├── seed-sequencing-providers.ts    # Seed 10 sequencing providers (Session 7)
+│   └── seed-insurance-rules.ts         # Seed insurance coverage rules (Session 7)
 └── [future phases]
     ├── services/neoantigen-pipeline/    # Rust + Python (Phase 3)
     └── infrastructure/                  # Docker, Terraform, NATS (Phase 3+)
 ```
 
-> **Architecture note:** Sessions 1-6 established that all server logic (trial ingestion, eligibility parsing, document extraction, matching, translation, financial matching, FHIR integration, sync) lives as lib files in `apps/web/lib/`, not as separate packages. Client components live in `apps/web/components/`. The original spec's `packages/trial-ingestion/`, `packages/eligibility-engine/`, `packages/doc-ingestion/` are implemented as `apps/web/lib/{clinicaltrials,trial-sync,eligibility-parser,extraction,matcher,oncologist-brief,translator,financial-matcher,s3,image-quality}.ts`. FHIR integration lives in `apps/web/lib/fhir/` as a subdirectory with 6 files (types, code-maps, client, smart-auth, extract-resources, mapper).
+> **Architecture note:** Sessions 1-8 established that all server logic lives as lib files in `apps/web/lib/`, not as separate packages. Client components live in `apps/web/components/`. Phase 1 libs: `{clinicaltrials,trial-sync,eligibility-parser,extraction,matcher,oncologist-brief,translator,financial-matcher,s3,image-quality}.ts`. FHIR integration: `apps/web/lib/fhir/` (6 files). Phase 2 libs (Sessions 7-8): `{coverage,sequencing-brief,sequencing-recommendation,test-recommendation,conversation-guide,waiting-content}.ts`. All Claude calls use Redis caching (24h TTL). Test recommendation is fully deterministic (no Claude).
 
 ### 1.3 Core Tech Stack
 
@@ -1605,19 +1640,26 @@ CREATE TABLE insurance_coverage_rules (
 ### 3.5 Phase 2 Build Sequence
 
 ```
-TASK 1: Build sequencing provider directory
-  - Seed with top 10 providers (Foundation Medicine, Tempus, Guardant, Caris, etc.)
+TASK 1: Build sequencing provider directory — COMPLETED (Session 7) ✓
+  - Seeded 10 providers (Foundation Medicine, Tempus, Guardant, Caris, etc.)
   - Provider detail pages with ordering instructions
-  - Comparison view
-TASK 2: Build insurance coverage engine
-  - Seed Medicare + top 5 commercial insurer rules
-  - Coverage determination logic
-  - Prior auth template generator
+  - Comparison view (select up to 3, side-by-side table)
+  - Filter by type, test type, sample type
+TASK 2: Build insurance coverage engine — COMPLETED (Session 7) ✓
+  - Seeded Medicare + top 5 commercial insurer rules
+  - Coverage determination logic (specificity scoring)
   - Letter of medical necessity generator (Claude-powered)
-TASK 3: Build patient sequencing journey wizard
-  - Decision tree for test type recommendation
-  - Plain-language education at each step
-  - "Talk to your doctor" script generator
+  - Sequencing oncologist brief generator (Claude-powered)
+TASK 3: Build patient sequencing journey wizard — COMPLETED (Session 8) ✓
+  - 5-step lazy-loaded wizard (recommendation → explanation → test → conversation → next steps)
+  - Deterministic recommendation engine (strongly_recommended/recommended/optional/not_typically_indicated)
+  - Claude-personalized explanation content with common concerns accordion
+  - Deterministic test recommendation (Foundation/Guardant/Tempus triad)
+  - Claude-generated conversation guide + email template + ordering instructions
+  - Order creation from wizard → order tracker
+  - "While you wait" educational content (Claude, cached per cancer type)
+  - Dashboard integration (order count + latest status)
+  - All Claude outputs cached in Redis (24h TTL)
 TASK 4: Build genomic data upload + storage
   - S3 upload for VCF/BAM/FASTQ files
   - PDF report upload with Claude-powered extraction
@@ -2443,6 +2485,40 @@ SESSION 6: MyChart FHIR integration — COMPLETED
               all FHIR endpoints use Epic sandbox URL (production switch is env config)
 
 → PHASE 1.5 COMPLETE (all intake paths + full feature set)
+
+SESSION 7: Sequencing Provider Directory + Insurance Coverage Engine — COMPLETED ✓
+  Built: 10-provider sequencing directory (Foundation Medicine, Tempus, Guardant, Caris,
+         NeoGenomics, Myriad, Invitae, Color, UCSF, MSK-IMPACT), insurance coverage
+         engine with specificity scoring, coverage rules seed data (Medicare + 5 commercial),
+         LOMN generator (Claude-powered), sequencing oncologist brief generator,
+         provider comparison view (up to 3), SequencingProviderCard component,
+         sequencing hub page (3 pathway cards), insurance checker page,
+         order CRUD API routes, 3 new Prisma models (SequencingProvider,
+         SequencingOrder, InsuranceCoverageRule — now 14 models total)
+  Deviations: Schema simplified vs spec (status as string, insuranceCoverage as JSON
+              on order instead of separate fields), no effectiveDate on coverage rules,
+              conditions stored as string[] not string
+
+SESSION 8: Sequencing Journey Wizard + Test Recommendation Engine — COMPLETED ✓
+  Built: 5-step lazy-loaded wizard (recommendation → explanation → test → conversation → next steps),
+         deterministic recommendation engine (stage/TNBC/progression rules),
+         Claude-personalized recommendation reasoning + sequencing explanation,
+         deterministic test recommendation (Foundation/Guardant/Tempus triad based on
+         tissue availability and comprehensiveness preference),
+         Claude conversation guide with talking points + email template + ordering instructions,
+         Claude "while you wait" educational content (cached per cancer type, not patient),
+         OrderProgressBar component (8-status horizontal tracker),
+         order list page with progress bars + waiting content,
+         order detail page with status timeline + advance/cancel buttons,
+         dashboard updated (5-card layout, shows order count + latest status),
+         sequencing hub "I'm not sure" card → /sequencing/guide,
+         middleware updated for /sequencing/guide auth
+  New files: 4 lib, 5 API routes, 3 pages, 1 component (13 new, 5 modified)
+  Deviations: No tRPC (API routes as planned), no /learn/[topic] pages
+              (educational content embedded in order tracker instead),
+              5 shared types not 6 (WizardState managed client-side, not shared)
+
+→ PHASE 2 SESSIONS 7-8 COMPLETE (provider directory + insurance + journey wizard + order tracking)
 ```
 
 ---

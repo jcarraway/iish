@@ -48,7 +48,7 @@ export default function SequencingHubPage() {
 
         {/* Not sure */}
         <Link
-          href="/sequencing/results"
+          href="/sequencing/guide"
           className="rounded-xl border border-gray-200 p-5 hover:border-indigo-300 hover:shadow-sm transition-all"
         >
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 text-amber-600">
@@ -57,8 +57,8 @@ export default function SequencingHubPage() {
             </svg>
           </div>
           <h2 className="mt-3 font-semibold text-gray-900">I&apos;m not sure</h2>
-          <p className="mt-1 text-sm text-gray-500">Learn whether genomic testing is right for your situation</p>
-          <p className="mt-2 text-xs text-blue-600">Learn more &rarr;</p>
+          <p className="mt-1 text-sm text-gray-500">Take a guided assessment to find the right test for you</p>
+          <p className="mt-2 text-xs text-blue-600">Start guide &rarr;</p>
         </Link>
       </div>
 

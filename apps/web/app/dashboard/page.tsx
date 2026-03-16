@@ -11,6 +11,8 @@ interface DashboardData {
   financialTotalEstimated: number;
   hasProfile: boolean;
   fhirConnectionCount: number;
+  sequencingOrderCount: number;
+  sequencingLatestStatus: string | null;
 }
 
 export default function DashboardPage() {
@@ -22,15 +24,18 @@ export default function DashboardPage() {
     async function loadDashboard() {
       try {
         // Load matches and financial data in parallel
-        const [matchRes, financialRes, fhirRes] = await Promise.all([
+        const [matchRes, financialRes, fhirRes, ordersRes] = await Promise.all([
           fetch('/api/matches').then(r => r.ok ? r.json() : null).catch(() => null),
           fetch('/api/financial').then(r => r.ok ? r.json() : null).catch(() => null),
           fetch('/api/fhir/connections').then(r => r.ok ? r.json() : null).catch(() => null),
+          fetch('/api/sequencing/orders').then(r => r.ok ? r.json() : null).catch(() => null),
         ]);
 
         const activeConnections = (fhirRes?.connections ?? []).filter(
           (c: { syncStatus: string }) => c.syncStatus !== 'revoked'
         );
+
+        const orders = ordersRes?.orders ?? [];
 
         setData({
           matchCount: matchRes?.matches?.length ?? 0,
@@ -39,9 +44,11 @@ export default function DashboardPage() {
           financialTotalEstimated: financialRes?.totalEstimated ?? 0,
           hasProfile: matchRes !== null,
           fhirConnectionCount: activeConnections.length,
+          sequencingOrderCount: orders.length,
+          sequencingLatestStatus: orders[0]?.status ?? null,
         });
       } catch {
-        setData({ matchCount: 0, topMatchScore: null, financialEligibleCount: 0, financialTotalEstimated: 0, hasProfile: false, fhirConnectionCount: 0 });
+        setData({ matchCount: 0, topMatchScore: null, financialEligibleCount: 0, financialTotalEstimated: 0, hasProfile: false, fhirConnectionCount: 0, sequencingOrderCount: 0, sequencingLatestStatus: null });
       } finally {
         setLoading(false);
       }
@@ -154,7 +161,7 @@ export default function DashboardPage() {
 
         {/* Sequencing */}
         <Link
-          href="/sequencing"
+          href={data.sequencingOrderCount > 0 ? '/sequencing/orders' : '/sequencing'}
           className="rounded-xl border border-gray-200 p-5 hover:border-indigo-300 hover:shadow-sm transition-all"
         >
           <div className="flex items-center gap-2">
@@ -165,8 +172,20 @@ export default function DashboardPage() {
             </div>
             <h2 className="font-semibold text-gray-900">Sequencing</h2>
           </div>
-          <p className="mt-3 text-sm text-gray-600">Find genomic testing providers and check coverage</p>
-          <p className="mt-1 text-xs text-blue-600">Explore options &rarr;</p>
+          {data.sequencingOrderCount > 0 ? (
+            <>
+              <p className="mt-3 text-2xl font-bold text-gray-900">{data.sequencingOrderCount}</p>
+              <p className="text-xs text-gray-500">
+                order{data.sequencingOrderCount !== 1 ? 's' : ''}
+                {data.sequencingLatestStatus && ` · ${data.sequencingLatestStatus.replace(/_/g, ' ')}`}
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="mt-3 text-sm text-gray-600">Find genomic testing providers and check coverage</p>
+              <p className="mt-1 text-xs text-blue-600">Explore options &rarr;</p>
+            </>
+          )}
         </Link>
 
         {/* Connected Records */}
