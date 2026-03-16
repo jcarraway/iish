@@ -20,6 +20,9 @@ packages/db/src/generated/
 .env.production
 .env.*.local
 
+# rust
+target/
+
 # misc
 .DS_Store
 *.tsbuildinfo

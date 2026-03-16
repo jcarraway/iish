@@ -1,0 +1,17 @@
+[package]
+name = "variant-caller"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "variant-caller"
+path = "src/main.rs"
+
+[dependencies]
+pipeline-common = { path = "../pipeline-common" }
+tokio = { workspace = true }
+aws-sdk-s3 = { workspace = true }
+async-nats = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }

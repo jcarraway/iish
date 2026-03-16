@@ -19,6 +19,33 @@ resource "aws_iam_role_policy_attachment" "batch_execution_ecs" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
+resource "aws_iam_role_policy" "batch_execution_ecr" {
+  name = "ecr-pull-access"
+  role = aws_iam_role.batch_execution.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "ecr:GetDownloadUrlForLayer",
+        "ecr:BatchGetImage",
+        "ecr:GetAuthorizationToken",
+        "ecr:BatchCheckLayerAvailability"
+      ]
+      Resource = [
+        aws_ecr_repository.alignment.arn,
+        aws_ecr_repository.variant_caller.arn
+      ]
+    },
+    {
+      Effect   = "Allow"
+      Action   = "ecr:GetAuthorizationToken"
+      Resource = "*"
+    }]
+  })
+}
+
 # Batch job role (application container)
 resource "aws_iam_role" "batch_job" {
   name = "oncovax-batch-job-${var.environment}"

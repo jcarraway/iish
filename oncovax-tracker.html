@@ -1,610 +1,1046 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OncoVax Build Tracker</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23171717'/><text y='72' x='18' font-size='60' fill='white' font-family='system-ui'>◉</text></svg>">
-<style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600&family=JetBrains+Mono:wght@400;500&display=swap');
-
-:root {
-  --bg: #FAFAF8;
-  --bg-card: #FFFFFF;
-  --bg-surface: #F3F2EE;
-  --bg-hover: #EEEDEA;
-  --text: #1A1A18;
-  --text-secondary: #6B6A65;
-  --text-tertiary: #9C9B96;
-  --border: #E4E3DF;
-  --border-hover: #D0CFCB;
-  --accent: #2D2D2B;
-  
-  --green-bg: #E8F5E3; --green-text: #2D6A1E;
-  --blue-bg: #E3EFF8; --blue-text: #1A5490;
-  --amber-bg: #FDF3E1; --amber-text: #8A6514;
-  --red-bg: #FCE8E8; --red-text: #9A2E2E;
-  --purple-bg: #EEEDFB; --purple-text: #4A3FA0;
-  --teal-bg: #E1F3EE; --teal-text: #0E6B53;
-  --coral-bg: #FAECE7; --coral-text: #993C1D;
-  --pink-bg: #FBEAF0; --pink-text: #993556;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #141413;
-    --bg-card: #1C1C1A;
-    --bg-surface: #222220;
-    --bg-hover: #2A2A28;
-    --text: #E8E7E3;
-    --text-secondary: #9C9B96;
-    --text-tertiary: #6B6A65;
-    --border: #333330;
-    --border-hover: #444440;
-    --accent: #D4D3CF;
-
-    --green-bg: #1A2E16; --green-text: #7FCF6A;
-    --blue-bg: #142538; --blue-text: #6AABDF;
-    --amber-bg: #2E2510; --amber-text: #D4A83A;
-    --red-bg: #2E1616; --red-text: #E87070;
-    --purple-bg: #1E1D30; --purple-text: #A9A0E0;
-    --teal-bg: #0E2A22; --teal-text: #5DC0A0;
-    --coral-bg: #2A1A14; --coral-text: #E08060;
-    --pink-bg: #2A1520; --pink-text: #E080A0;
-  }
-}
-
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-  font-family: 'DM Sans', -apple-system, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-}
-
-.container { max-width: 920px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
-
-header {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid var(--border);
-}
-
-header h1 {
-  font-size: 18px;
-  font-weight: 500;
-  letter-spacing: -0.02em;
-}
-
-header .subtitle {
-  font-size: 12px;
-  color: var(--text-tertiary);
-  font-family: 'JetBrains Mono', monospace;
-}
-
-.stats-row {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 8px;
-  margin-bottom: 1.5rem;
-}
-
-.stat-card {
-  background: var(--bg-surface);
-  border-radius: 10px;
-  padding: 14px 16px;
-}
-
-.stat-card .label {
-  font-size: 11px;
-  color: var(--text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-bottom: 4px;
-}
-
-.stat-card .value {
-  font-size: 26px;
-  font-weight: 500;
-  letter-spacing: -0.03em;
-}
-
-.stat-card .pct { color: var(--green-text); }
-
-.filters {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
-}
-
-.filter-btn {
-  font-size: 12px;
-  font-family: 'DM Sans', sans-serif;
-  padding: 5px 14px;
-  border-radius: 20px;
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.filter-btn:hover { border-color: var(--border-hover); color: var(--text); }
-.filter-btn.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
-
-.module {
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  margin-bottom: 8px;
-  background: var(--bg-card);
-  overflow: hidden;
-  transition: border-color 0.15s;
-}
-
-.module:hover { border-color: var(--border-hover); }
-
-.module-header {
-  display: flex;
-  align-items: center;
-  padding: 12px 16px;
-  cursor: pointer;
-  user-select: none;
-  gap: 12px;
-}
-
-.module-header:hover { background: var(--bg-hover); }
-
-.chevron {
-  width: 16px;
-  height: 16px;
-  color: var(--text-tertiary);
-  transition: transform 0.2s;
-  flex-shrink: 0;
-}
-
-.chevron.open { transform: rotate(90deg); }
-
-.module-badge {
-  font-size: 9px;
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 500;
-  padding: 2px 8px;
-  border-radius: 4px;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  flex-shrink: 0;
-}
-
-.badge-core { background: var(--purple-bg); color: var(--purple-text); }
-.badge-intel { background: var(--blue-bg); color: var(--blue-text); }
-.badge-engine { background: var(--amber-bg); color: var(--amber-text); }
-.badge-care { background: var(--coral-bg); color: var(--coral-text); }
-.badge-access { background: var(--teal-bg); color: var(--teal-text); }
-.badge-survive { background: var(--pink-bg); color: var(--pink-text); }
-
-.module-name {
-  font-size: 14px;
-  font-weight: 500;
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.module-progress-wrap {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
-}
-
-.module-fraction {
-  font-size: 12px;
-  font-family: 'JetBrains Mono', monospace;
-  color: var(--text-tertiary);
-  min-width: 36px;
-  text-align: right;
-}
-
-.progress-bar {
-  width: 72px;
-  height: 3px;
-  background: var(--bg-surface);
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  border-radius: 2px;
-  transition: width 0.3s, background 0.3s;
-}
-
-.sessions-list { padding: 0 16px 12px 16px; }
-
-.session-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 0;
-  border-top: 1px solid var(--bg-surface);
-}
-
-.session-row:first-child { border-top: none; }
-
-.session-id {
-  font-size: 11px;
-  font-family: 'JetBrains Mono', monospace;
-  color: var(--text-tertiary);
-  min-width: 32px;
-}
-
-.session-name {
-  font-size: 13px;
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.session-weeks {
-  font-size: 11px;
-  font-family: 'JetBrains Mono', monospace;
-  color: var(--text-tertiary);
-  min-width: 44px;
-  text-align: right;
-}
-
-.status-pill {
-  font-size: 11px;
-  font-family: 'DM Sans', sans-serif;
-  padding: 3px 12px;
-  border-radius: 12px;
-  border: none;
-  cursor: pointer;
-  min-width: 84px;
-  text-align: center;
-  transition: all 0.1s;
-  font-weight: 500;
-}
-
-.status-pill:active { transform: scale(0.96); }
-
-.st-planned { background: var(--bg-surface); color: var(--text-tertiary); }
-.st-active { background: var(--blue-bg); color: var(--blue-text); }
-.st-complete { background: var(--green-bg); color: var(--green-text); }
-.st-blocked { background: var(--red-bg); color: var(--red-text); }
-.st-deferred { background: var(--amber-bg); color: var(--amber-text); }
-
-.note-row { padding: 0 0 6px 42px; }
-
-.note-input {
-  width: 100%;
-  font-size: 12px;
-  font-family: 'DM Sans', sans-serif;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  padding: 4px 8px;
-  background: transparent;
-  color: var(--text-secondary);
-  transition: all 0.15s;
-}
-
-.note-input:hover { background: var(--bg-surface); }
-.note-input:focus { background: var(--bg-surface); border-color: var(--border); outline: none; color: var(--text); }
-.note-input::placeholder { color: var(--text-tertiary); }
-
-.export-row {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--border);
-}
-
-.export-btn {
-  font-size: 12px;
-  font-family: 'DM Sans', sans-serif;
-  padding: 6px 16px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.export-btn:hover { border-color: var(--border-hover); color: var(--text); background: var(--bg-surface); }
-
-@media (max-width: 640px) {
-  .stats-row { grid-template-columns: repeat(3, 1fr); }
-  .session-weeks { display: none; }
-  .progress-bar { width: 48px; }
-}
-</style>
-</head>
-<body>
-<div class="container">
-  <header>
-    <h1>OncoVax Build Tracker</h1>
-    <span class="subtitle" id="last-updated"></span>
-  </header>
-  <div id="app"></div>
-</div>
-
-<script>
-const STATUSES = ['planned','active','complete','blocked','deferred'];
-const STATUS_LABELS = {planned:'Planned',active:'In progress',complete:'Complete',blocked:'Blocked',deferred:'Deferred'};
-
-const MODULES = [
-  {id:'phase1',name:'Phase 1: Trial matcher + core platform',badge:'CORE',badgeClass:'badge-core',sessions:[
-    {id:'1',name:'Project scaffolding',weeks:'W1'},
-    {id:'2',name:'Trial ingestion pipeline',weeks:'W1-2'},
-    {id:'3',name:'Document ingestion engine',weeks:'W2-3'},
-    {id:'4',name:'Matching engine + results UI',weeks:'W3-4'},
-    {id:'5',name:'Treatment translator + financial finder',weeks:'W4-6'},
-    {id:'6',name:'MyChart FHIR integration',weeks:'W6-8'},
-  ]},
-  {id:'phase2',name:'Phase 2: Sequencing navigator',badge:'CORE',badgeClass:'badge-core',sessions:[
-    {id:'7',name:'Provider directory + insurance coverage',weeks:'W1-2'},
-    {id:'8',name:'Sequencing journey wizard',weeks:'W2-3'},
-    {id:'9',name:'Genomic results + informed trial matching',weeks:'W3-4'},
-  ]},
-  {id:'phase3',name:'Phase 3: Neoantigen prediction pipeline',badge:'CORE',badgeClass:'badge-core',sessions:[
-    {id:'10',name:'Compute infra + pipeline orchestration',weeks:'W1-2'},
-    {id:'11',name:'Alignment + variant calling (Rust)',weeks:'W2-4'},
-    {id:'12',name:'HLA typing + peptide generation',weeks:'W4-6'},
-    {id:'13',name:'Binding prediction + immunogenicity scoring',weeks:'W6-8'},
-    {id:'14',name:'Structure prediction + mRNA designer',weeks:'W8-10'},
-    {id:'15',name:'Report generation + pipeline UI',weeks:'W10-12'},
-  ]},
-  {id:'phase4',name:'Phase 4: Manufacturing network connector',badge:'CORE',badgeClass:'badge-core',sessions:[
-    {id:'M1',name:'CDMO directory + regulatory pathway advisor',weeks:'W1-3'},
-    {id:'M2',name:'Order workflow + infusion center directory',weeks:'W3-5'},
-  ]},
-  {id:'phase5',name:'Phase 5: Survivorship module',badge:'SURV',badgeClass:'badge-survive',sessions:[
-    {id:'S1',name:'Survivorship care plan generator',weeks:'W1-2'},
-    {id:'S2',name:'Recurrence monitoring + ctDNA guide',weeks:'W2-3'},
-    {id:'S3',name:'Late effects tracker + symptom journal',weeks:'W3-5'},
-    {id:'S4',name:'Lifestyle engine (exercise + nutrition)',weeks:'W5-6'},
-    {id:'S5',name:'Psychosocial support layer',weeks:'W6-7'},
-    {id:'S6',name:'Care coordination hub',weeks:'W7-8'},
-    {id:'S7',name:'Integration + onboarding flow',weeks:'W8-10'},
-    {id:'S8',name:'Recurrence pathway (10-step cascade)',weeks:'W10-12'},
-  ]},
-  {id:'intel',name:'Research intelligence stream',badge:'INTEL',badgeClass:'badge-intel',sessions:[
-    {id:'I1',name:'Foundation + PubMed ingestion',weeks:'W1-2'},
-    {id:'I2',name:'Classification + summarization pipeline',weeks:'W2-4'},
-    {id:'I3',name:'Additional sources + FDA alerts',weeks:'W4-6'},
-    {id:'I4',name:'Personalization engine + feed UI',weeks:'W6-8'},
-    {id:'I5',name:'Community intelligence + digests',weeks:'W8-10'},
-    {id:'I6',name:'Landscape views + integration',weeks:'W10-12'},
-  ]},
-  {id:'engine',name:'Opportunity engine',badge:'ENGN',badgeClass:'badge-engine',sessions:[
-    {id:'E1',name:'Foundation + data collection',weeks:'W1-2'},
-    {id:'E2',name:'Detection patterns + monitoring agents',weeks:'W2-4'},
-    {id:'E3',name:'Scoring + brief generation',weeks:'W4-6'},
-    {id:'E4',name:'Dashboard + decision workflow',weeks:'W6-8'},
-    {id:'E5',name:'Advanced patterns + landscape integration',weeks:'W8-10'},
-  ]},
-  {id:'care',name:'Care packages + kits',badge:'CARE',badgeClass:'badge-care',sessions:[
-    {id:'C1',name:'Product catalog + protocol mapping',weeks:'W1-2'},
-    {id:'C2',name:'Kit generation engine + patient UI',weeks:'W2-4'},
-    {id:'C3',name:'E-commerce + Stripe checkout',weeks:'W4-6'},
-    {id:'C4',name:'Gift registry',weeks:'W6-8'},
-    {id:'C5',name:'Fulfillment pipeline + operations',weeks:'W8-10'},
-    {id:'C6',name:'Corporate + nonprofit channels',weeks:'W10-12'},
-    {id:'C7',name:'Analytics + optimization',weeks:'W12-14'},
-  ]},
-  {id:'fertility',name:'Fertility preservation navigator',badge:'ACCS',badgeClass:'badge-access',sessions:[
-    {id:'F1',name:'Risk assessment + options navigator',weeks:'W1-2'},
-    {id:'F2',name:'Provider directory + financial + comms',weeks:'W2-4'},
-  ]},
-  {id:'second',name:'Second opinion facilitation',badge:'ACCS',badgeClass:'badge-access',sessions:[
-    {id:'SO1',name:'Trigger system + center directory',weeks:'W1-2'},
-    {id:'SO2',name:'Record assembly + communication',weeks:'W2-4'},
-  ]},
-  {id:'logistics',name:'Trial logistics navigator',badge:'ACCS',badgeClass:'badge-access',sessions:[
-    {id:'TL1',name:'Logistics assessment + assistance matching',weeks:'W1-2'},
-    {id:'TL2',name:'Logistics plan generator + tracking',weeks:'W2-4'},
-  ]},
-  {id:'palliative',name:'Early palliative care integration',badge:'ACCS',badgeClass:'badge-access',sessions:[
-    {id:'PC1',name:'Education + symptom assessment',weeks:'W1-2'},
-    {id:'PC2',name:'Provider directory + advance care planning',weeks:'W2-4'},
-  ]},
-  {id:'advocate',name:'Insurance advocate',badge:'ACCS',badgeClass:'badge-access',sessions:[
-    {id:'IA1',name:'Denial tracking + appeal generator',weeks:'W1-3'},
-    {id:'IA2',name:'Rights education + tracking + escalation',weeks:'W3-4'},
-  ]},
-  {id:'peers',name:'Structured peer matching',badge:'ACCS',badgeClass:'badge-access',sessions:[
-    {id:'PM1',name:'Matching algorithm + mentor profiles',weeks:'W1-2'},
-    {id:'PM2',name:'Training + messaging + safety',weeks:'W2-4'},
-  ]},
-];
-
-const STORAGE_KEY = 'oncovax-build-tracker';
-
-// Pre-populated from documented progress (ONCOVAX_CLAUDE_CODE_SESSIONS.md + ONCOVAX_PHASE3_SESSIONS.md)
-const DEFAULT_STATUSES = {
-  // Phase 1 — all 6 sessions complete
-  'phase1:1': 'complete',
-  'phase1:2': 'complete',
-  'phase1:3': 'complete',
-  'phase1:4': 'complete',
-  'phase1:5': 'complete',
-  'phase1:6': 'complete',
-  // Phase 2 — all 3 sessions complete
-  'phase2:7': 'complete',
-  'phase2:8': 'complete',
-  'phase2:9': 'complete',
-  // Phase 3 — in progress
-  'phase3:10': 'complete',
-};
-
-const DEFAULT_NOTES = {
-  // Phase 1
-  'phase1:1': '75 files. Turborepo + pnpm, Next.js 15, React 19, Prisma 7 (8 models), Expo SDK 54, custom magic link auth, Stripe, 0 type errors.',
-  'phase1:2': '10 new files. CTG v2 API client, Claude Opus eligibility parser w/ Zod validation, trial sync CLI, admin QA page, Mapbox geocoding fallback.',
-  'phase1:3': '9 new files. Claude Vision extraction pipeline, S3 presigned upload, DocumentUploader (HEIC support), ManualIntakeWizard, InlineMagicLink auth, quality checks.',
-  'phase1:4': '7 new files. 3-tier matching engine (hard filter → soft scoring → LLM), cancer type fuzzy matching (15-type alias), oncologist brief generator, MatchCard + EligibilityBreakdown components.',
-  'phase1:5': '14 new files. Two-step Claude translator (clinical grounding → patient translation), second opinion triggers (4 rules), financial matcher (30 programs seeded), magazine-style treatment guide UI.',
-  'phase1:6': '17 new files. SMART on FHIR OAuth 2.0, HealthSystem model (30 seeded), FHIR resource extraction (4 types), ICD-10/LOINC/RxNorm/SNOMED code maps, data transparency UI.',
-  // Phase 2
-  'phase2:7': 'Sequencing provider directory with search/filter, insurance coverage engine with prior auth guidance, cost estimation.',
-  'phase2:8': 'Sequencing journey wizard with step-by-step flow, test recommendation engine based on cancer type + biomarkers.',
-  'phase2:9': 'Genomic results interpretation with Claude, genomically-informed trial matching that cross-references mutations with trial eligibility.',
-  // Phase 3
-  'phase3:10': '36 new files. PipelineJob + NeoantigenCandidate Prisma models, pipeline-storage package (S3 presigned URLs, multipart upload), pipeline-orchestrator package (NATS JetStream, AWS Batch dispatcher, exponential backoff retry, job manager), 5 API routes, 4 pipeline pages + PipelineProgressBar component, Terraform (VPC, S3, IAM, Batch, NATS ECS), reference genome setup script.',
-};
-
-let state = { statuses: {}, notes: {}, expanded: {}, filter: 'all' };
-
-function load() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) state = { ...state, ...JSON.parse(raw) };
-  } catch(e) {}
-  // Merge defaults — don't overwrite user edits
-  for (const [k, v] of Object.entries(DEFAULT_STATUSES)) {
-    if (!state.statuses[k]) state.statuses[k] = v;
-  }
-  for (const [k, v] of Object.entries(DEFAULT_NOTES)) {
-    if (!state.notes[k]) state.notes[k] = v;
-  }
-}
-
-function save() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      statuses: state.statuses,
-      notes: state.notes,
-      expanded: state.expanded,
-    }));
-    document.getElementById('last-updated').textContent = 'saved ' + new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-  } catch(e) {}
-}
-
-function key(m, s) { return m + ':' + s; }
-function getStatus(m, s) { return state.statuses[key(m,s)] || 'planned'; }
-
-function cycleStatus(m, s) {
-  const k = key(m, s);
-  const cur = state.statuses[k] || 'planned';
-  state.statuses[k] = STATUSES[(STATUSES.indexOf(cur) + 1) % STATUSES.length];
-  save(); render();
-}
-
-function toggle(id) {
-  state.expanded[id] = !state.expanded[id];
-  save(); render();
-}
-
-function setNote(m, s, val) {
-  state.notes[key(m, s)] = val;
-  save();
-}
-
-function setFilter(f) { state.filter = f; render(); }
-
-function moduleStats(mod) {
-  let t = mod.sessions.length, c = 0, a = 0;
-  mod.sessions.forEach(s => {
-    const st = getStatus(mod.id, s.id);
-    if (st === 'complete') c++;
-    if (st === 'active') a++;
-  });
-  return { t, c, a, pct: Math.round(c / t * 100) };
-}
-
-function allStats() {
-  let t = 0, c = 0, a = 0, b = 0;
-  MODULES.forEach(m => m.sessions.forEach(s => {
-    t++;
-    const st = getStatus(m.id, s.id);
-    if (st === 'complete') c++;
-    if (st === 'active') a++;
-    if (st === 'blocked') b++;
-  }));
-  return { t, c, a, b, pct: t ? Math.round(c / t * 100) : 0 };
-}
-
-function exportMarkdown() {
-  let md = '# Build tracker status\n\n';
-  md += `_Exported ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}_\n\n`;
-  const a = allStats();
-  md += `**${a.c}/${a.t} complete (${a.pct}%) — ${a.a} in progress — ${a.b} blocked**\n\n`;
-  MODULES.forEach(m => {
-    const ms = moduleStats(m);
-    md += `## ${m.name} (${ms.c}/${ms.t})\n\n`;
-    md += '| # | Session | Status | Notes |\n|---|---------|--------|-------|\n';
-    m.sessions.forEach(s => {
-      const st = STATUS_LABELS[getStatus(m.id, s.id)];
-      const note = (state.notes[key(m.id, s.id)] || '').replace(/\|/g, '\\|');
-      md += `| ${s.id} | ${s.name} | ${st} | ${note} |\n`;
-    });
-    md += '\n';
-  });
-  const blob = new Blob([md], { type: 'text/markdown' });
-  const url = URL.createObjectURL(blob);
-  const a2 = document.createElement('a');
-  a2.href = url; a2.download = 'oncovax-tracker-' + new Date().toISOString().slice(0,10) + '.md';
-  a2.click(); URL.revokeObjectURL(url);
-}
-
-function exportJSON() {
-  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = 'oncovax-tracker-' + new Date().toISOString().slice(0,10) + '.json';
-  a.click(); URL.revokeObjectURL(url);
-}
-
-function importJSON() {
-  const input = document.createElement('input');
-  input.type = 'file'; input.accept = '.json';
-  input.onchange = (e) => {
-    const f = e.target.files[0];
-    if (!f) return;
-    const r = new FileReader();
-    r.onload = (ev) => {
-      try {
-        const data = JSON.parse(ev.target.result);
-        if (data.statuses) state.statuses = data.statuses;
-        if (data.notes) state.notes = data.notes;
-        if (data.expanded) state.expanded = data.expanded;
-        save(); render();
-      } catch(err) { alert('Invalid JSON file'); }
-    };
-    r.readAsText(f);
-  };
-  input.click();
-}
-
-const chevronSVG = `<svg class="chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 4l4 4-4 4"/></svg>`;
-
-function render() {
-  const a = allStats();
-  const filterMap = {
-    all: () => true,
-    core: m => m.badgeClass === 'badge-core',
-    intel: m => m.badgeClass === 'badge-intel',
-    engine: m => m.badgeClass === 'badge-engine',
-    care: m => m.badgeClass === 'badge-care',
-    access: m => m.badgeClass === 'badge-access',
-    survive: m => m.badgeClass === 'badge-survive',
-  };
-  const fMods = MODULES.filter(filterMap[state.filter] || filterMap.all);
-
-  let h = `<div class="stats-row">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OncoVax Build Tracker</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23171717'/><text y='72' x='18' font-size='60' fill='white' font-family='system-ui'>◉</text></svg>"
+    />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600&family=JetBrains+Mono:wght@400;500&display=swap");
+
+      :root {
+        --bg: #fafaf8;
+        --bg-card: #ffffff;
+        --bg-surface: #f3f2ee;
+        --bg-hover: #eeedea;
+        --text: #1a1a18;
+        --text-secondary: #6b6a65;
+        --text-tertiary: #9c9b96;
+        --border: #e4e3df;
+        --border-hover: #d0cfcb;
+        --accent: #2d2d2b;
+
+        --green-bg: #e8f5e3;
+        --green-text: #2d6a1e;
+        --blue-bg: #e3eff8;
+        --blue-text: #1a5490;
+        --amber-bg: #fdf3e1;
+        --amber-text: #8a6514;
+        --red-bg: #fce8e8;
+        --red-text: #9a2e2e;
+        --purple-bg: #eeedfb;
+        --purple-text: #4a3fa0;
+        --teal-bg: #e1f3ee;
+        --teal-text: #0e6b53;
+        --coral-bg: #faece7;
+        --coral-text: #993c1d;
+        --pink-bg: #fbeaf0;
+        --pink-text: #993556;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #141413;
+          --bg-card: #1c1c1a;
+          --bg-surface: #222220;
+          --bg-hover: #2a2a28;
+          --text: #e8e7e3;
+          --text-secondary: #9c9b96;
+          --text-tertiary: #6b6a65;
+          --border: #333330;
+          --border-hover: #444440;
+          --accent: #d4d3cf;
+
+          --green-bg: #1a2e16;
+          --green-text: #7fcf6a;
+          --blue-bg: #142538;
+          --blue-text: #6aabdf;
+          --amber-bg: #2e2510;
+          --amber-text: #d4a83a;
+          --red-bg: #2e1616;
+          --red-text: #e87070;
+          --purple-bg: #1e1d30;
+          --purple-text: #a9a0e0;
+          --teal-bg: #0e2a22;
+          --teal-text: #5dc0a0;
+          --coral-bg: #2a1a14;
+          --coral-text: #e08060;
+          --pink-bg: #2a1520;
+          --pink-text: #e080a0;
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family:
+          "DM Sans",
+          -apple-system,
+          sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .container {
+        max-width: 920px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem 4rem;
+      }
+
+      header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid var(--border);
+      }
+
+      header h1 {
+        font-size: 18px;
+        font-weight: 500;
+        letter-spacing: -0.02em;
+      }
+
+      header .subtitle {
+        font-size: 12px;
+        color: var(--text-tertiary);
+        font-family: "JetBrains Mono", monospace;
+      }
+
+      .stats-row {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 8px;
+        margin-bottom: 1.5rem;
+      }
+
+      .stat-card {
+        background: var(--bg-surface);
+        border-radius: 10px;
+        padding: 14px 16px;
+      }
+
+      .stat-card .label {
+        font-size: 11px;
+        color: var(--text-tertiary);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 4px;
+      }
+
+      .stat-card .value {
+        font-size: 26px;
+        font-weight: 500;
+        letter-spacing: -0.03em;
+      }
+
+      .stat-card .pct {
+        color: var(--green-text);
+      }
+
+      .filters {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+      }
+
+      .filter-btn {
+        font-size: 12px;
+        font-family: "DM Sans", sans-serif;
+        padding: 5px 14px;
+        border-radius: 20px;
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+
+      .filter-btn:hover {
+        border-color: var(--border-hover);
+        color: var(--text);
+      }
+      .filter-btn.active {
+        background: var(--accent);
+        color: var(--bg);
+        border-color: var(--accent);
+      }
+
+      .module {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        margin-bottom: 8px;
+        background: var(--bg-card);
+        overflow: hidden;
+        transition: border-color 0.15s;
+      }
+
+      .module:hover {
+        border-color: var(--border-hover);
+      }
+
+      .module-header {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        cursor: pointer;
+        user-select: none;
+        gap: 12px;
+      }
+
+      .module-header:hover {
+        background: var(--bg-hover);
+      }
+
+      .chevron {
+        width: 16px;
+        height: 16px;
+        color: var(--text-tertiary);
+        transition: transform 0.2s;
+        flex-shrink: 0;
+      }
+
+      .chevron.open {
+        transform: rotate(90deg);
+      }
+
+      .module-badge {
+        font-size: 9px;
+        font-family: "JetBrains Mono", monospace;
+        font-weight: 500;
+        padding: 2px 8px;
+        border-radius: 4px;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        flex-shrink: 0;
+      }
+
+      .badge-core {
+        background: var(--purple-bg);
+        color: var(--purple-text);
+      }
+      .badge-intel {
+        background: var(--blue-bg);
+        color: var(--blue-text);
+      }
+      .badge-engine {
+        background: var(--amber-bg);
+        color: var(--amber-text);
+      }
+      .badge-care {
+        background: var(--coral-bg);
+        color: var(--coral-text);
+      }
+      .badge-access {
+        background: var(--teal-bg);
+        color: var(--teal-text);
+      }
+      .badge-survive {
+        background: var(--pink-bg);
+        color: var(--pink-text);
+      }
+      .badge-learn {
+        background: var(--green-bg);
+        color: var(--green-text);
+      }
+
+      .module-name {
+        font-size: 14px;
+        font-weight: 500;
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .module-progress-wrap {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-shrink: 0;
+      }
+
+      .module-fraction {
+        font-size: 12px;
+        font-family: "JetBrains Mono", monospace;
+        color: var(--text-tertiary);
+        min-width: 36px;
+        text-align: right;
+      }
+
+      .progress-bar {
+        width: 72px;
+        height: 3px;
+        background: var(--bg-surface);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+
+      .progress-fill {
+        height: 100%;
+        border-radius: 2px;
+        transition:
+          width 0.3s,
+          background 0.3s;
+      }
+
+      .sessions-list {
+        padding: 0 16px 12px 16px;
+      }
+
+      .session-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 0;
+        border-top: 1px solid var(--bg-surface);
+      }
+
+      .session-row:first-child {
+        border-top: none;
+      }
+
+      .session-id {
+        font-size: 11px;
+        font-family: "JetBrains Mono", monospace;
+        color: var(--text-tertiary);
+        min-width: 32px;
+      }
+
+      .session-name {
+        font-size: 13px;
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .session-weeks {
+        font-size: 11px;
+        font-family: "JetBrains Mono", monospace;
+        color: var(--text-tertiary);
+        min-width: 44px;
+        text-align: right;
+      }
+
+      .status-pill {
+        font-size: 11px;
+        font-family: "DM Sans", sans-serif;
+        padding: 3px 12px;
+        border-radius: 12px;
+        border: none;
+        cursor: pointer;
+        min-width: 84px;
+        text-align: center;
+        transition: all 0.1s;
+        font-weight: 500;
+      }
+
+      .status-pill:active {
+        transform: scale(0.96);
+      }
+
+      .st-planned {
+        background: var(--bg-surface);
+        color: var(--text-tertiary);
+      }
+      .st-active {
+        background: var(--blue-bg);
+        color: var(--blue-text);
+      }
+      .st-complete {
+        background: var(--green-bg);
+        color: var(--green-text);
+      }
+      .st-blocked {
+        background: var(--red-bg);
+        color: var(--red-text);
+      }
+      .st-deferred {
+        background: var(--amber-bg);
+        color: var(--amber-text);
+      }
+
+      .note-row {
+        padding: 0 0 6px 42px;
+      }
+
+      .note-input {
+        width: 100%;
+        font-size: 12px;
+        font-family: "DM Sans", sans-serif;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        padding: 4px 8px;
+        background: transparent;
+        color: var(--text-secondary);
+        transition: all 0.15s;
+      }
+
+      .note-input:hover {
+        background: var(--bg-surface);
+      }
+      .note-input:focus {
+        background: var(--bg-surface);
+        border-color: var(--border);
+        outline: none;
+        color: var(--text);
+      }
+      .note-input::placeholder {
+        color: var(--text-tertiary);
+      }
+
+      .export-row {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+      }
+
+      .export-btn {
+        font-size: 12px;
+        font-family: "DM Sans", sans-serif;
+        padding: 6px 16px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+
+      .export-btn:hover {
+        border-color: var(--border-hover);
+        color: var(--text);
+        background: var(--bg-surface);
+      }
+
+      @media (max-width: 640px) {
+        .stats-row {
+          grid-template-columns: repeat(3, 1fr);
+        }
+        .session-weeks {
+          display: none;
+        }
+        .progress-bar {
+          width: 48px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>OncoVax Build Tracker</h1>
+        <span class="subtitle" id="last-updated"></span>
+      </header>
+      <div id="app"></div>
+    </div>
+
+    <script>
+      const STATUSES = ["planned", "active", "complete", "blocked", "deferred"];
+      const STATUS_LABELS = {
+        planned: "Planned",
+        active: "In progress",
+        complete: "Complete",
+        blocked: "Blocked",
+        deferred: "Deferred",
+      };
+
+      const MODULES = [
+        {
+          id: "phase1",
+          name: "Phase 1: Trial matcher + core platform",
+          badge: "CORE",
+          badgeClass: "badge-core",
+          sessions: [
+            { id: "1", name: "Project scaffolding", weeks: "W1" },
+            { id: "2", name: "Trial ingestion pipeline", weeks: "W1-2" },
+            { id: "3", name: "Document ingestion engine", weeks: "W2-3" },
+            { id: "4", name: "Matching engine + results UI", weeks: "W3-4" },
+            {
+              id: "5",
+              name: "Treatment translator + financial finder",
+              weeks: "W4-6",
+            },
+            { id: "6", name: "MyChart FHIR integration", weeks: "W6-8" },
+          ],
+        },
+        {
+          id: "phase2",
+          name: "Phase 2: Sequencing navigator",
+          badge: "CORE",
+          badgeClass: "badge-core",
+          sessions: [
+            {
+              id: "7",
+              name: "Provider directory + insurance coverage",
+              weeks: "W1-2",
+            },
+            { id: "8", name: "Sequencing journey wizard", weeks: "W2-3" },
+            {
+              id: "9",
+              name: "Genomic results + informed trial matching",
+              weeks: "W3-4",
+            },
+          ],
+        },
+        {
+          id: "phase3",
+          name: "Phase 3: Neoantigen prediction pipeline",
+          badge: "CORE",
+          badgeClass: "badge-core",
+          sessions: [
+            {
+              id: "10",
+              name: "Compute infra + pipeline orchestration",
+              weeks: "W1-2",
+            },
+            {
+              id: "11",
+              name: "Alignment + variant calling (Rust)",
+              weeks: "W2-4",
+            },
+            {
+              id: "12",
+              name: "HLA typing + peptide generation",
+              weeks: "W4-6",
+            },
+            {
+              id: "13",
+              name: "Binding prediction + immunogenicity scoring",
+              weeks: "W6-8",
+            },
+            {
+              id: "14",
+              name: "Structure prediction + mRNA designer",
+              weeks: "W8-10",
+            },
+            {
+              id: "15",
+              name: "Report generation + pipeline UI",
+              weeks: "W10-12",
+            },
+          ],
+        },
+        {
+          id: "phase4",
+          name: "Phase 4: Manufacturing network connector",
+          badge: "CORE",
+          badgeClass: "badge-core",
+          sessions: [
+            {
+              id: "M1",
+              name: "CDMO directory + regulatory pathway advisor",
+              weeks: "W1-3",
+            },
+            {
+              id: "M2",
+              name: "Order workflow + infusion center directory",
+              weeks: "W3-5",
+            },
+          ],
+        },
+        {
+          id: "phase5",
+          name: "Phase 5: Survivorship module",
+          badge: "SURV",
+          badgeClass: "badge-survive",
+          sessions: [
+            {
+              id: "S1",
+              name: "Survivorship care plan generator",
+              weeks: "W1-2",
+            },
+            {
+              id: "S2",
+              name: "Recurrence monitoring + ctDNA guide",
+              weeks: "W2-3",
+            },
+            {
+              id: "S3",
+              name: "Late effects tracker + symptom journal",
+              weeks: "W3-5",
+            },
+            {
+              id: "S4",
+              name: "Lifestyle engine (exercise + nutrition)",
+              weeks: "W5-6",
+            },
+            { id: "S5", name: "Psychosocial support layer", weeks: "W6-7" },
+            { id: "S6", name: "Care coordination hub", weeks: "W7-8" },
+            { id: "S7", name: "Integration + onboarding flow", weeks: "W8-10" },
+            {
+              id: "S8",
+              name: "Recurrence pathway (10-step cascade)",
+              weeks: "W10-12",
+            },
+          ],
+        },
+        {
+          id: "intel",
+          name: "Research intelligence stream",
+          badge: "INTEL",
+          badgeClass: "badge-intel",
+          sessions: [
+            { id: "I1", name: "Foundation + PubMed ingestion", weeks: "W1-2" },
+            {
+              id: "I2",
+              name: "Classification + summarization pipeline",
+              weeks: "W2-4",
+            },
+            {
+              id: "I3",
+              name: "Additional sources + FDA alerts",
+              weeks: "W4-6",
+            },
+            {
+              id: "I4",
+              name: "Personalization engine + feed UI",
+              weeks: "W6-8",
+            },
+            {
+              id: "I5",
+              name: "Community intelligence + digests",
+              weeks: "W8-10",
+            },
+            {
+              id: "I6",
+              name: "Landscape views + integration",
+              weeks: "W10-12",
+            },
+          ],
+        },
+        {
+          id: "engine",
+          name: "Opportunity engine",
+          badge: "ENGN",
+          badgeClass: "badge-engine",
+          sessions: [
+            { id: "E1", name: "Foundation + data collection", weeks: "W1-2" },
+            {
+              id: "E2",
+              name: "Detection patterns + monitoring agents",
+              weeks: "W2-4",
+            },
+            { id: "E3", name: "Scoring + brief generation", weeks: "W4-6" },
+            { id: "E4", name: "Dashboard + decision workflow", weeks: "W6-8" },
+            {
+              id: "E5",
+              name: "Advanced patterns + landscape integration",
+              weeks: "W8-10",
+            },
+          ],
+        },
+        {
+          id: "care",
+          name: "Care packages + kits",
+          badge: "CARE",
+          badgeClass: "badge-care",
+          sessions: [
+            {
+              id: "C1",
+              name: "Product catalog + protocol mapping",
+              weeks: "W1-2",
+            },
+            {
+              id: "C2",
+              name: "Kit generation engine + patient UI",
+              weeks: "W2-4",
+            },
+            { id: "C3", name: "E-commerce + Stripe checkout", weeks: "W4-6" },
+            { id: "C4", name: "Gift registry", weeks: "W6-8" },
+            {
+              id: "C5",
+              name: "Fulfillment pipeline + operations",
+              weeks: "W8-10",
+            },
+            {
+              id: "C6",
+              name: "Corporate + nonprofit channels",
+              weeks: "W10-12",
+            },
+            { id: "C7", name: "Analytics + optimization", weeks: "W12-14" },
+          ],
+        },
+        {
+          id: "fertility",
+          name: "Fertility preservation navigator",
+          badge: "ACCS",
+          badgeClass: "badge-access",
+          sessions: [
+            {
+              id: "F1",
+              name: "Risk assessment + options navigator",
+              weeks: "W1-2",
+            },
+            {
+              id: "F2",
+              name: "Provider directory + financial + comms",
+              weeks: "W2-4",
+            },
+          ],
+        },
+        {
+          id: "second",
+          name: "Second opinion facilitation",
+          badge: "ACCS",
+          badgeClass: "badge-access",
+          sessions: [
+            {
+              id: "SO1",
+              name: "Trigger system + center directory",
+              weeks: "W1-2",
+            },
+            {
+              id: "SO2",
+              name: "Record assembly + communication",
+              weeks: "W2-4",
+            },
+          ],
+        },
+        {
+          id: "logistics",
+          name: "Trial logistics navigator",
+          badge: "ACCS",
+          badgeClass: "badge-access",
+          sessions: [
+            {
+              id: "TL1",
+              name: "Logistics assessment + assistance matching",
+              weeks: "W1-2",
+            },
+            {
+              id: "TL2",
+              name: "Logistics plan generator + tracking",
+              weeks: "W2-4",
+            },
+          ],
+        },
+        {
+          id: "palliative",
+          name: "Early palliative care integration",
+          badge: "ACCS",
+          badgeClass: "badge-access",
+          sessions: [
+            {
+              id: "PC1",
+              name: "Education + symptom assessment",
+              weeks: "W1-2",
+            },
+            {
+              id: "PC2",
+              name: "Provider directory + advance care planning",
+              weeks: "W2-4",
+            },
+          ],
+        },
+        {
+          id: "advocate",
+          name: "Insurance advocate",
+          badge: "ACCS",
+          badgeClass: "badge-access",
+          sessions: [
+            {
+              id: "IA1",
+              name: "Denial tracking + appeal generator",
+              weeks: "W1-3",
+            },
+            {
+              id: "IA2",
+              name: "Rights education + tracking + escalation",
+              weeks: "W3-4",
+            },
+          ],
+        },
+        {
+          id: "peers",
+          name: "Structured peer matching",
+          badge: "ACCS",
+          badgeClass: "badge-access",
+          sessions: [
+            {
+              id: "PM1",
+              name: "Matching algorithm + mentor profiles",
+              weeks: "W1-2",
+            },
+            { id: "PM2", name: "Training + messaging + safety", weeks: "W2-4" },
+          ],
+        },
+        {
+          id: "learn",
+          name: "Knowledge base + educational content",
+          badge: "LEARN",
+          badgeClass: "badge-learn",
+          sessions: [
+            {
+              id: "L1",
+              name: "Article system + glossary + admin",
+              weeks: "W1-2",
+            },
+            {
+              id: "L2",
+              name: "Content generation pipeline + SEO + batch 1",
+              weeks: "W2-4",
+            },
+            {
+              id: "L3",
+              name: "Launch corpus completion + personalization",
+              weeks: "W4-6",
+            },
+            {
+              id: "L4",
+              name: "INTEL integration + analytics + refresh",
+              weeks: "W6-8",
+            },
+          ],
+        },
+      ];
+
+      const STORAGE_KEY = "oncovax-build-tracker";
+
+      // Pre-populated from documented progress (ONCOVAX_CLAUDE_CODE_SESSIONS.md + ONCOVAX_PHASE3_SESSIONS.md)
+      const DEFAULT_STATUSES = {
+        // Phase 1 — all 6 sessions complete
+        "phase1:1": "complete",
+        "phase1:2": "complete",
+        "phase1:3": "complete",
+        "phase1:4": "complete",
+        "phase1:5": "complete",
+        "phase1:6": "complete",
+        // Phase 2 — all 3 sessions complete
+        "phase2:7": "complete",
+        "phase2:8": "complete",
+        "phase2:9": "complete",
+        // Phase 3 — in progress
+        "phase3:10": "complete",
+        "phase3:11": "complete",
+      };
+
+      const DEFAULT_NOTES = {
+        // Phase 1
+        "phase1:1":
+          "75 files. Turborepo + pnpm, Next.js 15, React 19, Prisma 7 (8 models), Expo SDK 54, custom magic link auth, Stripe, 0 type errors.",
+        "phase1:2":
+          "10 new files. CTG v2 API client, Claude Opus eligibility parser w/ Zod validation, trial sync CLI, admin QA page, Mapbox geocoding fallback.",
+        "phase1:3":
+          "9 new files. Claude Vision extraction pipeline, S3 presigned upload, DocumentUploader (HEIC support), ManualIntakeWizard, InlineMagicLink auth, quality checks.",
+        "phase1:4":
+          "7 new files. 3-tier matching engine (hard filter → soft scoring → LLM), cancer type fuzzy matching (15-type alias), oncologist brief generator, MatchCard + EligibilityBreakdown components.",
+        "phase1:5":
+          "14 new files. Two-step Claude translator (clinical grounding → patient translation), second opinion triggers (4 rules), financial matcher (30 programs seeded), magazine-style treatment guide UI.",
+        "phase1:6":
+          "17 new files. SMART on FHIR OAuth 2.0, HealthSystem model (30 seeded), FHIR resource extraction (4 types), ICD-10/LOINC/RxNorm/SNOMED code maps, data transparency UI.",
+        // Phase 2
+        "phase2:7":
+          "Sequencing provider directory with search/filter, insurance coverage engine with prior auth guidance, cost estimation.",
+        "phase2:8":
+          "Sequencing journey wizard with step-by-step flow, test recommendation engine based on cancer type + biomarkers.",
+        "phase2:9":
+          "Genomic results interpretation with Claude, genomically-informed trial matching that cross-references mutations with trial eligibility.",
+        // Phase 3
+        "phase3:10":
+          "36 new files. PipelineJob + NeoantigenCandidate Prisma models, pipeline-storage package (S3 presigned URLs, multipart upload), pipeline-orchestrator package (NATS JetStream, AWS Batch dispatcher, exponential backoff retry, job manager), 5 API routes, 4 pipeline pages + PipelineProgressBar component, Terraform (VPC, S3, IAM, Batch, NATS ECS), reference genome setup script.",
+        "phase3:11":
+          "20 new files. Rust Cargo workspace (pipeline-common + alignment + variant-caller). pipeline-common: config, S3 multipart, NATS JetStream, process runner (piped + OOM detection), error classification. Alignment: BWA-MEM2 | samtools sort, markdup, flagstat parsing, quality gates. Variant-caller: Strelka2 + Mutect2 dual-caller, bcftools consensus (HIGH/MEDIUM tags), VEP v112 annotation, TMB calculation. Multi-stage Dockerfiles. ECR repos + Terraform updates. 28 unit tests passing.",
+      };
+
+      let state = { statuses: {}, notes: {}, expanded: {}, filter: "all" };
+
+      function load() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) state = { ...state, ...JSON.parse(raw) };
+        } catch (e) {}
+        // Merge defaults — don't overwrite user edits
+        for (const [k, v] of Object.entries(DEFAULT_STATUSES)) {
+          if (!state.statuses[k]) state.statuses[k] = v;
+        }
+        for (const [k, v] of Object.entries(DEFAULT_NOTES)) {
+          if (!state.notes[k]) state.notes[k] = v;
+        }
+      }
+
+      function save() {
+        try {
+          localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify({
+              statuses: state.statuses,
+              notes: state.notes,
+              expanded: state.expanded,
+            }),
+          );
+          document.getElementById("last-updated").textContent =
+            "saved " +
+            new Date().toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            });
+        } catch (e) {}
+      }
+
+      function key(m, s) {
+        return m + ":" + s;
+      }
+      function getStatus(m, s) {
+        return state.statuses[key(m, s)] || "planned";
+      }
+
+      function cycleStatus(m, s) {
+        const k = key(m, s);
+        const cur = state.statuses[k] || "planned";
+        state.statuses[k] =
+          STATUSES[(STATUSES.indexOf(cur) + 1) % STATUSES.length];
+        save();
+        render();
+      }
+
+      function toggle(id) {
+        state.expanded[id] = !state.expanded[id];
+        save();
+        render();
+      }
+
+      function setNote(m, s, val) {
+        state.notes[key(m, s)] = val;
+        save();
+      }
+
+      function setFilter(f) {
+        state.filter = f;
+        render();
+      }
+
+      function moduleStats(mod) {
+        let t = mod.sessions.length,
+          c = 0,
+          a = 0;
+        mod.sessions.forEach((s) => {
+          const st = getStatus(mod.id, s.id);
+          if (st === "complete") c++;
+          if (st === "active") a++;
+        });
+        return { t, c, a, pct: Math.round((c / t) * 100) };
+      }
+
+      function allStats() {
+        let t = 0,
+          c = 0,
+          a = 0,
+          b = 0;
+        MODULES.forEach((m) =>
+          m.sessions.forEach((s) => {
+            t++;
+            const st = getStatus(m.id, s.id);
+            if (st === "complete") c++;
+            if (st === "active") a++;
+            if (st === "blocked") b++;
+          }),
+        );
+        return { t, c, a, b, pct: t ? Math.round((c / t) * 100) : 0 };
+      }
+
+      function exportMarkdown() {
+        let md = "# Build tracker status\n\n";
+        md += `_Exported ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}_\n\n`;
+        const a = allStats();
+        md += `**${a.c}/${a.t} complete (${a.pct}%) — ${a.a} in progress — ${a.b} blocked**\n\n`;
+        MODULES.forEach((m) => {
+          const ms = moduleStats(m);
+          md += `## ${m.name} (${ms.c}/${ms.t})\n\n`;
+          md +=
+            "| # | Session | Status | Notes |\n|---|---------|--------|-------|\n";
+          m.sessions.forEach((s) => {
+            const st = STATUS_LABELS[getStatus(m.id, s.id)];
+            const note = (state.notes[key(m.id, s.id)] || "").replace(
+              /\|/g,
+              "\\|",
+            );
+            md += `| ${s.id} | ${s.name} | ${st} | ${note} |\n`;
+          });
+          md += "\n";
+        });
+        const blob = new Blob([md], { type: "text/markdown" });
+        const url = URL.createObjectURL(blob);
+        const a2 = document.createElement("a");
+        a2.href = url;
+        a2.download =
+          "oncovax-tracker-" + new Date().toISOString().slice(0, 10) + ".md";
+        a2.click();
+        URL.revokeObjectURL(url);
+      }
+
+      function exportJSON() {
+        const blob = new Blob([JSON.stringify(state, null, 2)], {
+          type: "application/json",
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download =
+          "oncovax-tracker-" + new Date().toISOString().slice(0, 10) + ".json";
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      function importJSON() {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = ".json";
+        input.onchange = (e) => {
+          const f = e.target.files[0];
+          if (!f) return;
+          const r = new FileReader();
+          r.onload = (ev) => {
+            try {
+              const data = JSON.parse(ev.target.result);
+              if (data.statuses) state.statuses = data.statuses;
+              if (data.notes) state.notes = data.notes;
+              if (data.expanded) state.expanded = data.expanded;
+              save();
+              render();
+            } catch (err) {
+              alert("Invalid JSON file");
+            }
+          };
+          r.readAsText(f);
+        };
+        input.click();
+      }
+
+      const chevronSVG = `<svg class="chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 4l4 4-4 4"/></svg>`;
+
+      function render() {
+        const a = allStats();
+        const filterMap = {
+          all: () => true,
+          core: (m) => m.badgeClass === "badge-core",
+          intel: (m) => m.badgeClass === "badge-intel",
+          engine: (m) => m.badgeClass === "badge-engine",
+          care: (m) => m.badgeClass === "badge-care",
+          access: (m) => m.badgeClass === "badge-access",
+          survive: (m) => m.badgeClass === "badge-survive",
+          learn: (m) => m.badgeClass === "badge-learn",
+        };
+        const fMods = MODULES.filter(filterMap[state.filter] || filterMap.all);
+
+        let h = `<div class="stats-row">
     <div class="stat-card"><div class="label">Sessions</div><div class="value">${a.t}</div></div>
     <div class="stat-card"><div class="label">Complete</div><div class="value">${a.c}</div></div>
     <div class="stat-card"><div class="label">Active</div><div class="value">${a.a}</div></div>
@@ -612,24 +1048,36 @@ function render() {
     <div class="stat-card"><div class="label">Progress</div><div class="value pct">${a.pct}%</div></div>
   </div>`;
 
-  const filters = [
-    ['all','All'],['core','Core'],['intel','INTEL'],['engine','Engine'],
-    ['care','Care'],['access','Access'],['survive','Survivorship']
-  ];
-  h += `<div class="filters">${filters.map(([f,l]) =>
-    `<button class="filter-btn${state.filter===f?' active':''}" onclick="setFilter('${f}')">${l}</button>`
-  ).join('')}</div>`;
+        const filters = [
+          ["all", "All"],
+          ["core", "Core"],
+          ["intel", "INTEL"],
+          ["engine", "Engine"],
+          ["care", "Care"],
+          ["access", "Access"],
+          ["survive", "Survivorship"],
+          ["learn", "Learn"],
+        ];
+        h += `<div class="filters">${filters
+          .map(
+            ([f, l]) =>
+              `<button class="filter-btn${state.filter === f ? " active" : ""}" onclick="setFilter('${f}')">${l}</button>`,
+          )
+          .join("")}</div>`;
 
-  fMods.forEach(mod => {
-    const ms = moduleStats(mod);
-    const open = state.expanded[mod.id];
-    const barColor = ms.pct === 100
-      ? 'var(--green-text)' : ms.a > 0
-      ? 'var(--blue-text)' : 'var(--text-tertiary)';
+        fMods.forEach((mod) => {
+          const ms = moduleStats(mod);
+          const open = state.expanded[mod.id];
+          const barColor =
+            ms.pct === 100
+              ? "var(--green-text)"
+              : ms.a > 0
+                ? "var(--blue-text)"
+                : "var(--text-tertiary)";
 
-    h += `<div class="module">
+          h += `<div class="module">
       <div class="module-header" onclick="toggle('${mod.id}')">
-        <svg class="chevron${open?' open':''}" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 4l4 4-4 4"/></svg>
+        <svg class="chevron${open ? " open" : ""}" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 4l4 4-4 4"/></svg>
         <span class="module-badge ${mod.badgeClass}">${mod.badge}</span>
         <span class="module-name">${mod.name}</span>
         <div class="module-progress-wrap">
@@ -638,12 +1086,12 @@ function render() {
         </div>
       </div>`;
 
-    if (open) {
-      h += `<div class="sessions-list">`;
-      mod.sessions.forEach(s => {
-        const st = getStatus(mod.id, s.id);
-        const note = state.notes[key(mod.id, s.id)] || '';
-        h += `<div>
+          if (open) {
+            h += `<div class="sessions-list">`;
+            mod.sessions.forEach((s) => {
+              const st = getStatus(mod.id, s.id);
+              const note = state.notes[key(mod.id, s.id)] || "";
+              h += `<div>
           <div class="session-row">
             <span class="session-id">${s.id}</span>
             <span class="session-name">${s.name}</span>
@@ -651,27 +1099,27 @@ function render() {
             <button class="status-pill st-${st}" onclick="cycleStatus('${mod.id}','${s.id}')">${STATUS_LABELS[st]}</button>
           </div>
           <div class="note-row">
-            <input class="note-input" placeholder="Add notes..." value="${note.replace(/"/g,'&quot;')}"
+            <input class="note-input" placeholder="Add notes..." value="${note.replace(/"/g, "&quot;")}"
               onchange="setNote('${mod.id}','${s.id}',this.value)" />
           </div>
         </div>`;
-      });
-      h += `</div>`;
-    }
-    h += `</div>`;
-  });
+            });
+            h += `</div>`;
+          }
+          h += `</div>`;
+        });
 
-  h += `<div class="export-row">
+        h += `<div class="export-row">
     <button class="export-btn" onclick="importJSON()">Import JSON</button>
     <button class="export-btn" onclick="exportJSON()">Export JSON</button>
     <button class="export-btn" onclick="exportMarkdown()">Export markdown</button>
   </div>`;
 
-  document.getElementById('app').innerHTML = h;
-}
+        document.getElementById("app").innerHTML = h;
+      }
 
-load();
-render();
-</script>
-</body>
+      load();
+      render();
+    </script>
+  </body>
 </html>

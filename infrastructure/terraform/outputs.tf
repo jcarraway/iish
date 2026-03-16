@@ -27,3 +27,13 @@ output "vpc_id" {
   description = "VPC ID"
   value       = aws_vpc.main.id
 }
+
+output "ecr_alignment_url" {
+  description = "ECR repository URL for the alignment service"
+  value       = aws_ecr_repository.alignment.repository_url
+}
+
+output "ecr_variant_caller_url" {
+  description = "ECR repository URL for the variant-caller service"
+  value       = aws_ecr_repository.variant_caller.repository_url
+}

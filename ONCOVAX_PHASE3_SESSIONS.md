@@ -813,6 +813,53 @@ Update the orchestrator from Session 10 to:
 
 ---END---
 
+### Session 11 — COMPLETED
+
+**What was built:**
+
+Cargo workspace at `services/neoantigen-pipeline/` with 3 crates and 2 Dockerfiles:
+
+**pipeline-common** (shared crate, 8 modules):
+- `config.rs` — Parse all env vars from orchestrator dispatcher (`PIPELINE_JOB_ID`, `PIPELINE_STEP`, `NATS_URL`, `AWS_S3_PIPELINE_BUCKET`, `TUMOR_DATA_PATH`, `NORMAL_DATA_PATH`, `INPUT_FORMAT`, `REFERENCE_GENOME`)
+- `error.rs` — `PipelineError` enum: retryable (S3 timeout, OOM, NATS) vs permanent (bad input, quality gate, tool crash). Exit codes: 0=ok, 1=retry, 2=permanent
+- `paths.rs` — S3 path conventions mirroring `packages/pipeline-storage/src/paths.ts` (`intermediate/{jobId}/{file}`, `reference/{genome}/{file}`)
+- `s3.rs` — Download/upload with multipart support for large BAMs (50MB parts, AES256 encryption)
+- `nats.rs` — JetStream publish to `PIPELINE.step.{step}.complete`, `PIPELINE.step.failed`, `PIPELINE.progress`
+- `events.rs` — `StepCompleteEvent`, `StepFailedEvent`, `ProgressEvent` with camelCase serialization matching Zod schemas
+- `process.rs` — Subprocess runner with piped execution (`bwa-mem2 | samtools sort`), OOM detection (signal 9)
+- `logging.rs` — Structured JSON logging via tracing-subscriber
+
+**alignment** service:
+- `aligner.rs` — `bwa-mem2 mem -t {threads} -R "@RG\tID:{sample}\tSM:{sample}\tPL:ILLUMINA" {ref} {R1} {R2} | samtools sort -@ {threads} -o {out.bam}`
+- `postprocess.rs` — `samtools markdup` → `samtools index` → `samtools flagstat` with output parsing into `AlignmentStats`
+- `quality.rs` — Gates: mapping rate <80% = FAIL, coverage <5x = FAIL, <15x = WARN, dup rate >50% = WARN
+- `main.rs` — Download ref + FASTQs → align tumor → align normal → postprocess both → quality gates → upload BAMs + indices → publish `PIPELINE.step.alignment.complete` with `{alignedBamPath, normalBamPath, tumorStats, normalStats}`
+- `Dockerfile` — Multi-stage: Rust builder → runtime with BWA-MEM2 v2.2.1 + samtools v1.20
+
+**variant-caller** service:
+- `strelka.rs` — Strelka2 `configureStrelkaSomaticWorkflow.py` → `runWorkflow.py -m local -j {threads}`
+- `mutect.rs` — `gatk Mutect2` → `gatk FilterMutectCalls`
+- `consensus.rs` — `bcftools concat` Strelka SNVs+indels → `bcftools isec` with Mutect2 → merge with HIGH/MEDIUM confidence tags
+- `annotate.rs` — VEP v112 `--cache --offline --assembly GRCh38 --vcf --symbol --terms SO --af_gnomad --plugin Frameshift,Wildtype --pick`
+- `quality.rs` — Parse annotated VCF for stats (SNVs, indels, coding, nonsynonymous, frameshift). TMB = nonsynonymous/33Mb. Classification: low (<5), medium (5-20), high (>20). Ti/Tv ratio, caller agreement rate.
+- `main.rs` — Download BAMs from `intermediate/{jobId}/aligned_tumor.bam` → Strelka2 + Mutect2 → consensus → VEP → stats → upload VCFs → publish `PIPELINE.step.variant_calling.complete` with `{vcfPath, annotatedVcfPath, variantCount, tmb}`
+- `Dockerfile` — Multi-stage: Rust builder → samtools + bcftools v1.20, Strelka2 v2.9.10, GATK v4.5 + JDK 17, VEP v112
+
+**Terraform updates:**
+- New `ecr.tf` — ECR repos for `oncovax/alignment` and `oncovax/variant-caller` with keep-last-5 lifecycle policies
+- Updated `batch.tf` — Replaced `alpine:latest` placeholders with ECR image URLs, added `/scratch` volume mounts
+- Updated `iam.tf` — ECR pull permissions on batch execution role
+- Updated `outputs.tf` — `ecr_alignment_url`, `ecr_variant_caller_url`
+
+**Verification:** `cargo build --release` — 0 errors, 0 warnings. `cargo test` — 28 tests passing (9 alignment + 12 pipeline-common + 7 variant-caller). All NATS event payloads match orchestrator Zod schemas. Metadata keys match job-manager.ts mappings. S3 paths follow pipeline-storage conventions.
+
+**Files:** 20 new files, 4 modified files (batch.tf, iam.tf, outputs.tf, .gitignore)
+
+**Deviations from plan:**
+- Rust toolchain pinned to `stable` instead of 1.82 (aws-sdk-s3 requires Rust 1.91+)
+- Used shared pipeline-common crate instead of per-service config/s3 modules (reduces duplication)
+- Separated `events.rs` from `nats.rs` for cleaner dependency structure
+
 ---
 
 ## SESSION 12: HLA Typing + Mutant Peptide Generation

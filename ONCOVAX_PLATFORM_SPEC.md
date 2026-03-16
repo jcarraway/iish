@@ -196,8 +196,39 @@ oncovax/                                 # As built (Sessions 1-8)
 │       ├── iam.tf                       # Batch execution/job roles, NATS execution role
 │       ├── batch.tf                     # 2 compute envs (spot), 2 queues, 7 job definitions
 │       └── nats.tf                      # ECS Fargate NATS service + EFS + NLB
-└── [future phases]
-    └── services/neoantigen-pipeline/    # Rust + Python (Sessions 11-15)
+└── services/neoantigen-pipeline/           # Rust compute services (Sessions 11+)
+    ├── Cargo.toml                         # Workspace root
+    ├── rust-toolchain.toml                # Pin stable Rust
+    ├── pipeline-common/                   # Shared crate: config, S3, NATS, process runner, error types
+    │   ├── Cargo.toml
+    │   └── src/
+    │       ├── lib.rs
+    │       ├── config.rs                  # PipelineConfig from env vars (PIPELINE_JOB_ID, NATS_URL, etc.)
+    │       ├── s3.rs                      # S3 download/upload with multipart (50MB parts, AES256)
+    │       ├── nats.rs                    # JetStream publish (step.complete, step.failed, progress)
+    │       ├── events.rs                  # Event structs matching orchestrator Zod schemas
+    │       ├── process.rs                 # Subprocess runner with piped execution + OOM detection
+    │       ├── error.rs                   # PipelineError: retryable vs permanent, exit codes (0/1/2)
+    │       ├── logging.rs                 # Structured JSON logging (tracing-subscriber)
+    │       └── paths.rs                   # S3 path conventions (mirrors paths.ts)
+    ├── alignment/                         # Step 1: BWA-MEM2 alignment (Session 11)
+    │   ├── Cargo.toml
+    │   ├── Dockerfile                     # Multi-stage: Rust builder → BWA-MEM2 v2.2.1 + samtools v1.20
+    │   └── src/
+    │       ├── main.rs                    # Download → align tumor/normal → postprocess → quality gates → upload → publish
+    │       ├── aligner.rs                 # bwa-mem2 mem | samtools sort (piped)
+    │       ├── postprocess.rs             # samtools markdup + index + flagstat parsing
+    │       └── quality.rs                 # Gates: mapping <80%=FAIL, coverage <5x=FAIL, <15x=WARN, dups >50%=WARN
+    └── variant-caller/                    # Step 2: Somatic variant calling (Session 11)
+        ├── Cargo.toml
+        ├── Dockerfile                     # Multi-stage: Rust builder → samtools + bcftools v1.20, Strelka2 v2.9.10, GATK v4.5, VEP v112
+        └── src/
+            ├── main.rs                    # Download BAMs → Strelka2 + Mutect2 → consensus → VEP → stats → upload → publish
+            ├── strelka.rs                 # Strelka2 configure + run workflow
+            ├── mutect.rs                  # GATK Mutect2 + FilterMutectCalls
+            ├── consensus.rs               # bcftools isec merge + HIGH/MEDIUM confidence tagging
+            ├── annotate.rs                # Ensembl VEP annotation (cache from S3)
+            └── quality.rs                 # VariantCallingStats, TMB calculation (nonsynonymous/33Mb)
 ```
 
 > **Architecture note:** Sessions 1-9 established that all server logic lives as lib files in `apps/web/lib/`, not as separate packages. Client components live in `apps/web/components/`. Phase 1 libs: `{clinicaltrials,trial-sync,eligibility-parser,extraction,matcher,oncologist-brief,translator,financial-matcher,s3,image-quality}.ts`. FHIR integration: `apps/web/lib/fhir/` (6 files). Phase 2 libs (Sessions 7-9): `{coverage,sequencing-brief,sequencing-recommendation,test-recommendation,conversation-guide,waiting-content,genomic-extraction,genomic-interpreter}.ts`. All Claude calls use Redis caching (24h TTL). Test recommendation is fully deterministic (no Claude). Matcher dynamically weights 7 dimensions when genomic data is present (6 original × 0.75 + genomics at 0.25). Session 10 introduced the first separate packages (`pipeline-storage`, `pipeline-orchestrator`) since pipeline orchestration runs as a standalone process and S3 storage is shared across the orchestrator and web app. NATS JetStream client also added to `apps/web/lib/nats.ts` for publishing events from API routes.
@@ -2098,15 +2129,26 @@ TASK 1: Set up compute infrastructure — COMPLETED (Session 10) ✓
   - PipelineProgressBar component, NATS client for web app, pipeline constants/types/schemas in shared
   - 36 new files, 9 modified files, 0 type errors
 
-TASK 2: Build alignment step (Rust wrapper around BWA-MEM2)
-  - Input: FASTQ → Output: sorted BAM
-  - Containerized with reference genome
-  - Benchmarking: target <2 hours for 30x WES
+TASK 2: Build alignment step (Rust wrapper around BWA-MEM2) — COMPLETED (Session 11) ✓
+  - Cargo workspace (pipeline-common shared crate + alignment + variant-caller)
+  - pipeline-common: config, error (retryable vs permanent), S3 (multipart upload), NATS (JetStream publish),
+    process runner (piped execution, OOM detection), structured JSON logging, S3 path conventions
+  - alignment service: BWA-MEM2 | samtools sort (piped), samtools markdup + index + flagstat parsing,
+    quality gates (mapping <80%=FAIL, coverage <5x=FAIL/<15x=WARN, dups >50%=WARN)
+  - Multi-stage Dockerfile: Rust builder → BWA-MEM2 v2.2.1 + samtools v1.20
+  - NATS events match orchestrator Zod schemas, metadata keys match job-manager.ts
+  - 28 unit tests passing (flagstat parsing, quality gates, TMB calculation, event serialization, path generation)
 
-TASK 3: Build variant calling step (Rust wrapper)
-  - Strelka2 + Mutect2
-  - Consensus calling (variants called by both)
-  - VCF annotation with VEP/SnpEff
+TASK 3: Build variant calling step (Rust wrapper) — COMPLETED (Session 11) ✓
+  - Strelka2 v2.9.10 + GATK Mutect2 v4.5 dual-caller with consensus merging
+  - bcftools isec for caller agreement, HIGH/MEDIUM confidence tagging
+  - Ensembl VEP v112 annotation (cache downloaded from S3 at runtime)
+  - VariantCallingStats: SNVs, indels, coding, nonsynonymous, frameshift, TMB (nonsynonymous/33Mb),
+    Ti/Tv ratio, caller agreement rate. TMB classification: low (<5), medium (5-20), high (>20)
+  - Multi-stage Dockerfile: Rust builder → samtools + bcftools v1.20, Strelka2, GATK + JDK 17, VEP
+  - Terraform: ECR repos (oncovax/alignment, oncovax/variant-caller) with keep-last-5 lifecycle,
+    batch.tf updated from alpine:latest to ECR images with /scratch volume mounts,
+    ECR pull permissions on batch execution role, ECR URL outputs
 
 TASK 4: Build HLA typing step (Rust wrapper around OptiType)
   - Extract HLA reads from BAM

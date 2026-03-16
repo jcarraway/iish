@@ -60,20 +60,32 @@ resource "aws_batch_job_queue" "standard" {
   }
 }
 
-# Job definitions — placeholder containers (replaced in Sessions 11-14)
+# Job definitions
 resource "aws_batch_job_definition" "alignment" {
   name = "oncovax-alignment"
   type = "container"
 
   container_properties = jsonencode({
-    image      = "alpine:latest"
-    command    = ["echo", "alignment placeholder"]
-    vcpus      = 8
-    memory     = 32768
-    jobRoleArn = aws_iam_role.batch_job.arn
+    image            = "${aws_ecr_repository.alignment.repository_url}:latest"
+    vcpus            = 8
+    memory           = 32768
+    jobRoleArn       = aws_iam_role.batch_job.arn
     executionRoleArn = aws_iam_role.batch_execution.arn
     environment = [
       { name = "PIPELINE_STEP", value = "alignment" }
+    ]
+    mountPoints = [
+      {
+        sourceVolume  = "scratch"
+        containerPath = "/scratch"
+        readOnly      = false
+      }
+    ]
+    volumes = [
+      {
+        name = "scratch"
+        host = { sourcePath = "/tmp/pipeline-scratch" }
+      }
     ]
   })
 }
@@ -83,14 +95,26 @@ resource "aws_batch_job_definition" "variant_calling" {
   type = "container"
 
   container_properties = jsonencode({
-    image      = "alpine:latest"
-    command    = ["echo", "variant_calling placeholder"]
-    vcpus      = 4
-    memory     = 16384
-    jobRoleArn = aws_iam_role.batch_job.arn
+    image            = "${aws_ecr_repository.variant_caller.repository_url}:latest"
+    vcpus            = 4
+    memory           = 16384
+    jobRoleArn       = aws_iam_role.batch_job.arn
     executionRoleArn = aws_iam_role.batch_execution.arn
     environment = [
       { name = "PIPELINE_STEP", value = "variant_calling" }
+    ]
+    mountPoints = [
+      {
+        sourceVolume  = "scratch"
+        containerPath = "/scratch"
+        readOnly      = false
+      }
+    ]
+    volumes = [
+      {
+        name = "scratch"
+        host = { sourcePath = "/tmp/pipeline-scratch" }
+      }
     ]
   })
 }
