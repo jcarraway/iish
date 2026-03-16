@@ -37,3 +37,13 @@ output "ecr_variant_caller_url" {
   description = "ECR repository URL for the variant-caller service"
   value       = aws_ecr_repository.variant_caller.repository_url
 }
+
+output "ecr_hla_typer_url" {
+  description = "ECR repository URL for the hla-typer service"
+  value       = aws_ecr_repository.hla_typer.repository_url
+}
+
+output "ecr_peptide_generator_url" {
+  description = "ECR repository URL for the peptide-generator service"
+  value       = aws_ecr_repository.peptide_generator.repository_url
+}

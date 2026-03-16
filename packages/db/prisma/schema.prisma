@@ -356,6 +356,7 @@ model PipelineJob {
   alignedBamPath        String?   @map("aligned_bam_path")
   vcfPath               String?   @map("vcf_path")
   annotatedVcfPath      String?   @map("annotated_vcf_path")
+  peptideFilePath       String?   @map("peptide_file_path")
   variantCount          Int?      @map("variant_count")
   tmb                   Float?    @map("tmb")
   hlaGenotype           Json?     @map("hla_genotype")

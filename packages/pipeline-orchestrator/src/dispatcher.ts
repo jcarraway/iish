@@ -9,6 +9,7 @@ const JOB_DEFINITIONS: Record<string, { definition: string; queue: string }> = {
   alignment: { definition: 'oncovax-alignment', queue: CPU_INTENSIVE_QUEUE },
   variant_calling: { definition: 'oncovax-variant-calling', queue: CPU_INTENSIVE_QUEUE },
   hla_typing: { definition: 'oncovax-hla-typing', queue: STANDARD_QUEUE },
+  peptide_generation: { definition: 'oncovax-peptide-generator', queue: STANDARD_QUEUE },
   neoantigen_prediction: { definition: 'oncovax-neoantigen-prediction', queue: STANDARD_QUEUE },
   structure_prediction: { definition: 'oncovax-structure-prediction', queue: STANDARD_QUEUE },
   ranking: { definition: 'oncovax-ranking', queue: STANDARD_QUEUE },

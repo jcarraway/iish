@@ -484,6 +484,7 @@ export interface PipelineJobDetail extends PipelineJobSummary {
   alignedBamPath: string | null;
   vcfPath: string | null;
   annotatedVcfPath: string | null;
+  peptideFilePath: string | null;
   variantCount: number | null;
   tmb: number | null;
   hlaGenotype: Record<string, string[]> | null;

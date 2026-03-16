@@ -233,6 +233,7 @@ export const PIPELINE_STEPS = {
   ALIGNMENT: 'alignment',
   VARIANT_CALLING: 'variant_calling',
   HLA_TYPING: 'hla_typing',
+  PEPTIDE_GENERATION: 'peptide_generation',
   NEOANTIGEN_PREDICTION: 'neoantigen_prediction',
   STRUCTURE_PREDICTION: 'structure_prediction',
   RANKING: 'ranking',
@@ -243,11 +244,36 @@ export const PIPELINE_STEP_ORDER = [
   'alignment',
   'variant_calling',
   'hla_typing',
+  'peptide_generation',
   'neoantigen_prediction',
   'structure_prediction',
   'ranking',
   'mrna_design',
 ] as const;
+
+/** DAG defining which steps each step feeds into (successors). */
+export const PIPELINE_STEP_GRAPH: Record<string, string[]> = {
+  alignment: ['variant_calling'],
+  variant_calling: ['hla_typing', 'peptide_generation'],
+  hla_typing: ['neoantigen_prediction'],
+  peptide_generation: ['neoantigen_prediction'],
+  neoantigen_prediction: ['structure_prediction'],
+  structure_prediction: ['ranking'],
+  ranking: ['mrna_design'],
+  mrna_design: [],
+};
+
+/** Inverse of PIPELINE_STEP_GRAPH: which steps must complete before each step can start. */
+export const PIPELINE_STEP_PREREQUISITES: Record<string, string[]> = {
+  alignment: [],
+  variant_calling: ['alignment'],
+  hla_typing: ['variant_calling'],
+  peptide_generation: ['variant_calling'],
+  neoantigen_prediction: ['hla_typing', 'peptide_generation'],
+  structure_prediction: ['neoantigen_prediction'],
+  ranking: ['structure_prediction'],
+  mrna_design: ['ranking'],
+};
 
 export const PIPELINE_INPUT_FORMATS = {
   FASTQ: 'fastq',

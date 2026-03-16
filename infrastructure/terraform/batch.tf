@@ -124,14 +124,55 @@ resource "aws_batch_job_definition" "hla_typing" {
   type = "container"
 
   container_properties = jsonencode({
-    image      = "alpine:latest"
-    command    = ["echo", "hla_typing placeholder"]
-    vcpus      = 2
-    memory     = 8192
-    jobRoleArn = aws_iam_role.batch_job.arn
+    image            = "${aws_ecr_repository.hla_typer.repository_url}:latest"
+    vcpus            = 4
+    memory           = 16384
+    jobRoleArn       = aws_iam_role.batch_job.arn
     executionRoleArn = aws_iam_role.batch_execution.arn
     environment = [
       { name = "PIPELINE_STEP", value = "hla_typing" }
+    ]
+    mountPoints = [
+      {
+        sourceVolume  = "scratch"
+        containerPath = "/scratch"
+        readOnly      = false
+      }
+    ]
+    volumes = [
+      {
+        name = "scratch"
+        host = { sourcePath = "/tmp/pipeline-scratch" }
+      }
+    ]
+  })
+}
+
+resource "aws_batch_job_definition" "peptide_generation" {
+  name = "oncovax-peptide-generator"
+  type = "container"
+
+  container_properties = jsonencode({
+    image            = "${aws_ecr_repository.peptide_generator.repository_url}:latest"
+    vcpus            = 2
+    memory           = 4096
+    jobRoleArn       = aws_iam_role.batch_job.arn
+    executionRoleArn = aws_iam_role.batch_execution.arn
+    environment = [
+      { name = "PIPELINE_STEP", value = "peptide_generation" }
+    ]
+    mountPoints = [
+      {
+        sourceVolume  = "scratch"
+        containerPath = "/scratch"
+        readOnly      = false
+      }
+    ]
+    volumes = [
+      {
+        name = "scratch"
+        host = { sourcePath = "/tmp/pipeline-scratch" }
+      }
     ]
   })
 }

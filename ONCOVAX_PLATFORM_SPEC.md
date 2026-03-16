@@ -112,7 +112,7 @@ oncovax/                                 # As built (Sessions 1-8)
 │   │   │   │   ├── upload/page.tsx      # Dual drop-zone upload (tumor + normal) with XHR progress
 │   │   │   │   └── jobs/
 │   │   │   │       ├── page.tsx         # Job list with status badges + progress bars
-│   │   │   │       └── [jobId]/page.tsx # Job detail: 7-step progress bar, neoantigen table, downloads
+│   │   │   │       └── [jobId]/page.tsx # Job detail: 8-step progress bar, neoantigen table, downloads
 │   │   │   ├── sequencing/               # Sequencing navigation (Sessions 7-9)
 │   │   │   │   ├── page.tsx             # Sequencing hub — 3 pathway cards, dynamic state (Sessions 7, 9)
 │   │   │   │   ├── confirm/page.tsx     # Genomic report confirm — review mutations + biomarkers (Session 9)
@@ -140,7 +140,7 @@ oncovax/                                 # As built (Sessions 1-8)
 │   │   │   ├── HealthSystemSearch.tsx   # Searchable health system directory with debounce (Session 6)
 │   │   │   ├── SequencingProviderCard.tsx # Provider card with details + compare toggle (Session 7)
 │   │   │   ├── OrderProgressBar.tsx     # Horizontal order status progress bar (Session 8)
-│   │   │   └── PipelineProgressBar.tsx # 7-step pipeline progress visualization (Session 10)
+│   │   │   └── PipelineProgressBar.tsx # 8-step pipeline progress visualization (Sessions 10, 12)
 │   │   └── lib/
 │   │       ├── ai.ts                    # Claude Opus client + multi-image + PDF support
 │   │       ├── clinicaltrials.ts        # CTG v2 API client (Session 2)
@@ -194,12 +194,13 @@ oncovax/                                 # As built (Sessions 1-8)
 │       ├── vpc.tf                       # VPC, subnets, NAT gateway, security groups
 │       ├── s3.tf                        # Pipeline bucket (AES-256, versioning, Glacier lifecycle)
 │       ├── iam.tf                       # Batch execution/job roles, NATS execution role
-│       ├── batch.tf                     # 2 compute envs (spot), 2 queues, 7 job definitions
+│       ├── ecr.tf                       # ECR repos: alignment, variant-caller, hla-typer, peptide-generator (Sessions 11-12)
+│       ├── batch.tf                     # 2 compute envs (spot), 2 queues, 8 job definitions
 │       └── nats.tf                      # ECS Fargate NATS service + EFS + NLB
-└── services/neoantigen-pipeline/           # Rust compute services (Sessions 11+)
-    ├── Cargo.toml                         # Workspace root
+└── services/neoantigen-pipeline/           # Compute services: Rust + Python (Sessions 11-12+)
+    ├── Cargo.toml                         # Workspace root (4 members: pipeline-common, alignment, variant-caller, hla-typer)
     ├── rust-toolchain.toml                # Pin stable Rust
-    ├── pipeline-common/                   # Shared crate: config, S3, NATS, process runner, error types
+    ├── pipeline-common/                   # Shared Rust crate: config, S3, NATS, process runner, error types
     │   ├── Cargo.toml
     │   └── src/
     │       ├── lib.rs
@@ -219,16 +220,43 @@ oncovax/                                 # As built (Sessions 1-8)
     │       ├── aligner.rs                 # bwa-mem2 mem | samtools sort (piped)
     │       ├── postprocess.rs             # samtools markdup + index + flagstat parsing
     │       └── quality.rs                 # Gates: mapping <80%=FAIL, coverage <5x=FAIL, <15x=WARN, dups >50%=WARN
-    └── variant-caller/                    # Step 2: Somatic variant calling (Session 11)
-        ├── Cargo.toml
-        ├── Dockerfile                     # Multi-stage: Rust builder → samtools + bcftools v1.20, Strelka2 v2.9.10, GATK v4.5, VEP v112
-        └── src/
-            ├── main.rs                    # Download BAMs → Strelka2 + Mutect2 → consensus → VEP → stats → upload → publish
-            ├── strelka.rs                 # Strelka2 configure + run workflow
-            ├── mutect.rs                  # GATK Mutect2 + FilterMutectCalls
-            ├── consensus.rs               # bcftools isec merge + HIGH/MEDIUM confidence tagging
-            ├── annotate.rs                # Ensembl VEP annotation (cache from S3)
-            └── quality.rs                 # VariantCallingStats, TMB calculation (nonsynonymous/33Mb)
+    ├── variant-caller/                    # Step 2: Somatic variant calling (Session 11)
+    │   ├── Cargo.toml
+    │   ├── Dockerfile                     # Multi-stage: Rust builder → samtools + bcftools v1.20, Strelka2 v2.9.10, GATK v4.5, VEP v112
+    │   └── src/
+    │       ├── main.rs                    # Download BAMs → Strelka2 + Mutect2 → consensus → VEP → stats → upload → publish
+    │       ├── strelka.rs                 # Strelka2 configure + run workflow
+    │       ├── mutect.rs                  # GATK Mutect2 + FilterMutectCalls
+    │       ├── consensus.rs               # bcftools isec merge + HIGH/MEDIUM confidence tagging
+    │       ├── annotate.rs                # Ensembl VEP annotation (cache from S3)
+    │       └── quality.rs                 # VariantCallingStats, TMB calculation (nonsynonymous/33Mb)
+    ├── hla-typer/                          # Step 3a: HLA typing (Session 12)
+    │   ├── Cargo.toml
+    │   ├── Dockerfile                     # Multi-stage: Rust builder → samtools v1.20, OptiType v1.3.5, HLA-HD
+    │   └── src/
+    │       ├── main.rs                    # Download normal BAM → extract HLA reads → OptiType + HLA-HD → consensus → upload → publish
+    │       ├── optitype.rs                # OptiType wrapper: run + parse TSV (Class I: HLA-A, -B, -C)
+    │       ├── hlahd.rs                   # HLA-HD wrapper: run + parse result.txt (Class I + II), 2-field normalization
+    │       ├── consensus.rs               # Consensus genotype: OptiType primary for Class I, HLA-HD for Class II
+    │       └── quality.rs                 # Allele validation regex, 6 Class I required, max 3 discrepancies
+    └── peptide-generator/                  # Step 3b: Peptide generation — Python (Session 12)
+        ├── requirements.txt               # boto3, nats-py, biopython, pysam
+        ├── Dockerfile                     # python:3.12-slim with pip deps
+        ├── src/
+        │   ├── main.py                    # Download VCF → parse → generate peptides → quality → upload → publish NATS
+        │   ├── vcf_parser.py              # VEP CSQ parsing, protein-altering variant extraction, VAF/pseudogene filtering
+        │   ├── peptide_generator.py        # Sliding window: 8/9/10/11-mer (MHC-I) + 15-mer (MHC-II), PeptideWindow dataclass
+        │   ├── quality.py                 # Quality gates: zero peptides=fail, zero MHC-I=fail, >50K=warn
+        │   └── pipeline_common/           # Python equivalent of Rust pipeline-common
+        │       ├── config.py              # PipelineConfig.from_env()
+        │       ├── s3.py                  # boto3 download/upload (AES256)
+        │       ├── nats_client.py         # nats-py JetStream publish
+        │       ├── events.py              # StepCompleteEvent, StepFailedEvent, ProgressEvent (camelCase)
+        │       └── paths.py               # S3 path conventions matching Rust paths.rs
+        └── tests/                         # 28 Python tests
+            ├── test_vcf_parser.py         # CSQ parsing, VAF extraction, filtering (11 tests)
+            ├── test_peptide_generator.py   # KRAS G12D windows, boundary mutations, serialization (13 tests)
+            └── test_quality.py            # Quality gate pass/fail/warn (4 tests)
 ```
 
 > **Architecture note:** Sessions 1-9 established that all server logic lives as lib files in `apps/web/lib/`, not as separate packages. Client components live in `apps/web/components/`. Phase 1 libs: `{clinicaltrials,trial-sync,eligibility-parser,extraction,matcher,oncologist-brief,translator,financial-matcher,s3,image-quality}.ts`. FHIR integration: `apps/web/lib/fhir/` (6 files). Phase 2 libs (Sessions 7-9): `{coverage,sequencing-brief,sequencing-recommendation,test-recommendation,conversation-guide,waiting-content,genomic-extraction,genomic-interpreter}.ts`. All Claude calls use Redis caching (24h TTL). Test recommendation is fully deterministic (no Claude). Matcher dynamically weights 7 dimensions when genomic data is present (6 original × 0.75 + genomics at 0.25). Session 10 introduced the first separate packages (`pipeline-storage`, `pipeline-orchestrator`) since pipeline orchestration runs as a standalone process and S3 storage is shared across the orchestrator and web app. NATS JetStream client also added to `apps/web/lib/nats.ts` for publishing events from API routes.
@@ -1767,11 +1795,15 @@ Input: Tumor FASTQ/BAM + Normal FASTQ/BAM
   │   ├── Strelka2 (somatic SNVs + indels)
   │   └── Mutect2 (secondary caller for validation)
   │
-  ├── Step 3: HLA Typing (Rust wrapper)
-  │   └── OptiType or HLA-HD from tumor/normal BAM
+  ├── Step 3a: HLA Typing (Rust wrapper)  ──┐  [PARALLEL — fan-out from variant calling]
+  │   ├── OptiType (Class I: HLA-A, -B, -C) │
+  │   └── HLA-HD (Class I + II validation)   │
+  │                                           ├── Both must complete before Step 4
+  ├── Step 3b: Peptide Generation (Python) ──┘  [PARALLEL — fan-out from variant calling]
+  │   ├── VEP-annotated VCF parsing
+  │   └── Sliding window peptides (8-11mer MHC-I, 15mer MHC-II)
   │
-  ├── Step 4: Neoantigen Prediction (Python)
-  │   ├── Mutant peptide generation from VCF
+  ├── Step 4: Neoantigen Prediction (Python)  [fan-in: requires 3a + 3b]
   │   ├── MHC-I binding prediction (MHCflurry / NetMHCpan)
   │   ├── MHC-II binding prediction
   │   ├── Immunogenicity scoring
@@ -1793,6 +1825,8 @@ Input: Tumor FASTQ/BAM + Normal FASTQ/BAM
       └── Output: mRNA sequence + LNP formulation notes
 
 Output: Neoantigen Report + Draft Vaccine Blueprint
+
+> **Orchestration note (Session 12):** Steps 3a and 3b run in parallel after variant calling completes (fan-out). The orchestrator uses a DAG-based step graph (`PIPELINE_STEP_GRAPH` / `PIPELINE_STEP_PREREQUISITES` in `packages/shared/src/constants.ts`) instead of linear progression. Neoantigen prediction (Step 4) only dispatches when BOTH parallel steps have completed (fan-in). Prisma `$transaction` with Serializable isolation prevents the race condition where both parallel steps complete simultaneously.
 ```
 
 ### 4.2 Service Definitions
@@ -2118,14 +2152,14 @@ CREATE INDEX idx_neoantigens_gene ON neoantigen_candidates(gene);
 TASK 1: Set up compute infrastructure — COMPLETED (Session 10) ✓
   - PipelineJob + NeoantigenCandidate Prisma models (17 models total)
   - pipeline-storage package: S3 client, presigned upload/download URLs, multipart upload, path conventions
-  - pipeline-orchestrator package: NATS JetStream stream + consumers, AWS Batch dispatcher (7 job defs),
-    exponential backoff retry, Prisma job manager (status transitions)
+  - pipeline-orchestrator package: NATS JetStream stream + consumers, AWS Batch dispatcher (8 job defs),
+    exponential backoff retry, Prisma job manager (status transitions, DAG-based step resolution)
   - Terraform infrastructure: VPC (public/private subnets, NAT gateway), S3 bucket (AES-256,
     versioning, Glacier lifecycle), IAM roles, Batch compute envs (EC2 spot r6i), 2 queues,
-    7 placeholder job definitions, NATS ECS Fargate service with EFS persistence + NLB
+    8 job definitions, NATS ECS Fargate service with EFS persistence + NLB
   - Reference genome setup script (GRCh38 download + BWA-MEM2/samtools indexing + S3 upload)
   - 5 API routes: upload-url, submit, jobs, jobs/[jobId], jobs/[jobId]/results
-  - 4 pipeline pages: home, upload (dual drop-zone), job list, job detail (7-step progress bar)
+  - 4 pipeline pages: home, upload (dual drop-zone), job list, job detail (8-step progress bar)
   - PipelineProgressBar component, NATS client for web app, pipeline constants/types/schemas in shared
   - 36 new files, 9 modified files, 0 type errors
 
@@ -2150,13 +2184,25 @@ TASK 3: Build variant calling step (Rust wrapper) — COMPLETED (Session 11) ✓
     batch.tf updated from alpine:latest to ECR images with /scratch volume mounts,
     ECR pull permissions on batch execution role, ECR URL outputs
 
-TASK 4: Build HLA typing step (Rust wrapper around OptiType)
-  - Extract HLA reads from BAM
-  - Run OptiType
-  - Validate with secondary tool
+TASK 4: Build HLA typing step (Rust wrapper around OptiType + HLA-HD) — COMPLETED (Session 12) ✓
+  - hla-typer Rust service: download normal BAM → extract HLA reads (chr6 + unmapped) → OptiType (Class I)
+    + HLA-HD (Class I + II) → consensus genotype → quality gates → upload hla_genotype.json
+  - OptiType primary for Class I, HLA-HD primary for Class II, discrepancy detection
+  - Quality gates: allele nomenclature regex, all 6 Class I alleles required, max 3 discrepancies
+  - Multi-stage Dockerfile: Rust builder → samtools v1.20, OptiType v1.3.5, HLA-HD
+  - 8 unit tests (TSV/output parsing, allele normalization, consensus logic, quality gates)
+
+TASK 4b: Build peptide generation step (Python) — COMPLETED (Session 12) ✓
+  - peptide-generator Python service (first Python service in pipeline)
+  - VCF parser: VEP CSQ annotation extraction, protein-altering variant filtering (VAF, pseudogenes)
+  - Peptide generator: sliding window 8/9/10/11-mer (MHC-I) + 15-mer (MHC-II) with wildtype pairs
+  - Python pipeline-common package (config, S3, NATS, events, paths) matching Rust equivalent
+  - Quality gates: zero peptides = fail, zero MHC-I = fail, >50K = warn
+  - 28 Python tests (VCF parsing, KRAS G12D peptide windows, boundary mutations, quality gates)
+  - DAG-based orchestrator refactoring: fan-out after variant_calling, fan-in before neoantigen_prediction
+  - Serializable transaction isolation for parallel step completion race condition
 
 TASK 5: Build neoantigen prediction step (Python)
-  - Mutant peptide generation from annotated VCF
   - MHCflurry binding prediction
   - Immunogenicity scoring (integrate published models)
   - Multi-factor ranking algorithm
@@ -2639,11 +2685,11 @@ SESSION 10: Compute Infrastructure + Pipeline Orchestration — COMPLETED ✓
          jobs list, job detail with top 20 neoantigens, results with presigned download URLs),
          Terraform infrastructure (VPC with public/private subnets + NAT gateway, S3 bucket with
          AES-256 + versioning + Glacier lifecycle at 90 days, IAM roles for Batch + NATS, 2 Batch
-         compute envs on EC2 spot r6i instances, 2 job queues, 7 placeholder job definitions with
-         resource specs from 2-8 vCPU / 8-32GB RAM, ECS Fargate NATS service with EFS persistence
+         compute envs on EC2 spot r6i instances, 2 job queues, 8 job definitions with
+         resource specs from 2-8 vCPU / 4-32GB RAM, ECS Fargate NATS service with EFS persistence
          + internal NLB), reference genome setup script (GRCh38 + VEP cache download, BWA-MEM2 +
          samtools indexing, S3 upload with verification), 4 pipeline pages (home with job cards,
-         dual drop-zone upload with XHR progress tracking, job list, job detail with 7-step
+         dual drop-zone upload with XHR progress tracking, job list, job detail with 8-step
          PipelineProgressBar + neoantigen table + download links + 10s polling), pipeline constants
          + types + Zod schemas in shared package
   New files: 36 (2 packages × ~6 files each, 5 API routes, 4 pages, 1 component, 7 Terraform, 1 script)
@@ -2654,6 +2700,30 @@ SESSION 10: Compute Infrastructure + Pipeline Orchestration — COMPLETED ✓
               structure, NATS retention set to workqueue (not limits-based) for automatic cleanup
 
 → PHASE 3 SESSION 10 COMPLETE (infrastructure ready — no bioinformatics logic yet, Sessions 11-15 build the pipeline steps)
+
+SESSION 11: Alignment + Variant Calling — COMPLETED ✓
+  Built: Cargo workspace with pipeline-common shared crate + alignment + variant-caller services.
+         pipeline-common (8 modules): config, error classification (retryable vs permanent), S3 multipart,
+         NATS JetStream publish, process runner (piped execution, OOM detection), structured logging, paths.
+         alignment: BWA-MEM2 | samtools sort (piped), markdup, flagstat parsing, quality gates.
+         variant-caller: Strelka2 + Mutect2 dual-caller, bcftools consensus (HIGH/MEDIUM tags),
+         VEP v112 annotation, TMB calculation. Multi-stage Dockerfiles for both services.
+         ECR repos (oncovax/alignment, oncovax/variant-caller), Batch job defs updated from placeholders.
+  Tests: 28 unit tests (9 alignment + 12 pipeline-common + 7 variant-caller)
+  Files: 20 new, 4 modified
+
+SESSION 12: HLA Typing + Peptide Generation — COMPLETED ✓
+  Built: hla-typer Rust service (OptiType + HLA-HD with consensus genotype, quality gates),
+         peptide-generator Python service (first Python service — VCF parsing, sliding window
+         8/9/10/11-mer MHC-I + 15-mer MHC-II peptide generation, Python pipeline-common package).
+         DAG-based orchestrator refactoring: replaced linear step progression with PIPELINE_STEP_GRAPH
+         + PIPELINE_STEP_PREREQUISITES for fan-out (variant_calling → [hla_typing, peptide_generation])
+         and fan-in ([hla_typing, peptide_generation] → neoantigen_prediction). Serializable transaction
+         isolation for parallel completion race condition. ECR repos, Batch job defs, 8-step progress bar.
+  Tests: 36 Rust tests (8 new hla-typer), 28 Python tests (VCF parsing, KRAS G12D, quality gates)
+  Files: ~25 new, ~10 modified
+
+→ PHASE 3 SESSION 12 COMPLETE (alignment → variant calling → [HLA typing ∥ peptide generation] working, Session 13 builds binding prediction)
 ```
 
 ---

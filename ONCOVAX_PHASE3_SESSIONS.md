@@ -1086,6 +1086,61 @@ For each nonsynonymous coding variant in the annotated VCF:
 
 ---END---
 
+### Session 12 — COMPLETED
+
+**What was built:**
+
+HLA Typer (Rust) + Peptide Generator (first Python service) + DAG-based orchestrator refactoring for parallel fan-out/fan-in:
+
+**Orchestrator refactoring (highest-risk change):**
+- Replaced linear `indexOf(step) + 1` progression with DAG-based resolution using new `PIPELINE_STEP_GRAPH` and `PIPELINE_STEP_PREREQUISITES` constants
+- `markStepComplete` return type changed from `{ isLastStep, nextStep }` to `{ isLastStep, nextSteps[] }`
+- Wrapped in Prisma `$transaction` with `isolationLevel: 'Serializable'` to prevent race condition on fan-in (two parallel steps completing simultaneously)
+- `consumers.ts` dispatches multiple steps via `Promise.all(nextSteps.map(...))` for fan-out
+- Handles empty `nextSteps` (waiting for parallel sibling to finish — no dispatch, no error)
+- `dispatcher.ts` adds `peptide_generation` job definition on standard queue
+
+**Shared constants/types:**
+- `PIPELINE_STEP_GRAPH`: DAG defining `variant_calling → [hla_typing, peptide_generation] → neoantigen_prediction`
+- `PIPELINE_STEP_PREREQUISITES`: inverse lookup for fan-in prerequisite checking
+- `peptideFilePath: string | null` added to `PipelineJobDetail`
+- `peptideFilePath String?` added to PipelineJob Prisma model
+
+**hla-typer** service (Rust, 6 source files):
+- `main.rs` — Download normal BAM → extract HLA reads (chr6:28477797-33448354 + unmapped) → name-sort → BAM-to-FASTQ → OptiType → HLA-HD → consensus → quality gates → upload `hla_genotype.json` → publish NATS
+- `optitype.rs` — Run `OptiTypePipeline.py`, parse TSV output for Class I alleles (HLA-A, -B, -C)
+- `hlahd.rs` — Run `hlahd.sh`, parse result.txt, normalize alleles to 2-field resolution (e.g., `HLA-A*02:01:01:01` → `HLA-A*02:01`)
+- `consensus.rs` — OptiType primary for Class I, HLA-HD primary for Class II, discrepancy detection
+- `quality.rs` — Allele nomenclature validation via regex, all 6 Class I alleles required, max 3 discrepancies
+- `Dockerfile` — Multi-stage: Rust builder → runtime with samtools v1.20, OptiType v1.3.5, HLA-HD
+
+**peptide-generator** service (Python, first Python service in pipeline):
+- `main.py` — Entry point: download annotated VCF → parse → generate peptides → quality gates → upload `peptide_windows.json` → publish NATS
+- `vcf_parser.py` — Parse VEP-annotated VCF, extract protein-altering variants (missense, frameshift, inframe_insertion/deletion, stop_gained). Filters: VAF < 0.05, pseudogenes. Prefers CANONICAL transcript.
+- `peptide_generator.py` — Sliding window generation: 8/9/10/11-mer (MHC-I) + 15-mer (MHC-II) peptide windows containing each mutation, with corresponding wildtype peptides. `PeptideWindow` dataclass, `_sliding_windows()` core logic.
+- `quality.py` — Zero peptides = fail, zero MHC-I = fail, >50K = warn
+- `pipeline_common/` — Python equivalent of Rust pipeline-common: `config.py` (env parsing), `s3.py` (boto3), `nats_client.py` (nats-py JetStream), `events.py` (camelCase serialization), `paths.py` (S3 conventions)
+
+**Tests:**
+- 8 new hla-typer Rust tests (OptiType TSV parsing, HLA-HD output parsing, allele normalization, concordant/discordant consensus, quality gate pass/fail)
+- 28 Python tests: 11 VCF parser (CSQ parsing, VAF extraction, filtering), 13 peptide generator (KRAS G12D windows, boundary mutations, JSON serialization), 4 quality gates
+
+**Terraform updates:**
+- ECR repos for `oncovax/hla-typer` and `oncovax/peptide-generator` with keep-last-5 lifecycle
+- `batch.tf` — Replaced hla_typing `alpine:latest` placeholder with real ECR image (4 vCPU, 16GB), added `peptide_generation` job definition (2 vCPU, 4GB)
+- ECR pull permissions and URL outputs added
+
+**UI:** Added "Peptide Generation" to `PipelineProgressBar` step labels (now 8 steps)
+
+**Verification:** `cargo build --release` — 0 errors. `cargo test` — 36 tests (8 new hla-typer). `python -m pytest` — 28 tests passing. `pnpm build` — 0 TypeScript errors, 73 pages.
+
+**Files:** ~25 new files (6 hla-typer src + Cargo.toml + Dockerfile, 11 peptide-generator src + requirements.txt + Dockerfile + 3 test files), ~10 modified files (constants.ts, types.ts, index.ts, schema.prisma, job-manager.ts, consumers.ts, dispatcher.ts, batch.tf, ecr.tf, outputs.tf, iam.tf, PipelineProgressBar.tsx, Cargo.toml workspace)
+
+**Deviations from plan:**
+- Peptide generator uses 15-mer only for MHC-II (not 13-25 range) — 15-mer is standard for MHCflurry/NetMHCpan binding prediction
+- Python uses `Union[str, Path]` syntax (not `str | Path`) for Python 3.9 compatibility
+- HLA-HD install is placeholder in Dockerfile (requires institutional license download)
+
 ---
 
 ## SESSION 13: Neoantigen Prediction + Binding + Immunogenicity Scoring

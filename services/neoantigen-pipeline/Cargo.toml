@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["pipeline-common", "alignment", "variant-caller"]
+members = ["pipeline-common", "alignment", "variant-caller", "hla-typer"]
 
 [workspace.dependencies]
 tokio = { version = "1.42", features = ["full"] }

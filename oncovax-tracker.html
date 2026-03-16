@@ -830,6 +830,7 @@
         // Phase 3 — in progress
         "phase3:10": "complete",
         "phase3:11": "complete",
+        "phase3:12": "complete",
       };
 
       const DEFAULT_NOTES = {
@@ -858,6 +859,8 @@
           "36 new files. PipelineJob + NeoantigenCandidate Prisma models, pipeline-storage package (S3 presigned URLs, multipart upload), pipeline-orchestrator package (NATS JetStream, AWS Batch dispatcher, exponential backoff retry, job manager), 5 API routes, 4 pipeline pages + PipelineProgressBar component, Terraform (VPC, S3, IAM, Batch, NATS ECS), reference genome setup script.",
         "phase3:11":
           "20 new files. Rust Cargo workspace (pipeline-common + alignment + variant-caller). pipeline-common: config, S3 multipart, NATS JetStream, process runner (piped + OOM detection), error classification. Alignment: BWA-MEM2 | samtools sort, markdup, flagstat parsing, quality gates. Variant-caller: Strelka2 + Mutect2 dual-caller, bcftools consensus (HIGH/MEDIUM tags), VEP v112 annotation, TMB calculation. Multi-stage Dockerfiles. ECR repos + Terraform updates. 28 unit tests passing.",
+        "phase3:12":
+          "~25 new files. HLA Typer (Rust): OptiType + HLA-HD wrappers, consensus genotype, quality gates, 8 tests. Peptide Generator (Python, first Python service): VEP VCF parsing, sliding window 8-11mer MHC-I + 15mer MHC-II peptides, Python pipeline-common package, 28 tests. DAG orchestrator refactoring: fan-out (variant_calling → [hla_typing, peptide_generation]), fan-in with Serializable transaction isolation. ECR repos, Batch job defs, 8-step progress bar.",
       };
 
       let state = { statuses: {}, notes: {}, expanded: {}, filter: "all" };

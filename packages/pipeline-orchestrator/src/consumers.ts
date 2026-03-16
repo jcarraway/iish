@@ -34,7 +34,7 @@ async function handleStepComplete(data: string): Promise<void> {
   const payload = stepCompleteSchema.parse(JSON.parse(data));
   console.log(`Step complete: ${payload.step} for job ${payload.jobId}`);
 
-  const { isLastStep, nextStep } = await markStepComplete(
+  const { isLastStep, nextSteps } = await markStepComplete(
     payload.jobId,
     payload.step,
     payload.metadata as Record<string, unknown> | undefined
@@ -43,15 +43,24 @@ async function handleStepComplete(data: string): Promise<void> {
   if (isLastStep) {
     await markJobComplete(payload.jobId);
     console.log(`Pipeline complete for job ${payload.jobId}`);
-  } else if (nextStep) {
+  } else if (nextSteps.length > 0) {
     const job = await getJob(payload.jobId);
-    await dispatchStep(payload.jobId, nextStep, {
+    const baseEnv = {
       TUMOR_DATA_PATH: job.tumorDataPath,
       NORMAL_DATA_PATH: job.normalDataPath,
       INPUT_FORMAT: job.inputFormat,
       REFERENCE_GENOME: job.referenceGenome,
       ...(job.rnaDataPath ? { RNA_DATA_PATH: job.rnaDataPath } : {}),
-    });
+    };
+
+    // Fan-out: dispatch all ready successor steps in parallel
+    await Promise.all(
+      nextSteps.map((step) => dispatchStep(payload.jobId, step, baseEnv))
+    );
+    console.log(`Dispatched ${nextSteps.length} step(s) for job ${payload.jobId}: ${nextSteps.join(', ')}`);
+  } else {
+    // No next steps yet (waiting for parallel sibling to complete)
+    console.log(`Step ${payload.step} complete for job ${payload.jobId}, waiting for parallel sibling(s)`);
   }
 }
 

@@ -6,6 +6,7 @@ const STEP_LABELS: Record<string, string> = {
   alignment: 'Alignment',
   variant_calling: 'Variant Calling',
   hla_typing: 'HLA Typing',
+  peptide_generation: 'Peptide Generation',
   neoantigen_prediction: 'Neoantigen Prediction',
   structure_prediction: 'Structure Prediction',
   ranking: 'Ranking',

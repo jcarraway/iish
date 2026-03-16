@@ -35,7 +35,9 @@ resource "aws_iam_role_policy" "batch_execution_ecr" {
       ]
       Resource = [
         aws_ecr_repository.alignment.arn,
-        aws_ecr_repository.variant_caller.arn
+        aws_ecr_repository.variant_caller.arn,
+        aws_ecr_repository.hla_typer.arn,
+        aws_ecr_repository.peptide_generator.arn
       ]
     },
     {
