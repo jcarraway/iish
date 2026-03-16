@@ -1,0 +1,27 @@
+query GetDocuments {
+  documents {
+    id
+    patientId
+    type
+    filename
+    s3Key
+    status
+    extraction
+    createdAt
+  }
+}
+
+mutation RequestUploadUrl($filename: String!, $contentType: String!) {
+  requestUploadUrl(filename: $filename, contentType: $contentType) {
+    uploadUrl
+    s3Key
+  }
+}
+
+mutation ExtractDocument($documentId: String!) {
+  extractDocument(documentId: $documentId) {
+    id
+    status
+    extraction
+  }
+}

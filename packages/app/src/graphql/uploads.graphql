@@ -1,0 +1,8 @@
+mutation RequestGeneralUploadUrl($filename: String!, $contentType: String!, $bucket: String) {
+  requestGeneralUploadUrl(filename: $filename, contentType: $contentType, bucket: $bucket) {
+    uploadUrl
+    s3Key
+    bucket
+    expiresAt
+  }
+}

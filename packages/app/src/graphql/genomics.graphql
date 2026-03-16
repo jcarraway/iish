@@ -1,0 +1,140 @@
+query GetGenomicResults {
+  genomicResults {
+    id
+    patientId
+    provider
+    testName
+    reportDate
+    alterations {
+      gene
+      alteration
+      alterationType
+      variantAlleleFrequency
+      clinicalSignificance
+      therapyImplications {
+        approvedTherapies
+        clinicalTrials
+        resistanceMutations
+      }
+      confidence
+    }
+    biomarkers {
+      tmb { value unit status }
+      msi { status score }
+      pdl1 { tps cps }
+      loh { status }
+      hrd { score status }
+    }
+    interpretation
+    createdAt
+  }
+}
+
+query GetMatchDelta {
+  matchDelta {
+    newMatches {
+      trialId
+      nctId
+      title
+      oldScore
+      newScore
+      genomicBasis
+      reason
+    }
+    improvedMatches {
+      trialId
+      nctId
+      title
+      oldScore
+      newScore
+      genomicBasis
+      reason
+    }
+    removedMatches {
+      trialId
+      nctId
+      title
+      oldScore
+      newScore
+      genomicBasis
+      reason
+    }
+    totalBefore
+    totalAfter
+  }
+}
+
+mutation ExtractGenomicReport($documentId: String!) {
+  extractGenomicReport(documentId: $documentId) {
+    id
+    provider
+    testName
+    alterations {
+      gene
+      alteration
+      alterationType
+      clinicalSignificance
+    }
+    biomarkers {
+      tmb { value unit status }
+      msi { status score }
+    }
+  }
+}
+
+mutation InterpretGenomics {
+  interpretGenomics {
+    summary
+    mutations
+    biomarkerProfile
+    questionsForOncologist {
+      question
+      whyItMatters
+    }
+    generatedAt
+  }
+}
+
+mutation ConfirmGenomics($genomicResultId: String!, $edits: JSON) {
+  confirmGenomics(genomicResultId: $genomicResultId, edits: $edits) {
+    id
+    patientId
+    provider
+    testName
+    alterations {
+      gene
+      alteration
+      alterationType
+      clinicalSignificance
+    }
+  }
+}
+
+mutation Rematch {
+  rematch {
+    newMatches {
+      trialId
+      nctId
+      title
+      newScore
+      genomicBasis
+    }
+    improvedMatches {
+      trialId
+      nctId
+      title
+      oldScore
+      newScore
+      genomicBasis
+    }
+    removedMatches {
+      trialId
+      nctId
+      title
+      oldScore
+      reason
+    }
+    totalBefore
+    totalAfter
+  }
+}

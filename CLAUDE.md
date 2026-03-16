@@ -18,10 +18,10 @@ oncovax/
 ├── docker-compose.yml          # Local dev: postgres:15-alpine + redis:7-alpine
 ├── packages/
 │   ├── ui/                     # Thin RN + Solito re-exports (@oncovax/ui)
-│   ├── app/                    # Shared screens, 22 Dripsy components, theme (@oncovax/app)
-│   │   └── src/{components,providers,theme,index}.ts
-│   ├── api/                    # Apollo Server schema + resolvers (@oncovax/api)
-│   │   └── src/{schema,resolvers,context,index}.ts
+│   ├── app/                    # Shared screens, 22 Dripsy components, theme, 70 generated hooks (@oncovax/app)
+│   │   └── src/{components,providers,theme,graphql,generated,index}.ts
+│   ├── api/                    # Apollo Server schema (45+ types, 27Q, 25M) + 18 resolver files (@oncovax/api)
+│   │   └── src/{schema,resolvers[18 files],context,index}.ts
 │   ├── db/                     # Prisma 7 + PostgreSQL (23 models)
 │   │   ├── prisma/schema.prisma
 │   │   └── prisma.config.ts    # defineConfig — url goes HERE, not in schema
@@ -113,9 +113,10 @@ export async function POST(req: NextRequest) {
 - *M1:* Manufacturing partner directory (15 CDMOs seeded across 3 tiers), regulatory pathway advisor (decision tree + 8 Claude-powered document templates), 3 Prisma models (ManufacturingPartner, RegulatoryPathwayAssessment, RegulatoryDocument), 10 API routes (4 manufacturing + 6 regulatory), 3 components, 8 pages under `/manufacture/`.
 - *M2:* Order workflow (9-stage lifecycle: inquiry → quote → production → QC → shipping → administration), provider network (12 administration sites seeded, proximity search with Haversine distance), post-administration monitoring (8-timepoint schedule, AE escalation checking), provider portal. 3 Prisma models (ManufacturingOrder, AdministrationSite, PostAdministrationReport), 11 API routes, 7 components, 12 pages, 3 lib files. Dashboard + nav integration.
 
-**Cross-Platform Foundation (D0-D1):**
+**Cross-Platform Foundation (D0-D2):**
 - *D0:* `packages/ui/` (RN + Solito re-exports), `packages/app/` (Dripsy theme, providers, Apollo cache config), `packages/api/` (Apollo Server schema + resolvers wrapping lib/). Web + mobile configured with Apollo Client, DripsyProvider, react-native-web.
 - *D1:* 22 of 24 components migrated from Tailwind to Dripsy in `packages/app/src/components/`. Custom cross-platform Picker. `ADVERSE_EVENT_OPTIONS` moved to shared constants. Web-only: DocumentUploader, AdministrationSiteMap. Both old (web) and new (shared) components coexist until D3-D6 screen migration.
+- *D2:* Complete GraphQL layer — schema expanded to 45+ types, 27 queries, 25 mutations. 7 new resolver files (18 total). 25 adapter functions in route handler. 13 `.graphql` operation documents (70 operations). Codegen produces 5082-line generated file with 70 typed React hooks. Bug fixes: removed broken Report type, requestMagicLink mutation; fixed documentUpload model name.
 
 ## What's NOT Built Yet
 
@@ -172,6 +173,6 @@ export async function POST(req: NextRequest) {
 
 - **No tests** — zero test files in web/mobile (only Rust unit tests)
 - **No error monitoring** — no Sentry, no error boundaries
-- **No state management lib** — web uses local useState + useEffect + fetch (Apollo Client available but screens not yet migrated)
+- **No state management lib** — web uses local useState + useEffect + fetch (Apollo Client + 70 typed hooks ready, screen migration pending D3-D6)
 - **Mobile is skeleton** — providers configured but screens are placeholders (shared components ready, screen migration pending D3-D6)
 - **No notification system** — only magic link email via Resend

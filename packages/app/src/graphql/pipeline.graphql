@@ -1,0 +1,135 @@
+query GetPipelineJobs {
+  pipelineJobs {
+    id
+    patientId
+    status
+    currentStep
+    stepsCompleted
+    inputFormat
+    referenceGenome
+    startedAt
+    completedAt
+    estimatedCompletion
+    variantCount
+    tmb
+    neoantigenCount
+    createdAt
+  }
+}
+
+query GetPipelineJob($id: String!) {
+  pipelineJob(id: $id) {
+    id
+    patientId
+    status
+    currentStep
+    stepsCompleted
+    inputFormat
+    referenceGenome
+    startedAt
+    completedAt
+    estimatedCompletion
+    variantCount
+    tmb
+    hlaGenotype
+    neoantigenCount
+    topNeoantigens
+    vaccineBlueprint
+    createdAt
+  }
+}
+
+query GetNeoantigens(
+  $pipelineJobId: String!
+  $sort: String
+  $order: String
+  $confidence: String
+  $gene: String
+  $page: Int
+  $limit: Int
+) {
+  neoantigens(
+    pipelineJobId: $pipelineJobId
+    sort: $sort
+    order: $order
+    confidence: $confidence
+    gene: $gene
+    page: $page
+    limit: $limit
+  ) {
+    neoantigens {
+      id
+      jobId
+      gene
+      mutation
+      mutantPeptide
+      wildtypePeptide
+      hlaAllele
+      bindingAffinityNm
+      immunogenicityScore
+      compositeScore
+      rank
+      vaf
+      clonality
+      confidence
+    }
+    total
+    page
+    totalPages
+  }
+}
+
+query GetPipelineResults($pipelineJobId: String!) {
+  pipelineResults(pipelineJobId: $pipelineJobId) {
+    jobId
+    patientSummary
+    fullReportPdf
+    vaccineBlueprint
+  }
+}
+
+query GetReportPdf($pipelineJobId: String!, $reportType: String!) {
+  reportPdf(pipelineJobId: $pipelineJobId, reportType: $reportType) {
+    url
+    cached
+  }
+}
+
+query GetNeoantigenTrials($pipelineJobId: String!) {
+  neoantigenTrials(pipelineJobId: $pipelineJobId) {
+    trialId
+    nctId
+    title
+    phase
+    relevanceScore
+    relevanceExplanation
+    matchedNeoantigens
+  }
+}
+
+mutation SubmitPipelineJob(
+  $tumorDataPath: String!
+  $normalDataPath: String!
+  $rnaDataPath: String
+  $inputFormat: String!
+  $referenceGenome: String!
+) {
+  submitPipelineJob(
+    tumorDataPath: $tumorDataPath
+    normalDataPath: $normalDataPath
+    rnaDataPath: $rnaDataPath
+    inputFormat: $inputFormat
+    referenceGenome: $referenceGenome
+  ) {
+    id
+    status
+    createdAt
+  }
+}
+
+mutation GenerateReportPdf($pipelineJobId: String!, $reportType: String!) {
+  generateReportPdf(pipelineJobId: $pipelineJobId, reportType: $reportType) {
+    url
+    cached
+  }
+}

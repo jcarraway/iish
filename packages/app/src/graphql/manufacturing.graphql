@@ -1,0 +1,198 @@
+query GetManufacturingPartners($type: String, $capability: String) {
+  manufacturingPartners(type: $type, capability: $capability) {
+    id
+    name
+    slug
+    type
+    capabilities
+    certifications
+    capacityTier
+    costRangeMin
+    costRangeMax
+    turnaroundWeeksMin
+    turnaroundWeeksMax
+    country
+    regulatorySupport
+    description
+    contactUrl
+    status
+  }
+}
+
+query GetManufacturingPartner($id: String!) {
+  manufacturingPartner(id: $id) {
+    id
+    name
+    slug
+    type
+    capabilities
+    certifications
+    capacityTier
+    costRangeMin
+    costRangeMax
+    turnaroundWeeksMin
+    turnaroundWeeksMax
+    country
+    regulatorySupport
+    description
+    contactUrl
+    status
+  }
+}
+
+query GetManufacturingOrders {
+  manufacturingOrders {
+    id
+    patientId
+    partnerId
+    pipelineJobId
+    status
+    quotePrice
+    quoteCurrency
+    quoteTurnaroundWeeks
+    totalCost
+    batchNumber
+    trackingNumber
+    partnerName
+    createdAt
+    updatedAt
+  }
+}
+
+query GetManufacturingOrder($id: String!) {
+  manufacturingOrder(id: $id) {
+    id
+    patientId
+    partnerId
+    pipelineJobId
+    status
+    quotePrice
+    quoteCurrency
+    quoteTurnaroundWeeks
+    totalCost
+    batchNumber
+    trackingNumber
+    partnerName
+    createdAt
+    updatedAt
+  }
+}
+
+query GetRecommendedPartners($pipelineJobId: String!) {
+  recommendedPartners(pipelineJobId: $pipelineJobId) {
+    partnerId
+    name
+    slug
+    type
+    score
+    reasons
+    costRangeMin
+    costRangeMax
+    turnaroundWeeksMin
+    turnaroundWeeksMax
+    capabilities
+    certifications
+  }
+}
+
+query GetRegulatoryAssessments {
+  regulatoryAssessments {
+    id
+    patientId
+    recommended
+    rationale
+    alternatives
+    requiredDocuments
+    estimatedCostMin
+    estimatedCostMax
+    estimatedTimelineWeeks
+    createdAt
+  }
+}
+
+query GetRegulatoryAssessment($id: String!) {
+  regulatoryAssessment(id: $id) {
+    id
+    patientId
+    recommended
+    rationale
+    alternatives
+    requiredDocuments
+    estimatedCostMin
+    estimatedCostMax
+    estimatedTimelineWeeks
+    createdAt
+  }
+}
+
+query GetRegulatoryDocuments($assessmentId: String!) {
+  regulatoryDocuments(assessmentId: $assessmentId) {
+    id
+    assessmentId
+    documentType
+    content
+    status
+    createdAt
+  }
+}
+
+mutation CreateManufacturingOrder($partnerId: String!, $pipelineJobId: String!) {
+  createManufacturingOrder(partnerId: $partnerId, pipelineJobId: $pipelineJobId) {
+    id
+    status
+    createdAt
+  }
+}
+
+mutation UpdateManufacturingOrderStatus($orderId: String!, $status: String!, $notes: String) {
+  updateManufacturingOrderStatus(orderId: $orderId, status: $status, notes: $notes) {
+    id
+    status
+    updatedAt
+  }
+}
+
+mutation AcceptQuote($orderId: String!) {
+  acceptQuote(orderId: $orderId) {
+    id
+    status
+    updatedAt
+  }
+}
+
+mutation ConnectSite($orderId: String!, $siteId: String!) {
+  connectSite(orderId: $orderId, siteId: $siteId) {
+    id
+    status
+    updatedAt
+  }
+}
+
+mutation AddOrderNote($orderId: String!, $note: String!) {
+  addOrderNote(orderId: $orderId, note: $note) {
+    id
+    updatedAt
+  }
+}
+
+mutation AssessRegulatoryPathway($input: PathwayAssessmentInput!) {
+  assessRegulatoryPathway(input: $input) {
+    id
+    recommended
+    rationale
+    alternatives
+    requiredDocuments
+    estimatedCostMin
+    estimatedCostMax
+    estimatedTimelineWeeks
+  }
+}
+
+mutation GenerateRegulatoryDocument($assessmentId: String!, $documentType: String!) {
+  generateRegulatoryDocument(assessmentId: $assessmentId, documentType: $documentType) {
+    id
+    documentType
+    content
+    status
+  }
+}

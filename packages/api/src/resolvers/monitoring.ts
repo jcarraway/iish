@@ -20,6 +20,14 @@ export const monitoringResolvers = {
         orderBy: { createdAt: 'desc' },
       });
     },
+    monitoringSchedule: async (
+      _: unknown,
+      { orderId }: { orderId: string },
+      ctx: ResolverContext,
+    ) => {
+      if (!ctx.session) throw new Error('UNAUTHORIZED');
+      return ctx.lib.getMonitoringSchedule(orderId);
+    },
   },
   Mutation: {
     submitMonitoringReport: async (

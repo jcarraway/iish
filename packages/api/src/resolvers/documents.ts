@@ -8,7 +8,7 @@ export const documentResolvers = {
         where: { userId: ctx.session.userId },
       });
       if (!patient) return [];
-      return ctx.prisma.document.findMany({
+      return ctx.prisma.documentUpload.findMany({
         where: { patientId: patient.id },
         orderBy: { createdAt: 'desc' },
       });
@@ -30,7 +30,7 @@ export const documentResolvers = {
     ) => {
       if (!ctx.session) throw new Error('UNAUTHORIZED');
       await ctx.lib.extractDocument(documentId);
-      return ctx.prisma.document.findUnique({ where: { id: documentId } });
+      return ctx.prisma.documentUpload.findUnique({ where: { id: documentId } });
     },
   },
 };

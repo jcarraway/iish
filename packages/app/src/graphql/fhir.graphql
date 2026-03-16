@@ -1,0 +1,31 @@
+query GetHealthSystems($search: String) {
+  healthSystems(search: $search) {
+    id
+    name
+    fhirBaseUrl
+    brand
+    city
+    state
+    ehrVendor
+  }
+}
+
+query GetFhirConnections {
+  fhirConnections {
+    id
+    healthSystemName
+    syncStatus
+    lastSyncedAt
+    scopesGranted
+  }
+}
+
+mutation AuthorizeFhir($healthSystemId: String!) {
+  authorizeFhir(healthSystemId: $healthSystemId) {
+    authorizeUrl
+  }
+}
+
+mutation ExtractFhir($connectionId: String!) {
+  extractFhir(connectionId: $connectionId)
+}

@@ -1,0 +1,63 @@
+query GetFinancialPrograms {
+  financialPrograms {
+    id
+    name
+    organization
+    type
+    description
+    website
+    applicationUrl
+    maxBenefitAmount
+    benefitDescription
+    assistanceCategories
+  }
+}
+
+query GetFinancialMatches {
+  financialMatches {
+    programId
+    programName
+    organization
+    type
+    matchStatus
+    estimatedBenefit
+    matchReasoning
+    missingInfo
+    maxBenefitAmount
+    applicationUrl
+    website
+    assistanceCategories
+  }
+}
+
+query GetFinancialProgram($programId: String!) {
+  financialProgram(programId: $programId) {
+    id
+    name
+    organization
+    type
+    description
+    website
+    applicationUrl
+    maxBenefitAmount
+    benefitDescription
+    assistanceCategories
+  }
+}
+
+mutation MatchFinancialPrograms($input: FinancialProfileInput!) {
+  matchFinancialPrograms(input: $input) {
+    programId
+    programName
+    organization
+    type
+    matchStatus
+    estimatedBenefit
+    matchReasoning
+    missingInfo
+    maxBenefitAmount
+    applicationUrl
+    website
+    assistanceCategories
+  }
+}

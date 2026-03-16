@@ -15,3 +15,6 @@ export * from './context';
 
 // Apollo cache utilities
 export { createCache, typePolicies } from './lib/apollo';
+
+// Generated GraphQL types and hooks
+export * from './generated/graphql';

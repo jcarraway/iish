@@ -1,0 +1,69 @@
+query GetAdministrationSites($lat: Float, $lng: Float, $radiusMiles: Float) {
+  administrationSites(lat: $lat, lng: $lng, radiusMiles: $radiusMiles) {
+    id
+    name
+    type
+    city
+    state
+    distance
+    canAdministerMrna
+    hasInfusionCenter
+    hasEmergencyResponse
+    hasMonitoringCapacity
+    investigationalExp
+    irbAffiliation
+    verified
+    contactPhone
+    website
+  }
+}
+
+query GetMonitoringReports($orderId: String!) {
+  monitoringReports(orderId: $orderId) {
+    id
+    orderId
+    reportType
+    daysPostAdministration
+    hasAdverseEvents
+    adverseEvents {
+      event
+      severity
+      onset
+      duration
+      resolved
+      treatment
+    }
+    temperature
+    bloodPressure
+    heartRate
+    qualityOfLifeScore
+    tumorResponse
+    narrative
+    status
+    createdAt
+  }
+}
+
+query GetMonitoringSchedule($orderId: String!) {
+  monitoringSchedule(orderId: $orderId) {
+    reportType
+    daysAfter
+    required
+    description
+    dueDate
+    status
+    submittedAt
+  }
+}
+
+mutation SubmitMonitoringReport($input: MonitoringReportInput!) {
+  submitMonitoringReport(input: $input) {
+    id
+    orderId
+    reportType
+    daysPostAdministration
+    hasAdverseEvents
+    status
+    createdAt
+  }
+}

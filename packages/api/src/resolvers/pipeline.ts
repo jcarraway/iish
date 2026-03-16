@@ -17,13 +17,6 @@ export const pipelineResolvers = {
       if (!ctx.session) throw new Error('UNAUTHORIZED');
       return ctx.prisma.pipelineJob.findUnique({ where: { id } });
     },
-    reports: async (_: unknown, { pipelineJobId }: { pipelineJobId: string }, ctx: ResolverContext) => {
-      if (!ctx.session) throw new Error('UNAUTHORIZED');
-      return ctx.prisma.report.findMany({
-        where: { pipelineJobId },
-        orderBy: { createdAt: 'desc' },
-      });
-    },
   },
   Mutation: {
     submitPipelineJob: async (
@@ -43,14 +36,6 @@ export const pipelineResolvers = {
       });
       if (!patient) throw new Error('Patient not found');
       return ctx.lib.submitPipelineJob({ patientId: patient.id, ...args });
-    },
-    generateReport: async (
-      _: unknown,
-      { pipelineJobId, reportType }: { pipelineJobId: string; reportType: string },
-      ctx: ResolverContext,
-    ) => {
-      if (!ctx.session) throw new Error('UNAUTHORIZED');
-      return ctx.lib.generateReport(pipelineJobId, reportType);
     },
   },
 };

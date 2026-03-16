@@ -1,0 +1,102 @@
+query GetPatient {
+  patient {
+    id
+    email
+    name
+    profile {
+      cancerType
+      cancerTypeNormalized
+      stage
+      histologicalGrade
+      receptorStatus {
+        er { status percentage method }
+        pr { status percentage method }
+        her2 { status percentage method }
+      }
+      biomarkers
+      priorTreatments {
+        name
+        type
+        startDate
+        endDate
+        response
+      }
+      ecogStatus
+      age
+      zipCode
+      genomicData {
+        testProvider
+        testName
+        testDate
+        alterations {
+          gene
+          alteration
+          alterationType
+          variantAlleleFrequency
+          clinicalSignificance
+          therapyImplications {
+            approvedTherapies
+            clinicalTrials
+            resistanceMutations
+          }
+          confidence
+        }
+        biomarkers {
+          tmb { value unit status }
+          msi { status score }
+          pdl1 { tps cps }
+          loh { status }
+          hrd { score status }
+        }
+        germlineFindings {
+          gene
+          variant
+          significance
+        }
+      }
+    }
+    intakeMethod
+    createdAt
+    updatedAt
+  }
+}
+
+query GetPatientProfile {
+  patientProfile {
+    cancerType
+    cancerTypeNormalized
+    stage
+    histologicalGrade
+    ecogStatus
+    age
+    zipCode
+  }
+}
+
+mutation UpdateProfile($input: PatientProfileInput!) {
+  updatePatientProfile(input: $input) {
+    id
+    profile {
+      cancerType
+      stage
+      histologicalGrade
+      ecogStatus
+      age
+      zipCode
+    }
+  }
+}
+
+mutation CreatePatientManual($input: ManualIntakeInput!) {
+  createPatientManual(input: $input) {
+    id
+    name
+    profile {
+      cancerType
+      stage
+      age
+      zipCode
+    }
+    intakeMethod
+  }
+}

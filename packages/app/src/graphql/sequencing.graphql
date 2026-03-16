@@ -1,0 +1,159 @@
+query GetProviders {
+  sequencingProviders {
+    id
+    name
+    slug
+    website
+    testNames
+    geneCount
+    sampleTypes
+    turnaroundDaysMin
+    turnaroundDaysMax
+    costRangeMin
+    costRangeMax
+    fdaApproved
+    orderingProcess
+    reportFormat
+  }
+}
+
+query GetSequencingOrders {
+  sequencingOrders {
+    id
+    patientId
+    providerId
+    testType
+    status
+    provider {
+      id
+      name
+      slug
+    }
+    createdAt
+  }
+}
+
+query GetSequencingRecommendation {
+  sequencingRecommendation {
+    level
+    headline
+    personalizedReasoning
+    whatItCouldReveal
+    howItHelpsRightNow
+    howItHelpsLater
+    guidelineRecommendation
+    generatedAt
+  }
+}
+
+query GetSequencingExplanation {
+  sequencingExplanation {
+    whatIsIt
+    howItWorks
+    whatItFinds
+    personalRelevance
+    commonConcerns {
+      concern
+      answer
+    }
+    generatedAt
+  }
+}
+
+query GetTestRecommendation($tissueAvailable: Boolean, $preferComprehensive: Boolean) {
+  testRecommendation(tissueAvailable: $tissueAvailable, preferComprehensive: $preferComprehensive) {
+    primary {
+      providerId
+      providerName
+      testName
+      testType
+      geneCount
+      whyThisTest
+      sampleType
+      turnaroundDays
+      fdaApproved
+    }
+    alternatives {
+      providerId
+      providerName
+      testName
+      geneCount
+      tradeoff
+    }
+    reasoning
+    generatedAt
+  }
+}
+
+query GetConversationGuide {
+  conversationGuide {
+    talkingPoints {
+      point
+      detail
+    }
+    questionsToAsk {
+      question
+      whyItMatters
+    }
+    emailTemplate
+    orderingInstructions
+    generatedAt
+  }
+}
+
+query GetWaitingContent {
+  waitingContent {
+    cancerType
+    commonMutations {
+      name
+      frequency
+      significance
+      drugs
+    }
+    whatMutationsMean
+    clinicalTrialContext
+    timelineExpectations
+    generatedAt
+  }
+}
+
+query GetSequencingBrief($testType: String!, $providerIds: [String!]!, $insurer: String) {
+  sequencingBrief(testType: $testType, providerIds: $providerIds, insurer: $insurer)
+}
+
+mutation CheckCoverage($insurer: String!, $testType: String!) {
+  checkInsuranceCoverage(insurer: $insurer, testType: $testType) {
+    status
+    insurer
+    testType
+    reasoning
+    conditions
+    cptCodes
+    priorAuthRequired
+    estimatedOutOfPocket
+    missingInfo
+  }
+}
+
+mutation GenerateLOMN($testType: String!, $insurer: String) {
+  generateLOMN(testType: $testType, insurer: $insurer) {
+    content
+    testType
+    cptCodes
+    icdCodes
+    generatedAt
+  }
+}
+
+mutation GenerateSequencingRecommendation {
+  generateSequencingRecommendation {
+    level
+    headline
+    personalizedReasoning
+    whatItCouldReveal
+    howItHelpsRightNow
+    howItHelpsLater
+    guidelineRecommendation
+    generatedAt
+  }
+}

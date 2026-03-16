@@ -1,0 +1,12 @@
+query Me {
+  me {
+    userId
+    email
+    createdAt
+    expiresAt
+  }
+}
+
+mutation Logout {
+  logout
+}

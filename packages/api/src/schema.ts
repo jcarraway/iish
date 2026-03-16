@@ -176,6 +176,16 @@ export const typeDefs = `#graphql
   }
 
   # ============================================================================
+  # Oncologist Brief
+  # ============================================================================
+
+  type OncologistBrief {
+    content: String!
+    matchId: String!
+    generatedAt: String!
+  }
+
+  # ============================================================================
   # Treatment Translation
   # ============================================================================
 
@@ -318,6 +328,99 @@ export const typeDefs = `#graphql
   }
 
   # ============================================================================
+  # Sequencing Guide
+  # ============================================================================
+
+  type SequencingRecommendation {
+    level: String!
+    headline: String!
+    personalizedReasoning: String!
+    whatItCouldReveal: [String!]!
+    howItHelpsRightNow: String!
+    howItHelpsLater: String!
+    guidelineRecommendation: String!
+    generatedAt: String!
+  }
+
+  type SequencingExplanation {
+    whatIsIt: String!
+    howItWorks: String!
+    whatItFinds: String!
+    personalRelevance: String!
+    commonConcerns: [CommonConcern!]!
+    generatedAt: String!
+  }
+
+  type CommonConcern {
+    concern: String!
+    answer: String!
+  }
+
+  type TestRecommendation {
+    primary: TestRecommendationPrimary!
+    alternatives: [TestRecommendationAlternative!]!
+    reasoning: String!
+    generatedAt: String!
+  }
+
+  type TestRecommendationPrimary {
+    providerId: String!
+    providerName: String!
+    testName: String!
+    testType: String!
+    geneCount: Int!
+    whyThisTest: String!
+    sampleType: String!
+    turnaroundDays: Int!
+    fdaApproved: Boolean!
+  }
+
+  type TestRecommendationAlternative {
+    providerId: String!
+    providerName: String!
+    testName: String!
+    geneCount: Int!
+    tradeoff: String!
+  }
+
+  type ConversationGuide {
+    talkingPoints: [TalkingPoint!]!
+    questionsToAsk: [DoctorQuestion!]!
+    emailTemplate: String!
+    orderingInstructions: String!
+    generatedAt: String!
+  }
+
+  type TalkingPoint {
+    point: String!
+    detail: String!
+  }
+
+  type WaitingContent {
+    cancerType: String!
+    commonMutations: [CommonMutation!]!
+    whatMutationsMean: String!
+    clinicalTrialContext: String!
+    timelineExpectations: String!
+    generatedAt: String!
+  }
+
+  type CommonMutation {
+    name: String!
+    frequency: String!
+    significance: String!
+    drugs: [String!]!
+  }
+
+  type LOMN {
+    content: String!
+    testType: String!
+    cptCodes: [String!]!
+    icdCodes: [String!]!
+    generatedAt: String!
+  }
+
+  # ============================================================================
   # Genomics
   # ============================================================================
 
@@ -339,6 +442,24 @@ export const typeDefs = `#graphql
     biomarkerProfile: JSON!
     questionsForOncologist: [DoctorQuestion!]!
     generatedAt: String!
+  }
+
+  type MatchDelta {
+    newMatches: [MatchDeltaEntry!]!
+    improvedMatches: [MatchDeltaEntry!]!
+    removedMatches: [MatchDeltaEntry!]!
+    totalBefore: Int!
+    totalAfter: Int!
+  }
+
+  type MatchDeltaEntry {
+    trialId: String!
+    nctId: String!
+    title: String!
+    oldScore: Float
+    newScore: Float
+    genomicBasis: String
+    reason: String
   }
 
   # ============================================================================
@@ -365,13 +486,50 @@ export const typeDefs = `#graphql
     createdAt: DateTime!
   }
 
-  type Report {
+  type NeoantigenCandidate {
     id: String!
-    pipelineJobId: String!
-    reportType: String!
-    s3Key: String
-    status: String!
-    createdAt: DateTime!
+    jobId: String!
+    gene: String!
+    mutation: String!
+    mutantPeptide: String!
+    wildtypePeptide: String
+    hlaAllele: String!
+    bindingAffinityNm: Float!
+    immunogenicityScore: Float!
+    compositeScore: Float!
+    rank: Int!
+    vaf: Float
+    clonality: String
+    confidence: String!
+  }
+
+  type NeoantigenPage {
+    neoantigens: [NeoantigenCandidate!]!
+    total: Int!
+    page: Int!
+    totalPages: Int!
+  }
+
+  type PipelineResultDownloads {
+    jobId: String!
+    patientSummary: String
+    fullReportPdf: String
+    vaccineBlueprint: String
+  }
+
+  type ReportPdfResult {
+    url: String!
+    cached: Boolean!
+  }
+
+  type NeoantigenTrialMatch {
+    trialId: String!
+    nctId: String!
+    title: String!
+    phase: String
+    relevanceScore: Float!
+    relevanceExplanation: String!
+    matchedNeoantigens: [String!]!
   }
 
   # ============================================================================
@@ -436,6 +594,21 @@ export const typeDefs = `#graphql
     createdAt: DateTime!
   }
 
+  type PartnerRecommendation {
+    partnerId: String!
+    name: String!
+    slug: String!
+    type: String!
+    score: Int!
+    reasons: [String!]!
+    costRangeMin: Float
+    costRangeMax: Float
+    turnaroundWeeksMin: Int
+    turnaroundWeeksMax: Int
+    capabilities: [String!]!
+    certifications: [String!]!
+  }
+
   # ============================================================================
   # Monitoring
   # ============================================================================
@@ -484,6 +657,53 @@ export const typeDefs = `#graphql
     createdAt: DateTime!
   }
 
+  type MonitoringScheduleEntry {
+    reportType: String!
+    daysAfter: Int!
+    required: Boolean!
+    description: String!
+    dueDate: String
+    status: String!
+    submittedAt: String
+  }
+
+  # ============================================================================
+  # FHIR
+  # ============================================================================
+
+  type HealthSystem {
+    id: String!
+    name: String!
+    fhirBaseUrl: String!
+    brand: String
+    city: String
+    state: String
+    ehrVendor: String!
+  }
+
+  type FhirConnection {
+    id: String!
+    healthSystemName: String
+    syncStatus: String
+    lastSyncedAt: DateTime
+    scopesGranted: [String!]
+  }
+
+  type FhirAuthorizeResult {
+    authorizeUrl: String!
+  }
+
+  # ============================================================================
+  # Uploads
+  # ============================================================================
+
+  type UploadUrlResult {
+    uploadUrl: String!
+    s3Key: String!
+    bucket: String
+    expiresAt: String
+  }
+
   # ============================================================================
   # Queries
   # ============================================================================
@@ -502,24 +722,40 @@ export const typeDefs = `#graphql
     matches: [Match!]!
     match(id: String!): Match
 
+    # Oncologist Brief
+    oncologistBrief(matchId: String!): OncologistBrief!
+
     # Documents
     documents: [Document!]!
 
     # Financial
     financialPrograms: [FinancialProgram!]!
     financialMatches: [FinancialMatch!]!
+    financialProgram(programId: String!): FinancialProgram
 
     # Sequencing
     sequencingProviders: [SequencingProvider!]!
     sequencingOrders: [SequencingOrder!]!
 
+    # Sequencing Guide
+    sequencingRecommendation: SequencingRecommendation!
+    sequencingExplanation: SequencingExplanation!
+    testRecommendation(tissueAvailable: Boolean, preferComprehensive: Boolean): TestRecommendation!
+    conversationGuide: ConversationGuide!
+    waitingContent: WaitingContent!
+    sequencingBrief(testType: String!, providerIds: [String!]!, insurer: String): String!
+
     # Genomics
     genomicResults: [GenomicResult!]!
+    matchDelta: MatchDelta
 
     # Pipeline
     pipelineJobs: [PipelineJob!]!
     pipelineJob(id: String!): PipelineJob
-    reports(pipelineJobId: String!): [Report!]!
+    neoantigens(pipelineJobId: String!, sort: String, order: String, confidence: String, gene: String, page: Int, limit: Int): NeoantigenPage!
+    pipelineResults(pipelineJobId: String!): PipelineResultDownloads!
+    reportPdf(pipelineJobId: String!, reportType: String!): ReportPdfResult!
+    neoantigenTrials(pipelineJobId: String!): [NeoantigenTrialMatch!]!
 
     # Manufacturing
     manufacturingPartners(type: String, capability: String): [ManufacturingPartner!]!
@@ -529,10 +765,16 @@ export const typeDefs = `#graphql
     regulatoryAssessments: [RegulatoryPathwayAssessment!]!
     regulatoryAssessment(id: String!): RegulatoryPathwayAssessment
     regulatoryDocuments(assessmentId: String!): [RegulatoryDocument!]!
+    recommendedPartners(pipelineJobId: String!): [PartnerRecommendation!]!
 
     # Monitoring
     administrationSites(lat: Float, lng: Float, radiusMiles: Float): [AdministrationSite!]!
     monitoringReports(orderId: String!): [MonitoringReport!]!
+    monitoringSchedule(orderId: String!): [MonitoringScheduleEntry!]!
+
+    # FHIR
+    healthSystems(search: String): [HealthSystem!]!
+    fhirConnections: [FhirConnection!]!
   }
 
   # ============================================================================
@@ -602,7 +844,6 @@ export const typeDefs = `#graphql
 
   type Mutation {
     # Auth
-    requestMagicLink(email: String!): Boolean!
     logout: Boolean!
 
     # Patient
@@ -625,10 +866,14 @@ export const typeDefs = `#graphql
 
     # Sequencing
     checkInsuranceCoverage(insurer: String!, testType: String!): InsuranceCoverage!
+    generateLOMN(testType: String!, insurer: String): LOMN!
+    generateSequencingRecommendation: SequencingRecommendation!
 
     # Genomics
     extractGenomicReport(documentId: String!): GenomicResult!
     interpretGenomics: GenomicInterpretation!
+    confirmGenomics(genomicResultId: String!, edits: JSON): GenomicResult!
+    rematch: MatchDelta!
 
     # Pipeline
     submitPipelineJob(
@@ -638,15 +883,25 @@ export const typeDefs = `#graphql
       inputFormat: String!
       referenceGenome: String!
     ): PipelineJob!
-    generateReport(pipelineJobId: String!, reportType: String!): Report!
+    generateReportPdf(pipelineJobId: String!, reportType: String!): ReportPdfResult!
 
     # Manufacturing
     createManufacturingOrder(partnerId: String!, pipelineJobId: String!): ManufacturingOrder!
     updateManufacturingOrderStatus(orderId: String!, status: String!, notes: String): ManufacturingOrder!
     assessRegulatoryPathway(input: PathwayAssessmentInput!): RegulatoryPathwayAssessment!
     generateRegulatoryDocument(assessmentId: String!, documentType: String!): RegulatoryDocument!
+    acceptQuote(orderId: String!): ManufacturingOrder!
+    connectSite(orderId: String!, siteId: String!): ManufacturingOrder!
+    addOrderNote(orderId: String!, note: String!): ManufacturingOrder!
+
+    # FHIR
+    authorizeFhir(healthSystemId: String!): FhirAuthorizeResult!
+    extractFhir(connectionId: String!): JSON!
 
     # Monitoring
     submitMonitoringReport(input: MonitoringReportInput!): MonitoringReport!
+
+    # Uploads
+    requestGeneralUploadUrl(filename: String!, contentType: String!, bucket: String): UploadUrlResult!
   }
 `;

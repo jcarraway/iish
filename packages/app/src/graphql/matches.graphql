@@ -1,0 +1,121 @@
+query GetMatches {
+  matches {
+    id
+    patientId
+    trialId
+    matchScore
+    matchBreakdown {
+      category
+      score
+      weight
+      status
+      reason
+    }
+    potentialBlockers
+    llmAssessment {
+      overallAssessment
+      reasoning
+      potentialBlockers
+      missingInfo
+      actionItems
+    }
+    status
+    trial {
+      id
+      nctId
+      title
+      phase
+      status
+      sponsor
+      briefSummary
+    }
+    createdAt
+  }
+}
+
+query GetMatch($id: String!) {
+  match(id: $id) {
+    id
+    patientId
+    trialId
+    matchScore
+    matchBreakdown {
+      category
+      score
+      weight
+      status
+      reason
+    }
+    potentialBlockers
+    llmAssessment {
+      overallAssessment
+      reasoning
+      potentialBlockers
+      missingInfo
+      actionItems
+    }
+    status
+    trial {
+      id
+      nctId
+      title
+      phase
+      status
+      conditions
+      interventions
+      sponsor
+      locations
+      eligibilityCriteria
+      parsedEligibility
+      briefSummary
+    }
+    createdAt
+  }
+}
+
+query GetOncologistBrief($matchId: String!) {
+  oncologistBrief(matchId: $matchId) {
+    content
+    matchId
+    generatedAt
+  }
+}
+
+mutation GenerateMatches {
+  generateMatches {
+    id
+    matchScore
+    status
+    trial {
+      id
+      nctId
+      title
+      phase
+    }
+  }
+}
+
+mutation UpdateMatchStatus($matchId: String!, $status: String!) {
+  updateMatchStatus(matchId: $matchId, status: $status) {
+    id
+    status
+  }
+}
+
+mutation TranslateTreatment($matchId: String!) {
+  translateTreatment(matchId: $matchId) {
+    diagnosis
+    treatmentPlan
+    timeline
+    questionsForDoctor {
+      question
+      whyItMatters
+    }
+    additionalConsiderations
+    secondOpinionTriggers {
+      reason
+      level
+    }
+    generatedAt
+  }
+}

@@ -1,0 +1,34 @@
+query GetTrials($cancerType: String, $phase: String, $limit: Int) {
+  trials(cancerType: $cancerType, phase: $phase, limit: $limit) {
+    id
+    nctId
+    title
+    phase
+    status
+    conditions
+    interventions
+    sponsor
+    briefSummary
+    startDate
+    lastUpdated
+  }
+}
+
+query GetTrial($id: String!) {
+  trial(id: $id) {
+    id
+    nctId
+    title
+    phase
+    status
+    conditions
+    interventions
+    sponsor
+    locations
+    eligibilityCriteria
+    parsedEligibility
+    briefSummary
+    startDate
+    lastUpdated
+  }
+}

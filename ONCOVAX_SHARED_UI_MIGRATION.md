@@ -246,55 +246,130 @@ Migrated 22 components from `apps/web/components/` (Tailwind) to `packages/app/s
 
 ---
 
-## Session D2: GraphQL Schema + Resolvers
+## Session D2: Complete GraphQL Schema, Resolvers, Operations + Codegen ✅ COMPLETE
 
-Build out `packages/api/` with full schema covering existing functionality.
+Expanded the partial GraphQL layer from D0 into a complete schema covering all operations that screens will need, created operation documents, and ran codegen to produce typed hooks.
 
-### Schema types (mapped from `packages/shared/src/types.ts`):
-- `Patient`, `PatientProfile`, `SessionData`
-- `Trial`, `Match`, `MatchBreakdown`, `LLMAssessment`
-- `Document`, `DocumentExtraction`
-- `FinancialProgram`, `FinancialEligibility`
-- `SequencingProvider`, `SequencingOrder`, `InsuranceCoverage`
-- `GenomicResult`, `GenomicInterpretation`
-- `PipelineJob`, `NeoantigenCandidate`
-- `ManufacturingPartner`, `ManufacturingOrder`, `RegulatoryDocument`
-- `AdministrationSite`, `MonitoringReport`
+### Bug fixes
+- Removed broken `Report` type (referenced non-existent Prisma model → runtime crash)
+- Removed `requestMagicLink` mutation (threw "Use REST endpoint" — magic link stays REST)
+- Removed `generateReport` mutation (replaced by `generateReportPdf` with proper return type)
+- Fixed `ctx.prisma.document` → `ctx.prisma.documentUpload` in documents resolver
 
-### Resolvers wrap existing lib/ functions:
+### Schema expansion
 
-| Resolver file | Wraps existing lib/ | Key queries/mutations |
-|---|---|---|
-| `auth.ts` | `lib/session.ts`, `lib/redis.ts` | `requestMagicLink`, `verifyToken`, `logout`, `me` |
-| `patients.ts` | `lib/db.ts` (prisma) | `patient`, `updatePatient`, `createPatient` |
-| `matches.ts` | `lib/matcher.ts`, `lib/eligibility-parser.ts` | `matches`, `match`, `generateMatches`, `updateMatchStatus` |
-| `trials.ts` | `lib/clinicaltrials.ts`, `lib/trial-sync.ts` | `trials`, `trial`, `syncTrials` |
-| `documents.ts` | `lib/extraction.ts`, `lib/s3.ts` | `documents`, `requestUploadUrl`, `extractDocument` |
-| `financial.ts` | `lib/financial-matcher.ts` | `financialPrograms`, `matchFinancialPrograms` |
-| `sequencing.ts` | `lib/sequencing-recommendation.ts`, `lib/coverage.ts` | `sequencingProviders`, `sequencingOrders`, `checkCoverage` |
-| `genomics.ts` | `lib/genomic-extraction.ts`, `lib/genomic-interpreter.ts` | `genomicResults`, `extractGenomics`, `interpretGenomics` |
-| `pipeline.ts` | `lib/nats.ts`, `lib/report-generator.ts` | `pipelineJobs`, `pipelineJob`, `submitPipelineJob`, `generateReport` |
-| `manufacturing.ts` | `lib/manufacturing-orders.ts`, `lib/pathway-advisor.ts`, `lib/regulatory-documents.ts` | `partners`, `orders`, `createOrder`, `assessPathway`, `generateDocument` |
-| `monitoring.ts` | `lib/monitoring.ts`, `lib/providers.ts` | `administrationSites`, `monitoringReports`, `submitReport` |
+**Types added (20 new):**
+- `OncologistBrief` — match-specific brief content
+- `SequencingRecommendation`, `SequencingExplanation`, `CommonConcern` — sequencing guide
+- `TestRecommendation`, `TestRecommendationPrimary`, `TestRecommendationAlternative` — test recommendations
+- `ConversationGuide`, `TalkingPoint` — doctor conversation prep
+- `WaitingContent`, `CommonMutation` — waiting-for-results content
+- `LOMN` — letter of medical necessity
+- `NeoantigenCandidate`, `NeoantigenPage` — paginated neoantigen results
+- `PipelineResultDownloads`, `ReportPdfResult`, `NeoantigenTrialMatch` — pipeline outputs
+- `MonitoringScheduleEntry` — monitoring timeline
+- `HealthSystem`, `FhirConnection`, `FhirAuthorizeResult` — FHIR integration
+- `MatchDelta`, `MatchDeltaEntry` — genomics rematch delta
+- `PartnerRecommendation` — manufacturing partner scoring
+- `UploadUrlResult` — general upload URL
 
-### Apollo Client setup
+**Queries: 11 → 27 (+16 new):**
+- `oncologistBrief`, `financialProgram`
+- `sequencingRecommendation`, `sequencingExplanation`, `testRecommendation`, `conversationGuide`, `waitingContent`, `sequencingBrief`
+- `neoantigens`, `pipelineResults`, `reportPdf`, `neoantigenTrials`
+- `monitoringSchedule`
+- `healthSystems`, `fhirConnections`
+- `matchDelta`, `recommendedPartners`
 
-**`packages/app/src/lib/apollo.ts`** — shared cache config, type policies
+**Mutations: 13 → 25 (+12 new):**
+- `generateLOMN`, `generateSequencingRecommendation`
+- `generateReportPdf`
+- `acceptQuote`, `connectSite`, `addOrderNote`
+- `authorizeFhir`, `extractFhir`
+- `confirmGenomics`, `rematch`
+- `requestGeneralUploadUrl`
 
-**`apps/web/lib/apollo.ts`** — web client with `http://localhost:3000/api/graphql` link
+### New resolver files (7 new, 18 total)
 
-**`apps/mobile/lib/apollo.ts`** — mobile client with `BASE_URL/api/graphql` link + auth header from expo-secure-store
+| Resolver file | Key operations |
+|---|---|
+| `sequencing-guide.ts` | 6 queries + 2 mutations for sequencing journey wizard |
+| `pipeline-extended.ts` | neoantigens, pipelineResults, reportPdf, neoantigenTrials, generateReportPdf |
+| `fhir.ts` | healthSystems, fhirConnections, authorizeFhir, extractFhir |
+| `genomics-extended.ts` | matchDelta, confirmGenomics, rematch |
+| `manufacturing-extended.ts` | recommendedPartners, acceptQuote, connectSite, addOrderNote |
+| `financial-extended.ts` | financialProgram (single detail) |
+| `matches-extended.ts` | oncologistBrief |
 
-### Codegen
+Updated `monitoring.ts` with `monitoringSchedule` query. Updated `resolvers/index.ts` to merge all 18 modules.
 
-**`packages/app/codegen.ts`** — generates types + hooks into `packages/app/src/generated/`
+### Route handler adapter functions (25 total, up from 17)
 
-Run: `pnpm --filter @oncovax/app codegen`
+`apps/web/app/api/graphql/route.ts` — 25 adapter functions bridging resolver signatures to lib/ functions:
 
-### D2 Verification
-- GraphQL Playground at `localhost:3000/api/graphql` works
-- Sample queries return real data from database
-- Codegen produces typed hooks
+New imports: oncologist-brief, sequencing-recommendation, test-recommendation, conversation-guide, waiting-content, coverage (LOMN), sequencing-brief, neoantigen-trials, monitoring (schedule), matcher (computeMatchDelta), FHIR smart-auth/client/extract-resources, manufacturing-orders (isValidTransition)
+
+Key adapters: `generateOncologistBriefAdapter` (loads match+trial+patient), `sequencingRecommendationAdapter`, `testRecommendationAdapter`, `conversationGuideAdapter` (chains test rec → conversation guide), `neoantigenAdapter` (Prisma pagination), `recommendPartnersAdapter` (scores partners by capability), `monitoringScheduleAdapter` (loads order+reports), `authorizeFhirAdapter` (SMART on FHIR discovery → authorize URL), `extractFhirAdapter` (decrypt token → FHIR client → extract resources)
+
+### GraphQL operation documents (13 files, 70 operations)
+
+Created `packages/app/src/graphql/`:
+
+| File | Operations | Hook count |
+|------|-----------|------------|
+| `auth.graphql` | Me, Logout | 2 |
+| `patient.graphql` | GetPatient, GetPatientProfile, UpdateProfile, CreatePatientManual | 4 |
+| `matches.graphql` | GetMatches, GetMatch, GetOncologistBrief, GenerateMatches, UpdateMatchStatus, TranslateTreatment | 6 |
+| `trials.graphql` | GetTrials, GetTrial | 2 |
+| `documents.graphql` | GetDocuments, RequestUploadUrl, ExtractDocument | 3 |
+| `financial.graphql` | GetFinancialPrograms, GetFinancialMatches, GetFinancialProgram, MatchFinancialPrograms | 4 |
+| `sequencing.graphql` | GetProviders, GetOrders, GetRecommendation, GetExplanation, GetTestRec, GetConversationGuide, GetWaitingContent, GetBrief, CheckCoverage, GenerateLOMN, GenerateSeqRec | 11 |
+| `genomics.graphql` | GetGenomicResults, GetMatchDelta, ExtractGenomicReport, InterpretGenomics, ConfirmGenomics, Rematch | 6 |
+| `pipeline.graphql` | GetJobs, GetJob, GetNeoantigens, GetResults, GetReportPdf, GetNeoantigenTrials, SubmitJob, GenerateReportPdf | 8 |
+| `manufacturing.graphql` | GetPartners, GetPartner, GetOrders, GetOrder, GetRecommended, GetAssessments, GetAssessment, GetDocuments, CreateOrder, UpdateStatus, AcceptQuote, ConnectSite, AddNote, AssessPathway, GenerateDoc | 15 |
+| `monitoring.graphql` | GetSites, GetReports, GetSchedule, SubmitReport | 4 |
+| `fhir.graphql` | GetHealthSystems, GetConnections, AuthorizeFhir, ExtractFhir | 4 |
+| `uploads.graphql` | RequestGeneralUploadUrl | 1 |
+| **Total** | | **70** |
+
+### Codegen output
+
+`packages/app/src/generated/graphql.ts` — 5,082 lines containing:
+- TypeScript types for all 45+ schema types
+- 70 typed `useXxxQuery()` / `useXxxMutation()` hooks
+- Lazy query + suspense query variants (234 total exported functions)
+- Document nodes for each operation
+
+Re-exported from `packages/app/src/index.ts` so screens can:
+```tsx
+import { useGetMatchesQuery, useTranslateTreatmentMutation } from '@oncovax/app';
+```
+
+### Context interface
+
+`packages/api/src/context.ts` — `GraphQLContext.lib` expanded with 25+ function signatures organized by domain (matches, financial, sequencing, genomics, pipeline, manufacturing, monitoring, FHIR, documents).
+
+### Build verification ✅
+- `@oncovax/api` (tsc) — builds clean
+- `@oncovax/app` (tsc) — builds clean (5,082-line generated file compiles)
+- `@oncovax/web` (Next.js) — builds clean (95 pages)
+- `@oncovax/mobile` — pre-existing `jose`/`node:buffer` failure (unchanged, unrelated to D2)
+
+### D2 Build Notes
+- `SequencingBriefInput` uses `recommendedTests` + `coverageResult` (not `testType`/`providers`)
+- Prisma `Patient` model has no `name` field — join through `user` relation for LOMN adapter
+- react-native-web hydrate/unmountComponentAtNode warnings remain (harmless, React 19 compat)
+
+### Routes that stay REST (NOT in GraphQL)
+| Route | Reason |
+|-------|--------|
+| `/api/auth/magic-link` | Sends email, returns simple boolean |
+| `/api/auth/verify` | Redirect-based magic link callback |
+| `/api/stripe/create-checkout` | Stripe redirect flow |
+| `/api/stripe/webhook` | External webhook callback |
+| `/api/fhir/callback` | OAuth redirect endpoint |
+| `/api/admin/*` | Internal admin tooling |
+| `/api/provider/*` | Provider portal (web-only) |
 
 ---
 
