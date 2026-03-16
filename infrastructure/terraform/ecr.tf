@@ -135,3 +135,37 @@ resource "aws_ecr_lifecycle_policy" "peptide_generator" {
     }]
   })
 }
+
+resource "aws_ecr_repository" "neoantigen_predictor" {
+  name                 = "oncovax/neoantigen-predictor"
+  image_tag_mutability = "MUTABLE"
+  force_delete         = false
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  tags = {
+    Environment = var.environment
+    Service     = "neoantigen-predictor"
+  }
+}
+
+resource "aws_ecr_lifecycle_policy" "neoantigen_predictor" {
+  repository = aws_ecr_repository.neoantigen_predictor.name
+
+  policy = jsonencode({
+    rules = [{
+      rulePriority = 1
+      description  = "Keep last 5 images"
+      selection = {
+        tagStatus   = "any"
+        countType   = "imageCountMoreThan"
+        countNumber = 5
+      }
+      action = {
+        type = "expire"
+      }
+    }]
+  })
+}

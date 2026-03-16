@@ -831,6 +831,7 @@
         "phase3:10": "complete",
         "phase3:11": "complete",
         "phase3:12": "complete",
+        "phase3:13": "complete",
       };
 
       const DEFAULT_NOTES = {
@@ -861,6 +862,8 @@
           "20 new files. Rust Cargo workspace (pipeline-common + alignment + variant-caller). pipeline-common: config, S3 multipart, NATS JetStream, process runner (piped + OOM detection), error classification. Alignment: BWA-MEM2 | samtools sort, markdup, flagstat parsing, quality gates. Variant-caller: Strelka2 + Mutect2 dual-caller, bcftools consensus (HIGH/MEDIUM tags), VEP v112 annotation, TMB calculation. Multi-stage Dockerfiles. ECR repos + Terraform updates. 28 unit tests passing.",
         "phase3:12":
           "~25 new files. HLA Typer (Rust): OptiType + HLA-HD wrappers, consensus genotype, quality gates, 8 tests. Peptide Generator (Python, first Python service): VEP VCF parsing, sliding window 8-11mer MHC-I + 15mer MHC-II peptides, Python pipeline-common package, 28 tests. DAG orchestrator refactoring: fan-out (variant_calling → [hla_typing, peptide_generation]), fan-in with Serializable transaction isolation. ECR repos, Batch job defs, 8-step progress bar.",
+        "phase3:13":
+          "20 new files. Neoantigen Predictor (Python): MHCflurry 2.0 Class I binding predictions (batch mode), Class II placeholder, BLOSUM62 dissimilarity + hydrophobicity immunogenicity scoring, composite scoring (6 weighted factors: binding 0.25, agretopicity 0.20, immunogenicity 0.20, expression 0.15, clonality 0.10, structural 0.10), confidence classification, cancer cell fraction from VAF, optional RNA-seq expression filtering, quality gates. Job manager extended: S3 report download + NeoantigenCandidate bulk insert via createMany. ECR repo, Batch job def (replaced placeholder), IAM permissions. 27 Python tests passing, 0 TypeScript errors.",
       };
 
       let state = { statuses: {}, notes: {}, expanded: {}, filter: "all" };

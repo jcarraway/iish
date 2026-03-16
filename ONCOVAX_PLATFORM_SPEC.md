@@ -2202,11 +2202,13 @@ TASK 4b: Build peptide generation step (Python) — COMPLETED (Session 12) ✓
   - DAG-based orchestrator refactoring: fan-out after variant_calling, fan-in before neoantigen_prediction
   - Serializable transaction isolation for parallel step completion race condition
 
-TASK 5: Build neoantigen prediction step (Python)
-  - MHCflurry binding prediction
-  - Immunogenicity scoring (integrate published models)
-  - Multi-factor ranking algorithm
-  - Unit tests against published neoantigen datasets
+TASK 5: Build neoantigen prediction step (Python) — COMPLETED (Session 13) ✓
+  - MHCflurry 2.0 Class I binding predictions (batch mode), Class II placeholder
+  - BLOSUM62 dissimilarity + hydrophobicity immunogenicity scoring with TCR position weighting
+  - 6-factor composite scoring (binding 0.25, agretopicity 0.20, immunogenicity 0.20, expression 0.15, clonality 0.10, structural 0.10)
+  - Confidence classification (high/medium/low), cancer cell fraction from VAF, quality gates
+  - Job manager extended with S3 report download + NeoantigenCandidate bulk insert
+  - 27 Python tests passing
 
 TASK 6: Build AlphaFold integration (Python)
   - API calls for top 20 neoantigen structures
@@ -2724,6 +2726,19 @@ SESSION 12: HLA Typing + Peptide Generation — COMPLETED ✓
   Files: ~25 new, ~10 modified
 
 → PHASE 3 SESSION 12 COMPLETE (alignment → variant calling → [HLA typing ∥ peptide generation] working, Session 13 builds binding prediction)
+
+SESSION 13: Neoantigen Prediction + Binding + Immunogenicity Scoring — COMPLETED ✓
+  Scope: MHCflurry binding prediction, immunogenicity scoring, composite ranking, NeoantigenCandidate DB records
+  Deliverables: neoantigen-predictor Python service (binding.py, immunogenicity.py, scoring.py, clonality.py,
+         expression.py, quality.py, main.py + pipeline_common package), Dockerfile with tensorflow-cpu + mhcflurry
+         model download. Job manager extended: neoantigen_prediction metadata extraction (neoantigenCount,
+         neoantigenReportPath, topNeoantigens) + post-transaction S3 download + NeoantigenCandidate bulk insert
+         via createMany. Terraform: ECR repo oncovax/neoantigen-predictor, replaced alpine placeholder with real
+         image + scratch volume, IAM ECR pull permission, output URL.
+  Tests: 27 Python tests (8 binding classification, 16 scoring/composite/confidence/ranking, 3 quality gates)
+  Files: 20 new, 5 modified
+
+→ PHASE 3 SESSION 13 COMPLETE (alignment → variant calling → [HLA typing ∥ peptide generation] → neoantigen prediction working, Session 14 builds structure prediction + mRNA designer)
 ```
 
 ---

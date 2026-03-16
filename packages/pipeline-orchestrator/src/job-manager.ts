@@ -1,6 +1,9 @@
 import { PrismaClient } from '@oncovax/db/generated/prisma';
 import { PrismaPg } from '@prisma/adapter-pg';
+import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import { PIPELINE_STEP_ORDER, PIPELINE_STEP_GRAPH, PIPELINE_STEP_PREREQUISITES } from '@oncovax/shared';
+
+const s3 = new S3Client({});
 
 function createPrismaClient() {
   const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
@@ -29,7 +32,7 @@ export async function markStepComplete(
 ): Promise<{ isLastStep: boolean; nextSteps: string[] }> {
   // Use a transaction with serializable isolation to prevent race conditions
   // when two parallel steps (e.g., hla_typing + peptide_generation) complete simultaneously
-  return await prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     const job = await tx.pipelineJob.findUniqueOrThrow({ where: { id: jobId } });
     const stepsCompleted = [...job.stepsCompleted, step];
 
@@ -54,8 +57,10 @@ export async function markStepComplete(
       if (step === 'peptide_generation' && outputs.peptideFilePath) {
         updateData.peptideFilePath = outputs.peptideFilePath;
       }
-      if (step === 'neoantigen_prediction' && outputs.neoantigenCount !== undefined) {
-        updateData.neoantigenCount = outputs.neoantigenCount;
+      if (step === 'neoantigen_prediction') {
+        if (outputs.neoantigenCount !== undefined) updateData.neoantigenCount = outputs.neoantigenCount;
+        if (outputs.neoantigenReportPath) updateData.neoantigenReportPath = outputs.neoantigenReportPath;
+        if (outputs.topNeoantigens) updateData.topNeoantigens = outputs.topNeoantigens;
       }
       if (step === 'ranking' && outputs.topNeoantigens) {
         updateData.topNeoantigens = outputs.topNeoantigens;
@@ -97,6 +102,65 @@ export async function markStepComplete(
   }, {
     isolationLevel: 'Serializable',
   });
+
+  // Post-transaction: bulk-insert NeoantigenCandidate records
+  if (step === 'neoantigen_prediction' && outputs?.neoantigenReportPath) {
+    try {
+      const reportPath = outputs.neoantigenReportPath as string;
+      const bucket = process.env.AWS_S3_PIPELINE_BUCKET!;
+
+      const response = await s3.send(new GetObjectCommand({
+        Bucket: bucket,
+        Key: reportPath,
+      }));
+      const chunks: Buffer[] = [];
+      const stream = response.Body as AsyncIterable<Buffer>;
+      for await (const chunk of stream) {
+        chunks.push(chunk);
+      }
+      const body = Buffer.concat(chunks).toString('utf-8');
+      const report = JSON.parse(body);
+      const neoantigens = report.neoantigens as Array<Record<string, unknown>>;
+
+      if (neoantigens && neoantigens.length > 0) {
+        await prisma.neoantigenCandidate.createMany({
+          data: neoantigens.map((n) => ({
+            jobId,
+            gene: n.gene as string,
+            mutation: n.mutation as string,
+            chromosome: n.chromosome as string,
+            position: n.position as number,
+            refAllele: '',
+            altAllele: '',
+            variantType: n.variantType as string,
+            vaf: n.vaf as number,
+            wildtypePeptide: n.wildtypePeptide as string,
+            mutantPeptide: n.mutantPeptide as string,
+            peptideLength: n.peptideLength as number,
+            hlaAllele: n.hlaAllele as string,
+            bindingAffinityNm: n.bindingAffinityNm as number,
+            bindingRankPercentile: n.bindingRankPercentile as number,
+            wildtypeBindingNm: (n.wildtypeBindingNm as number) ?? null,
+            bindingClass: n.bindingClass as string,
+            immunogenicityScore: n.immunogenicityScore as number,
+            agretopicity: n.agretopicity as number,
+            expressionLevel: (n.expressionLevel as number) ?? null,
+            clonality: n.clonality as number,
+            structuralExposure: (n.structuralExposure as number) ?? null,
+            compositeScore: n.compositeScore as number,
+            rank: n.rank as number,
+            confidence: n.confidence as string,
+            details: JSON.parse(JSON.stringify(n)),
+          })),
+        });
+      }
+    } catch (err) {
+      // Log but don't fail the step — the report was already saved to S3
+      console.error('Failed to bulk-insert NeoantigenCandidate records:', err);
+    }
+  }
+
+  return result;
 }
 
 export async function markJobComplete(jobId: string): Promise<void> {

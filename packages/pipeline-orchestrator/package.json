@@ -16,6 +16,7 @@
     "@oncovax/shared": "workspace:*",
     "@oncovax/pipeline-storage": "workspace:*",
     "@aws-sdk/client-batch": "^3.0.0",
+    "@aws-sdk/client-s3": "^3.0.0",
     "@prisma/adapter-pg": "^7.0.0",
     "pg": "^8.13.0",
     "zod": "3.23.8"

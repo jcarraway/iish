@@ -184,6 +184,9 @@ importers:
       '@aws-sdk/client-batch':
         specifier: ^3.0.0
         version: 3.0.0(react-native@0.76.9)
+      '@aws-sdk/client-s3':
+        specifier: ^3.0.0
+        version: 3.0.0(react-native@0.76.9)
       '@oncovax/db':
         specifier: workspace:*
         version: link:../db

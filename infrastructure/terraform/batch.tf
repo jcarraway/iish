@@ -182,14 +182,26 @@ resource "aws_batch_job_definition" "neoantigen_prediction" {
   type = "container"
 
   container_properties = jsonencode({
-    image      = "alpine:latest"
-    command    = ["echo", "neoantigen_prediction placeholder"]
-    vcpus      = 4
-    memory     = 16384
-    jobRoleArn = aws_iam_role.batch_job.arn
+    image            = "${aws_ecr_repository.neoantigen_predictor.repository_url}:latest"
+    vcpus            = 4
+    memory           = 16384
+    jobRoleArn       = aws_iam_role.batch_job.arn
     executionRoleArn = aws_iam_role.batch_execution.arn
     environment = [
       { name = "PIPELINE_STEP", value = "neoantigen_prediction" }
+    ]
+    mountPoints = [
+      {
+        sourceVolume  = "scratch"
+        containerPath = "/scratch"
+        readOnly      = false
+      }
+    ]
+    volumes = [
+      {
+        name = "scratch"
+        host = { sourcePath = "/tmp/pipeline-scratch" }
+      }
     ]
   })
 }

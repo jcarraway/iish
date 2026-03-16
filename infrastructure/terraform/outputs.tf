@@ -47,3 +47,8 @@ output "ecr_peptide_generator_url" {
   description = "ECR repository URL for the peptide-generator service"
   value       = aws_ecr_repository.peptide_generator.repository_url
 }
+
+output "ecr_neoantigen_predictor_url" {
+  description = "ECR repository URL for the neoantigen-predictor service"
+  value       = aws_ecr_repository.neoantigen_predictor.repository_url
+}

@@ -1409,6 +1409,47 @@ Write each scored neoantigen to the `NeoantigenCandidate` table:
 
 ---END---
 
+### Session 13 — COMPLETED
+
+**What was built:**
+
+Neoantigen Predictor (Python) — MHCflurry binding predictions, immunogenicity scoring, composite ranking, NeoantigenCandidate DB insertion:
+
+**neoantigen-predictor service** (Python, 20 new files):
+- `main.py` — Async entry: download HLA genotype + peptide windows from S3 → parse HLA alleles (Class I/II) → MHCflurry batch predictions → immunogenicity scoring → clonality estimation → optional expression filtering → composite scoring + ranking → quality gates → upload `neoantigen_report.json` → publish NATS. Progress events at 5/10/20/50/70/85/90%.
+- `binding.py` — MHCflurry 2.0 Class I binding predictions (batch mode via `Class1PresentationPredictor`), Class II placeholder returning default weak-binder values. `classify_binding()` thresholds: strong (<50nM or <0.5% rank), weak (<500nM or <2%), non-binder.
+- `immunogenicity.py` — BLOSUM62 dissimilarity (full 20x20 matrix) + Kyte-Doolittle hydrophobicity at TCR contact positions. TCR position weights for 9-mer scaled to other lengths via linear interpolation. Composite: 0.7 * dissimilarity + 0.3 * hydrophobicity.
+- `scoring.py` — 6-factor composite: binding_affinity (0.25), agretopicity (0.20), immunogenicity (0.20), expression (0.15), clonality (0.10), structural_exposure (0.10). `normalize_binding()` log-scale (1nM→1.0, 50000nM→0.0). `compute_agretopicity()` from wildtype/mutant ratio. Confidence: high (score>=0.6 AND strong_binder), medium (>=0.3), low (<0.3).
+- `clonality.py` — Cancer cell fraction from VAF with diploid tumor purity model (default purity 0.7).
+- `expression.py` — Optional RNA-seq gene expression filtering. TPM<1 = not expressed, log-scale normalization.
+- `quality.py` — Zero predictions = QualityGateError (exit 2), zero binders = warn, else pass.
+- `pipeline_common/` — Copied from peptide-generator (identical 6 files).
+- `Dockerfile` — python:3.12-slim + tensorflow-cpu + `mhcflurry-downloads fetch` (~200MB model data) + scratch volume.
+- `requirements.txt` — boto3, nats-py, mhcflurry, numpy, pandas.
+
+**Job manager updates** (`job-manager.ts`):
+- Extended `neoantigen_prediction` metadata extraction: `neoantigenCount`, `neoantigenReportPath`, `topNeoantigens` (top 20 summary dicts) all stored in PipelineJob columns.
+- Post-transaction logic: download `neoantigen_report.json` from S3 via `@aws-sdk/client-s3`, parse neoantigens array, `prisma.neoantigenCandidate.createMany()` mapping JSON fields to all Prisma model columns. `refAllele`/`altAllele` set to empty strings (not in peptide windows — future enhancement). Errors logged but don't fail the step.
+
+**Terraform updates:**
+- ECR repo `oncovax/neoantigen-predictor` with keep-last-5 lifecycle policy
+- `batch.tf` — Replaced `alpine:latest` placeholder with real ECR image + scratch volume mount (4 vCPU, 16GB RAM)
+- IAM ECR pull permission for neoantigen_predictor
+- Output `ecr_neoantigen_predictor_url`
+
+**Tests:**
+- 27 Python tests: 8 binding classification (threshold boundary tests), 4 normalize_binding, 3 agretopicity, 3 composite, 5 confidence classification, 1 ranking order, 3 quality gates.
+
+**Verification:** `python -m pytest` — 27 tests passing. `tsc --noEmit` — 0 TypeScript errors. `pnpm build` — 0 errors.
+
+**Files:** 20 new files (10 src + 6 pipeline_common + 3 test files + Dockerfile + requirements.txt), 5 modified files (job-manager.ts, package.json, ecr.tf, batch.tf, iam.tf, outputs.tf)
+
+**Deviations from plan:**
+- TESLA Consortium validation dataset testing deferred to future session (requires obtaining published dataset)
+- `numpy` import in binding.py made lazy (removed unused top-level import) for test compatibility
+- S3 body reading uses async iterable chunks instead of `transformToString()` for TypeScript type compatibility
+- `details` field uses `JSON.parse(JSON.stringify(n))` to satisfy Prisma's `InputJsonValue` type
+
 ---
 
 ## SESSION 14: Structure Prediction + mRNA Vaccine Designer
