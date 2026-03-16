@@ -23,6 +23,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/dashboard" className="text-sm text-muted-foreground hover:text-foreground">
                 Dashboard
               </Link>
+              <Link href="/manufacture" className="text-sm text-muted-foreground hover:text-foreground">
+                Manufacture
+              </Link>
               <Link href="/auth" className="text-sm font-medium">
                 Sign In
               </Link>

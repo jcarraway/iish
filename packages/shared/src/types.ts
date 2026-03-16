@@ -597,6 +597,74 @@ export interface ManufacturerBlueprintData {
   generatedAt: string;
 }
 
+// --- Manufacturing & Regulatory Types ---
+
+export interface ManufacturingPartnerSummary {
+  id: string;
+  name: string;
+  slug: string;
+  type: string;
+  capabilities: string[];
+  certifications: string[];
+  capacityTier: string;
+  costRangeMin: number | null;
+  costRangeMax: number | null;
+  turnaroundWeeksMin: number | null;
+  turnaroundWeeksMax: number | null;
+  country: string;
+  regulatorySupport: string[];
+  description: string | null;
+  contactUrl: string | null;
+  status: string;
+}
+
+export interface PathwayAssessmentInput {
+  pipelineJobId?: string;
+  cancerType: string;
+  cancerStage: string;
+  priorTreatmentsFailed: number;
+  hasPhysician: boolean;
+  physicianName?: string;
+  physicianEmail?: string;
+  physicianInstitution?: string;
+  isLifeThreatening: boolean;
+  hasExhaustedOptions: boolean;
+  stateOfResidence: string;
+}
+
+export interface PathwayRecommendation {
+  recommended: RegulatoryPathwayType;
+  rationale: string;
+  alternatives: { pathway: RegulatoryPathwayType; rationale: string }[];
+  requiredDocuments: RegulatoryDocumentType[];
+  estimatedCostMin: number;
+  estimatedCostMax: number;
+  estimatedTimelineWeeks: number;
+}
+
+export type RegulatoryPathwayType =
+  | 'clinical_trial'
+  | 'expanded_access'
+  | 'right_to_try'
+  | 'physician_ind'
+  | 'consultation_needed';
+
+export type RegulatoryDocumentType =
+  | 'fda_form_3926'
+  | 'right_to_try_checklist'
+  | 'informed_consent'
+  | 'physician_letter'
+  | 'ind_application'
+  | 'irb_protocol'
+  | 'manufacturer_request'
+  | 'physician_discussion_guide';
+
+export type DocumentStatus =
+  | 'draft'
+  | 'physician_reviewed'
+  | 'patient_signed'
+  | 'submitted';
+
 export interface NeoantigenTrialMatch {
   trialId: string;
   nctId: string;

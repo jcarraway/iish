@@ -174,7 +174,7 @@ oncovax/                                 # As built (Sessions 1-8)
 │   │       └── ...
 │   └── mobile/                          # Expo SDK 54 (Session 1 scaffold)
 ├── packages/
-│   ├── db/                              # Prisma 7 + PostgreSQL (17 models)
+│   ├── db/                              # Prisma 7 + PostgreSQL (20 models)
 │   ├── shared/                          # Types, schemas, constants, auth
 │   ├── pipeline-storage/                # S3 client for pipeline data (Session 10)
 │   │   └── src/{client,paths,upload,download}.ts
@@ -269,8 +269,8 @@ oncovax/                                 # As built (Sessions 1-8)
 | Mobile | Expo SDK 54, React Native 0.76.9, Dripsy | Cross-platform UI (not shadcn) |
 | API | Next.js API routes | Direct, no tRPC overhead |
 | ORM | Prisma 7.0.0 | `prisma-client` generator, driver adapter required |
-| Database | PostgreSQL (Railway) | JSONB for flexible clinical data |
-| Cache/Sessions | Redis (Railway) | Session storage, sliding expiration |
+| Database | PostgreSQL (Docker local, Railway prod) | JSONB for flexible clinical data |
+| Cache/Sessions | Redis (Docker local, Railway prod) | Session storage, sliding expiration |
 | Auth | Custom magic link (jose + Redis) | Low friction for patients, no NextAuth |
 | Geocoding | Mapbox (fallback only) | CTG API provides geoPoint for most sites |
 | Doc Ingestion | Claude Vision API | Extract structured clinical data from photos/PDFs |
@@ -2798,6 +2798,34 @@ Session 15 — Report Generation + Pipeline UI:
   Files: 14 new, 4 modified
 
 → PHASE 3 SESSION 15 COMPLETE — PHASE 3 COMPLETE (full neoantigen vaccine platform: raw sequencing → 8-step compute pipeline → 3 audience-specific reports with PDF export → neoantigen explorer → vaccine blueprint viewer → clinical trial cross-reference)
+
+SESSION M1: Manufacturing Directory + Regulatory Pathway Advisor — COMPLETED ✓
+  Built: 3 new Prisma models (ManufacturingPartner, RegulatoryPathwayAssessment, RegulatoryDocument — 20 models total),
+         seed script for 15 CDMOs across 3 tiers (Tier 1: Thermo Fisher/Lonza/Catalent/Samsung/WuXi,
+         Tier 2: Aldevron/TriLink/Arcturus/CureVac/Acuitas, Tier 3: UNSW/Afrigen/BioNTainer/Quantoom/Resilience).
+         pathway-advisor.ts: deterministic decision tree (clinical_trial → expanded_access → right_to_try →
+         physician_ind → consultation_needed) with Right to Try state validation (all 50 states).
+         regulatory-documents.ts: 8 Claude-powered document templates (fda_form_3926, right_to_try_checklist,
+         informed_consent, physician_letter, ind_application, irb_protocol, manufacturer_request,
+         physician_discussion_guide) with AI disclaimer on all generated content.
+         10 API routes: 4 manufacturing (list with filters, detail, recommend for blueprint, inquire with event
+         tracking) + 6 regulatory (assess, assessment detail, document generate, document list, document detail,
+         document status update with transition validation).
+         3 components: ManufacturingPartnerCard (capability badges, cost/turnaround, match score),
+         PathwayRecommendation (recommended + collapsible alternatives, document checklist with generate buttons),
+         RegulatoryDocumentCard (status badges + workflow action buttons).
+         8 pages under /manufacture/: landing (trial-first recommendation, cost transparency grid),
+         partners list (filterable by type/capability/country), partner detail (inquiry button),
+         regulatory landing (4 pathway cards), assessment questionnaire (pre-filled from profile),
+         recommendation (pathway + documents), document hub (status legend), document viewer (status updates).
+         Dashboard: manufacturing card (orange theme). Layout: "Manufacture" nav link.
+         Infrastructure: Docker Compose for local dev (postgres:15-alpine + redis:7-alpine), replaced Homebrew PostgreSQL.
+  New files: ~25, Modified: 6 (schema, shared types/exports, dashboard, layout)
+  Deviations: Next.js API routes (not tRPC, consistent with all sessions), simplified ManufacturingPartner schema
+              (capabilities as String[] not individual booleans, added slug/capacityTier/costMin/costMax fields),
+              added state-level Right to Try validation, 8 document templates (spec listed 4 explicitly)
+
+→ PHASE 4 SESSION M1 COMPLETE (manufacturing directory + regulatory pathway advisor + full UI — Session M2 builds order workflow + provider network)
 ```
 
 ---

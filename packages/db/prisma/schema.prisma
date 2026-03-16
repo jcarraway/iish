@@ -93,6 +93,7 @@ model Patient {
   sequencingOrders  SequencingOrder[]
   genomicResults    GenomicResult[]
   pipelineJobs      PipelineJob[]
+  regulatoryAssessments RegulatoryPathwayAssessment[]
 
   @@map("patients")
 }
@@ -375,9 +376,10 @@ model PipelineJob {
   createdAt             DateTime  @default(now()) @map("created_at")
   updatedAt             DateTime  @updatedAt @map("updated_at")
 
-  patient          Patient              @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  sequencingOrder  SequencingOrder?     @relation(fields: [sequencingOrderId], references: [id])
-  neoantigens      NeoantigenCandidate[]
+  patient              Patient              @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  sequencingOrder      SequencingOrder?     @relation(fields: [sequencingOrderId], references: [id])
+  neoantigens          NeoantigenCandidate[]
+  regulatoryAssessments RegulatoryPathwayAssessment[]
 
   @@index([patientId, createdAt(sort: Desc)])
   @@index([status])
@@ -420,4 +422,86 @@ model NeoantigenCandidate {
   @@index([jobId, rank])
   @@index([gene])
   @@map("neoantigen_candidates")
+}
+
+model ManufacturingPartner {
+  id                    String   @id @default(uuid()) @db.Uuid
+  name                  String
+  slug                  String   @unique
+  type                  String   @db.VarChar(50) // large_cdmo | specialized_mrna | academic_modular
+  capabilities          String[] @map("capabilities")
+  certifications        String[] @map("certifications")
+  capacityTier          String   @map("capacity_tier") @db.VarChar(20) // tier_1 | tier_2 | tier_3
+  costRangeMin          Float?   @map("cost_range_min")
+  costRangeMax          Float?   @map("cost_range_max")
+  turnaroundWeeksMin    Int?     @map("turnaround_weeks_min")
+  turnaroundWeeksMax    Int?     @map("turnaround_weeks_max")
+  country               String   @db.VarChar(100)
+  regulatorySupport     String[] @map("regulatory_support")
+  description           String?
+  contactEmail          String?  @map("contact_email")
+  contactUrl            String?  @map("contact_url")
+  status                String   @default("active") @db.VarChar(50)
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  @@index([type])
+  @@index([country])
+  @@index([status])
+  @@map("manufacturing_partners")
+}
+
+model RegulatoryPathwayAssessment {
+  id                    String   @id @default(uuid()) @db.Uuid
+  patientId             String   @map("patient_id") @db.Uuid
+  pipelineJobId         String?  @map("pipeline_job_id") @db.Uuid
+  cancerType            String?  @map("cancer_type")
+  cancerStage           String?  @map("cancer_stage")
+  priorTreatmentsFailed Int?     @map("prior_treatments_failed")
+  hasPhysician          Boolean  @default(false) @map("has_physician")
+  physicianName         String?  @map("physician_name")
+  physicianEmail        String?  @map("physician_email")
+  physicianInstitution  String?  @map("physician_institution")
+  isLifeThreatening     Boolean  @default(false) @map("is_life_threatening")
+  hasExhaustedOptions   Boolean  @default(false) @map("has_exhausted_options")
+  stateOfResidence      String?  @map("state_of_residence") @db.VarChar(100)
+  recommendedPathway    String?  @map("recommended_pathway") @db.VarChar(50)
+  pathwayRationale      String?  @map("pathway_rationale")
+  alternativePathways   Json?    @map("alternative_pathways")
+  estimatedCostMin      Float?   @map("estimated_cost_min")
+  estimatedCostMax      Float?   @map("estimated_cost_max")
+  estimatedTimelineWeeks Int?    @map("estimated_timeline_weeks")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  patient      Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  pipelineJob  PipelineJob? @relation(fields: [pipelineJobId], references: [id])
+  documents    RegulatoryDocument[]
+
+  @@index([patientId, createdAt(sort: Desc)])
+  @@map("regulatory_pathway_assessments")
+}
+
+model RegulatoryDocument {
+  id                    String   @id @default(uuid()) @db.Uuid
+  assessmentId          String   @map("assessment_id") @db.Uuid
+  documentType          String   @map("document_type") @db.VarChar(50)
+  title                 String
+  content               String
+  templateVersion       String   @default("1.0") @map("template_version") @db.VarChar(20)
+  modelUsed             String?  @map("model_used")
+  patientDataSnapshot   Json?    @map("patient_data_snapshot")
+  status                String   @default("draft") @map("status") @db.VarChar(30)
+  reviewNotes           String?  @map("review_notes")
+  reviewedAt            DateTime? @map("reviewed_at")
+  reviewedBy            String?  @map("reviewed_by")
+  pdfPath               String?  @map("pdf_path")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  assessment RegulatoryPathwayAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+
+  @@index([assessmentId, documentType])
+  @@index([status])
+  @@map("regulatory_documents")
 }

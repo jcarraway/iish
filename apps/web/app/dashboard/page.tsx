@@ -18,19 +18,20 @@ interface DashboardData {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [data, setData] = useState<DashboardData | null>(null);
+  const [data, setData] = useState<DashboardData & { pipelineJobCount?: number } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadDashboard() {
       try {
         // Load matches and financial data in parallel
-        const [matchRes, financialRes, fhirRes, ordersRes, genomicRes] = await Promise.all([
+        const [matchRes, financialRes, fhirRes, ordersRes, genomicRes, pipelineRes] = await Promise.all([
           fetch('/api/matches').then(r => r.ok ? r.json() : null).catch(() => null),
           fetch('/api/financial').then(r => r.ok ? r.json() : null).catch(() => null),
           fetch('/api/fhir/connections').then(r => r.ok ? r.json() : null).catch(() => null),
           fetch('/api/sequencing/orders').then(r => r.ok ? r.json() : null).catch(() => null),
           fetch('/api/genomics/results').then(r => r.ok ? r.json() : null).catch(() => null),
+          fetch('/api/pipeline/jobs').then(r => r.ok ? r.json() : null).catch(() => null),
         ]);
 
         const activeConnections = (fhirRes?.connections ?? []).filter(
@@ -49,9 +50,10 @@ export default function DashboardPage() {
           sequencingOrderCount: orders.length,
           sequencingLatestStatus: orders[0]?.status ?? null,
           genomicResultCount: genomicRes?.results?.length ?? 0,
+          pipelineJobCount: pipelineRes?.jobs?.length ?? 0,
         });
       } catch {
-        setData({ matchCount: 0, topMatchScore: null, financialEligibleCount: 0, financialTotalEstimated: 0, hasProfile: false, fhirConnectionCount: 0, sequencingOrderCount: 0, sequencingLatestStatus: null, genomicResultCount: 0 });
+        setData({ matchCount: 0, topMatchScore: null, financialEligibleCount: 0, financialTotalEstimated: 0, hasProfile: false, fhirConnectionCount: 0, sequencingOrderCount: 0, sequencingLatestStatus: null, genomicResultCount: 0, pipelineJobCount: 0 });
       } finally {
         setLoading(false);
       }
@@ -94,7 +96,7 @@ export default function DashboardPage() {
       <p className="mt-2 text-sm text-gray-500">Your cancer navigation hub</p>
 
       {/* Quick-access cards */}
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {/* Trial Matches */}
         <Link
           href="/matches"
@@ -220,6 +222,32 @@ export default function DashboardPage() {
             <>
               <p className="mt-3 text-sm text-gray-600">Connect MyChart to import records automatically</p>
               <p className="mt-1 text-xs text-blue-600">Connect &rarr;</p>
+            </>
+          )}
+        </Link>
+
+        {/* Manufacturing */}
+        <Link
+          href="/manufacture"
+          className="rounded-xl border border-gray-200 p-5 hover:border-orange-300 hover:shadow-sm transition-all"
+        >
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-100 text-orange-600">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 0h.008v.008h-.008V7.5z" />
+              </svg>
+            </div>
+            <h2 className="font-semibold text-gray-900">Manufacturing</h2>
+          </div>
+          {(data?.pipelineJobCount ?? 0) > 0 ? (
+            <>
+              <p className="mt-3 text-sm text-gray-600">Blueprint ready — explore manufacturing partners and regulatory pathways</p>
+              <p className="mt-1 text-xs text-blue-600">Get started &rarr;</p>
+            </>
+          ) : (
+            <>
+              <p className="mt-3 text-sm text-gray-600">From vaccine blueprint to production — find CDMOs and navigate regulatory pathways</p>
+              <p className="mt-1 text-xs text-blue-600">Explore &rarr;</p>
             </>
           )}
         </Link>

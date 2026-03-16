@@ -1,0 +1,26 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: oncovax-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: rett
+      POSTGRES_PASSWORD: rett
+      POSTGRES_DB: oncovax_dev
+    volumes:
+      - oncovax-pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: oncovax-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - oncovax-redis:/data
+    restart: unless-stopped
+
+volumes:
+  oncovax-pgdata:
+  oncovax-redis:

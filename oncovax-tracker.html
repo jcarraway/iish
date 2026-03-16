@@ -870,13 +870,15 @@
         "phase2:7": "complete",
         "phase2:8": "complete",
         "phase2:9": "complete",
-        // Phase 3 — in progress
+        // Phase 3 — all 6 sessions complete
         "phase3:10": "complete",
         "phase3:11": "complete",
         "phase3:12": "complete",
         "phase3:13": "complete",
         "phase3:14": "complete",
         "phase3:15": "complete",
+        // Phase 4 — M1 complete
+        "phase4:M1": "complete",
       };
 
       const DEFAULT_NOTES = {
@@ -913,6 +915,9 @@
           "~43 new files, 4 modified. Three services completing the pipeline: structure-predictor (template PDB for ~25 HLA alleles, Biopython threading, AlphaFold fallback, biotite SASA), ranking (re-scores with real structural_exposure replacing default 0.5), mrna-designer (epitope selection with HLA diversity, polyepitope construct with tPA signal + EAAAK linkers + PADRE, human codon optimization targeting 50-60% GC, alpha/beta-globin UTRs + 120nt polyA, sequence QC, LNP formulation notes, Claude-powered rationale with fallback). 3 ECR repos, 3 Batch job defs updated from placeholders. Job manager: structure_prediction + ranking post-transaction DB updates. 42 Python tests, 0 TS errors.",
         "phase3:15":
           "14 new files, 4 modified. PHASE 3 COMPLETE. Three Claude-powered report generators (two-step: clinical grounding → audience translation) for patient/clinician/manufacturer. @react-pdf/renderer PDF generation (3 layouts). 4 API routes (report JSON, PDF with S3 upload, paginated neoantigens with sort/filter, trial cross-reference). NeoantigenTable (sortable, expandable), ReportCard (state machine), BlueprintVisualization (construct diagram, mRNA display, HLA grid). 4 new pages: neoantigen explorer, vaccine blueprint viewer, clinical trials, report download center. Job detail page extended with results navigation. 0 type errors.",
+        // Phase 4
+        "phase4:M1":
+          "~25 new files, 6 modified. 3 Prisma models (ManufacturingPartner, RegulatoryPathwayAssessment, RegulatoryDocument), 15 CDMOs seeded (3 tiers). pathway-advisor.ts (decision tree: trial→expanded_access→right_to_try→physician_ind), regulatory-documents.ts (8 Claude-powered templates with AI disclaimers). 10 API routes (4 manufacturing, 6 regulatory). 3 components (ManufacturingPartnerCard, PathwayRecommendation, RegulatoryDocumentCard). 8 pages under /manufacture/. Dashboard + nav integration. Docker Compose for local dev (postgres:15-alpine + redis:7-alpine). 0 type errors.",
       };
 
       let state = { statuses: {}, notes: {}, expanded: {}, filter: "all" };
