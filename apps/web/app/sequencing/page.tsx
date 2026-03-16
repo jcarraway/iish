@@ -1,8 +1,23 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
 export default function SequencingHubPage() {
+  const [hasResultsReady, setHasResultsReady] = useState(false);
+  const [hasGenomicResults, setHasGenomicResults] = useState(false);
+
+  useEffect(() => {
+    Promise.all([
+      fetch('/api/sequencing/orders').then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch('/api/genomics/results').then(r => r.ok ? r.json() : null).catch(() => null),
+    ]).then(([ordersData, genomicData]) => {
+      const orders = ordersData?.orders ?? [];
+      setHasResultsReady(orders.some((o: { status: string }) => o.status === 'results_ready'));
+      setHasGenomicResults((genomicData?.results?.length ?? 0) > 0);
+    });
+  }, []);
+
   return (
     <div className="mx-auto max-w-3xl px-6 py-16">
       {/* Hero */}
@@ -18,17 +33,31 @@ export default function SequencingHubPage() {
       <div className="grid gap-4 sm:grid-cols-3">
         {/* Already have results */}
         <Link
-          href="/sequencing/upload"
-          className="rounded-xl border border-gray-200 p-5 hover:border-indigo-300 hover:shadow-sm transition-all"
+          href={hasGenomicResults ? '/sequencing/results' : '/sequencing/upload'}
+          className={`rounded-xl border p-5 hover:shadow-sm transition-all ${
+            hasResultsReady
+              ? 'border-green-300 bg-green-50 ring-2 ring-green-200'
+              : 'border-gray-200 hover:border-indigo-300'
+          }`}
         >
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 text-green-600">
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
             </svg>
           </div>
-          <h2 className="mt-3 font-semibold text-gray-900">I have results</h2>
-          <p className="mt-1 text-sm text-gray-500">Upload your existing genomic test results for analysis</p>
-          <p className="mt-2 text-xs text-blue-600">Upload results &rarr;</p>
+          <h2 className="mt-3 font-semibold text-gray-900">
+            {hasGenomicResults ? 'View your results' : 'I have results'}
+          </h2>
+          <p className="mt-1 text-sm text-gray-500">
+            {hasGenomicResults
+              ? 'View your genomic results and personalized interpretation'
+              : hasResultsReady
+                ? 'Your test results are ready — upload them now'
+                : 'Upload your existing genomic test results for analysis'}
+          </p>
+          <p className="mt-2 text-xs text-blue-600">
+            {hasGenomicResults ? 'View results' : 'Upload results'} &rarr;
+          </p>
         </Link>
 
         {/* Want sequencing */}

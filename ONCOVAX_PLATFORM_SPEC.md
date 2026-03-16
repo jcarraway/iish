@@ -62,6 +62,13 @@ oncovax/                                 # As built (Sessions 1-8)
 │   │   │   │   │       └── brief/       # GET: generate oncologist brief
 │   │   │   │   ├── patients/            # Create + get patient profile (Session 3)
 │   │   │   │   ├── stripe/              # Checkout + webhook (Session 1)
+│   │   │   │   ├── genomics/              # Genomic results (Session 9)
+│   │   │   │   │   ├── upload-url/      # POST: presigned S3 URL for genomic report
+│   │   │   │   │   ├── extract/         # POST: Claude Vision extraction of genomic report
+│   │   │   │   │   ├── confirm/         # POST: patient confirms extracted results → merge into profile
+│   │   │   │   │   ├── interpretation/  # POST: generate/get Claude interpretation (cached)
+│   │   │   │   │   ├── rematch/         # POST: re-run trial matching with genomic data
+│   │   │   │   │   └── results/         # GET: list results; [resultId]: GET detail
 │   │   │   │   ├── sequencing/           # Sequencing navigation (Sessions 7-8)
 │   │   │   │   │   ├── brief/           # POST: generate oncologist sequencing brief (Session 7)
 │   │   │   │   │   ├── coverage/        # POST: check insurance coverage (Session 7)
@@ -94,18 +101,19 @@ oncovax/                                 # As built (Sessions 1-8)
 │   │   │   │   ├── mychart/             # MyChart connect — health system search + OAuth + extraction (Session 6)
 │   │   │   │   ├── manual/              # Manual intake wizard
 │   │   │   │   └── confirm/             # Review + auth + save + FHIR badges + financial profile
-│   │   │   ├── sequencing/               # Sequencing navigation (Sessions 7-8)
-│   │   │   │   ├── page.tsx             # Sequencing hub — 3 pathway cards (Session 7)
+│   │   │   ├── sequencing/               # Sequencing navigation (Sessions 7-9)
+│   │   │   │   ├── page.tsx             # Sequencing hub — 3 pathway cards, dynamic state (Sessions 7, 9)
+│   │   │   │   ├── confirm/page.tsx     # Genomic report confirm — review mutations + biomarkers (Session 9)
 │   │   │   │   ├── guide/page.tsx       # 5-step sequencing journey wizard (Session 8)
 │   │   │   │   ├── insurance/page.tsx   # Insurance coverage checker (Session 7)
 │   │   │   │   ├── orders/              # Order tracking (Session 8)
 │   │   │   │   │   ├── page.tsx         # Order list with progress bars + waiting content
-│   │   │   │   │   └── [orderId]/page.tsx # Order detail + status timeline + advance/cancel
+│   │   │   │   │   └── [orderId]/page.tsx # Order detail + status timeline + upload CTA (Sessions 8, 9)
 │   │   │   │   ├── providers/           # Provider directory (Session 7)
 │   │   │   │   │   ├── page.tsx         # Filterable provider list + comparison
 │   │   │   │   │   └── [providerId]/page.tsx # Provider detail
-│   │   │   │   ├── results/page.tsx     # Results placeholder (Session 7)
-│   │   │   │   └── upload/page.tsx      # Results upload placeholder (Session 7)
+│   │   │   │   ├── results/page.tsx     # Genomic results interpretation — 5 sections + match delta (Session 9)
+│   │   │   │   └── upload/page.tsx      # Genomic report upload — drag-drop + extraction pipeline (Session 9)
 │   │   │   ├── translate/               # Treatment translator (Session 5)
 │   │   │   │   └── page.tsx             # Magazine-style treatment guide with drug cards + timeline
 │   │   │   └── ...                      # Other pages (Session 1 stubs)
@@ -144,13 +152,15 @@ oncovax/                                 # As built (Sessions 1-8)
 │   │       ├── test-recommendation.ts  # Deterministic test selection (Foundation/Guardant/Tempus) (Session 8)
 │   │       ├── conversation-guide.ts   # Claude-powered doctor conversation guide + email template (Session 8)
 │   │       ├── waiting-content.ts      # Claude-powered educational content by cancer type (Session 8)
+│   │       ├── genomic-extraction.ts  # Claude Vision genomic report extraction pipeline (Session 9)
+│   │       ├── genomic-interpreter.ts # Two-step Claude genomic interpretation (clinical grounding → patient translation) (Session 9)
 │   │       ├── mapbox.ts                # Geocoding fallback (Session 2)
 │   │       ├── trial-sync.ts            # Sync worker (Session 2)
 │   │       ├── db.ts, redis.ts, session.ts, events.ts, stripe.ts, cloudinary.ts
 │   │       └── ...
 │   └── mobile/                          # Expo SDK 54 (Session 1 scaffold)
 ├── packages/
-│   ├── db/                              # Prisma 7 + PostgreSQL (14 models)
+│   ├── db/                              # Prisma 7 + PostgreSQL (15 models)
 │   └── shared/                          # Types, schemas, constants, auth
 ├── scripts/
 │   ├── trial-sync.ts                    # CLI: pnpm trial-sync (Session 2)
@@ -164,7 +174,7 @@ oncovax/                                 # As built (Sessions 1-8)
     └── infrastructure/                  # Docker, Terraform, NATS (Phase 3+)
 ```
 
-> **Architecture note:** Sessions 1-8 established that all server logic lives as lib files in `apps/web/lib/`, not as separate packages. Client components live in `apps/web/components/`. Phase 1 libs: `{clinicaltrials,trial-sync,eligibility-parser,extraction,matcher,oncologist-brief,translator,financial-matcher,s3,image-quality}.ts`. FHIR integration: `apps/web/lib/fhir/` (6 files). Phase 2 libs (Sessions 7-8): `{coverage,sequencing-brief,sequencing-recommendation,test-recommendation,conversation-guide,waiting-content}.ts`. All Claude calls use Redis caching (24h TTL). Test recommendation is fully deterministic (no Claude).
+> **Architecture note:** Sessions 1-9 established that all server logic lives as lib files in `apps/web/lib/`, not as separate packages. Client components live in `apps/web/components/`. Phase 1 libs: `{clinicaltrials,trial-sync,eligibility-parser,extraction,matcher,oncologist-brief,translator,financial-matcher,s3,image-quality}.ts`. FHIR integration: `apps/web/lib/fhir/` (6 files). Phase 2 libs (Sessions 7-9): `{coverage,sequencing-brief,sequencing-recommendation,test-recommendation,conversation-guide,waiting-content,genomic-extraction,genomic-interpreter}.ts`. All Claude calls use Redis caching (24h TTL). Test recommendation is fully deterministic (no Claude). Matcher dynamically weights 7 dimensions when genomic data is present (6 original × 0.75 + genomics at 0.25).
 
 ### 1.3 Core Tech Stack
 
@@ -1660,17 +1670,23 @@ TASK 3: Build patient sequencing journey wizard — COMPLETED (Session 8) ✓
   - "While you wait" educational content (Claude, cached per cancer type)
   - Dashboard integration (order count + latest status)
   - All Claude outputs cached in Redis (24h TTL)
-TASK 4: Build genomic data upload + storage
-  - S3 upload for VCF/BAM/FASTQ files
-  - PDF report upload with Claude-powered extraction
-  - HIPAA-compliant storage configuration
-TASK 5: Build results interpretation layer
-  - Claude-powered plain-language summary of sequencing report
-  - Actionable mutation list extraction
-  - Auto-feed into Phase 1 (re-run trial matching with genomic data)
-TASK 6: Connect to Phase 1
-  - Genomically-informed trial matching (biomarker-specific)
-  - Updated oncologist brief with genomic context
+TASK 4: Build genomic data upload + storage — COMPLETED (Session 9) ✓
+  - PDF report upload via S3 presigned URLs with Claude Vision extraction
+  - GenomicResult Prisma model (15th model) with alterations, biomarkers, germline findings
+  - Drag-and-drop upload page with 4-step extraction progress
+  - Confirm page: review mutations + biomarkers before committing to profile
+  - Skipped raw data upload (VCF/BAM) — deferred to Phase 3
+TASK 5: Build results interpretation layer — COMPLETED (Session 9) ✓
+  - Two-step Claude pipeline: clinical grounding → patient translation (8th-grade reading level)
+  - 5-section results page: summary, mutations explained, biomarker profile,
+    oncologist questions, updated trial matches
+  - Redis-cached interpretation (24h TTL)
+  - Mutation cards with significance badges (actionable/informational/uncertain)
+TASK 6: Connect to Phase 1 — COMPLETED (Session 9) ✓
+  - Matcher updated with genomicMatch() function + dynamic 7-dimension weights
+  - computeMatchDelta() shows new/improved/removed matches after genomic data added
+  - Genomic biomarkers merged into profile.biomarkers for backward compatibility
+  - Rematch API endpoint with match delta storage and display
 ```
 
 ---
@@ -2519,6 +2535,27 @@ SESSION 8: Sequencing Journey Wizard + Test Recommendation Engine — COMPLETED 
               5 shared types not 6 (WizardState managed client-side, not shared)
 
 → PHASE 2 SESSIONS 7-8 COMPLETE (provider directory + insurance + journey wizard + order tracking)
+
+SESSION 9: Genomic Results Interpretation + Genomically-Informed Trial Matching — COMPLETED ✓
+  Built: GenomicResult Prisma model (15th model), Claude Vision genomic report extraction
+         (gene alterations, biomarkers, germline findings, therapy matches),
+         two-step Claude interpretation pipeline (clinical grounding → patient-facing
+         plain-language at 8th-grade reading level), genomicMatch() dimension in matcher
+         with dynamic 7-dimension weighting (existing 6 × 0.75 + genomics at 0.25),
+         computeMatchDelta() before/after comparison, drag-drop upload page with 4-step
+         extraction progress, confirm page (mutation + biomarker review), 5-section
+         results interpretation page (summary, mutations explained, biomarker profile,
+         oncologist questions, match delta), 7 new API routes under /api/genomics/,
+         genomic biomarkers merged into profile.biomarkers for backward compatibility,
+         dashboard updated with genomic result indicator, sequencing hub dynamically
+         highlights when results are ready or genomic data exists
+  New files: 2 lib, 7 API routes, 3 pages (12 new, 8 modified)
+  Deviations: Skipped raw data upload (VCF/BAM) — deferred to Phase 3,
+              skipped FHIR genomics sync — deferred to Phase 3,
+              skipped oncologist brief genomic context update — simple extension later,
+              6 shared types not 8 (fewer intermediate types needed)
+
+→ PHASE 2 COMPLETE (all 9 sessions: intake → matching → translation → financial → FHIR → sequencing → genomics)
 ```
 
 ---

@@ -1019,6 +1019,55 @@ The patient now has: clinical profile (Phase 1) + genomic profile (Phase 2) + pr
 
 ---END---
 
+### Session 9 Implementation Notes
+
+**Completed:** All 11 steps implemented with 0 build errors.
+
+**What was built:**
+
+1. **Shared types (6 new interfaces):** GenomicAlteration, GenomicBiomarkers, GermlineFinding, GenomicReportExtraction, GenomicInterpretation, MatchDelta — plus PatientProfile extended with optional `genomicData` field.
+
+2. **Zod schemas:** genomicReportExtractionSchema (+ sub-schemas for alteration, biomarkers, germline). Added DOCUMENT_TYPES.GENOMIC_REPORT constant.
+
+3. **Prisma GenomicResult model (15th model):** Fields for alterations (Json), biomarkers (Json), germlineFindings (Json), interpretation (Json), matchDelta (Json), extractionConfidence, patientConfirmed. One-to-one relation with SequencingOrder (`@unique` on orderId). Relations added to Patient and SequencingOrder models.
+
+4. **genomic-extraction.ts:** Claude Vision extraction following `extraction.ts` pattern. Detailed system prompt extracts every alteration (including VUS), preserves exact notation (e.g., "PIK3CA H1047R"), extracts TMB/MSI/PD-L1/LOH/HRD biomarkers, germline findings, and report-provided therapy matches. Uses `analyzeMultipleImages()` + Zod validation.
+
+5. **genomic-interpreter.ts:** Two-step Claude pipeline following `translator.ts` pattern. Step 1 (CLINICAL_GROUNDING_SYSTEM): classify driver/passenger/VUS, FDA therapies, prognosis impact, trial eligibility, resistance implications, germline implications. Step 2 (PATIENT_TRANSLATION_SYSTEM): 8th-grade reading level, "you/your" language, never "terminal/death". Redis cached at `genomic-interp:{patientId}` (24h TTL).
+
+6. **Matcher updates:** Added `genomicMatch()` function (checks TMB thresholds, MSI status, PD-L1 scores, specific gene mutations vs trial required/excluded biomarkers). Added `getWeights()` for dynamic 7-dimension weighting when genomic data present (original 6 weights × 0.75 + genomics at 0.25). Updated `scoreTrial()`. Added `computeMatchDelta()` for before/after comparison.
+
+7. **7 API routes under /api/genomics/:**
+   - `upload-url` — presigned S3 URL for genomic report (key: `genomics/{patientId}/{uuid}.{ext}`)
+   - `extract` — Claude Vision extraction → create unconfirmed GenomicResult
+   - `confirm` — set patientConfirmed=true, merge genomicData into Patient.profile + merge key biomarkers into profile.biomarkers for backward compatibility
+   - `interpretation` — generate/get cached Claude interpretation
+   - `rematch` — re-run matching with genomic data, compute + store MatchDelta
+   - `results` — list patient's genomic results
+   - `results/[resultId]` — single result detail with interpretation + match delta
+
+8. **Upload page (replaced stub):** Drag-and-drop with file input fallback (PDF + images, up to 20MB). 4-step extraction progress ("Reading your report...", "Extracting mutations...", "Analyzing biomarkers...", "Preparing for review..."). Redirects to /sequencing/confirm on success.
+
+9. **Confirm page (new):** Displays all extracted alterations (gene badge, alteration, type, clinical significance, confidence %, VAF, approved therapies), biomarkers grid (TMB, MSI, PD-L1, HRD), germline findings. "Looks right — update my matches" button confirms and redirects to /sequencing/results.
+
+10. **Results page (replaced stub):** 5-section interpretation page: (1) "What your results mean" summary, (2) mutation cards with significance badges (actionable/informational/uncertain) + therapy pills + trial pills + prognosis, (3) biomarker profile cards with immunotherapy relevance, (4) expandable "What to discuss with your oncologist" accordion, (5) match delta display (new/improved/removed matches) with rematch CTA.
+
+11. **Integration updates:** Middleware auth for /sequencing/confirm + /sequencing/results. Dashboard shows "Genomic data uploaded" badge. Sequencing hub dynamically highlights "I have results" card when results_ready or genomic data exists. Order detail page shows upload CTA when status is results_ready.
+
+**Key deviations from plan:**
+- Skipped raw data upload (VCF/BAM/FASTQ) — deferred to Phase 3
+- Skipped FHIR genomics sync — deferred to Phase 3
+- Skipped oncologist brief genomic context update — straightforward extension later
+- 6 shared types instead of 8 (fewer intermediate types needed)
+- Genomic biomarkers merged into existing `profile.biomarkers` (TMB, MSI, PD-L1, pathogenic mutation names) for backward compatibility with existing `biomarkerMatch()` function
+
+**Build errors encountered and fixed:**
+- Prisma P1012: one-to-one relation on orderId needed `@unique` → added `@unique`
+- Prisma P1010: wrong DATABASE_URL → used explicit URL from apps/web/.env.local
+- TypeScript union narrowing: `weights.genomics` on union type → cast with `(weights as { genomics: number }).genomics` inside hasGenomic guard
+
+---
+
 ---
 
 ## What comes next

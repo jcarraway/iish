@@ -137,9 +137,55 @@ export const treatmentTranslationRequestSchema = z.object({
   patientId: z.string().uuid().optional(),
 });
 
+export const genomicAlterationSchema = z.object({
+  gene: z.string(),
+  alteration: z.string(),
+  alterationType: z.string(),
+  variantAlleleFrequency: z.number().nullable(),
+  clinicalSignificance: z.string(),
+  therapyImplications: z.object({
+    approvedTherapies: z.array(z.string()),
+    clinicalTrials: z.array(z.string()),
+    resistanceMutations: z.array(z.string()),
+  }),
+  confidence: z.number().min(0).max(1),
+});
+
+export const genomicBiomarkersSchema = z.object({
+  tmb: z.object({ value: z.number(), unit: z.string(), status: z.string() }).nullable(),
+  msi: z.object({ status: z.string(), score: z.number().nullable() }).nullable(),
+  pdl1: z.object({ tps: z.number().nullable(), cps: z.number().nullable() }).nullable(),
+  loh: z.object({ status: z.string() }).nullable(),
+  hrd: z.object({ score: z.number().nullable(), status: z.string() }).nullable(),
+});
+
+export const germlineFindingSchema = z.object({
+  gene: z.string(),
+  variant: z.string(),
+  significance: z.string(),
+});
+
+export const genomicReportExtractionSchema = z.object({
+  provider: z.string(),
+  testName: z.string(),
+  reportDate: z.string().nullable(),
+  specimenDate: z.string().nullable(),
+  specimenType: z.string().nullable(),
+  genomicAlterations: z.array(genomicAlterationSchema),
+  biomarkers: genomicBiomarkersSchema,
+  germlineFindings: z.array(germlineFindingSchema).nullable(),
+  reportTherapyMatches: z.array(z.object({
+    therapy: z.string(),
+    evidence: z.string(),
+    gene: z.string(),
+  })),
+  extractionConfidence: z.number().min(0).max(1),
+});
+
 export type MagicLinkRequest = z.infer<typeof magicLinkRequestSchema>;
 export type PatientProfileInput = z.infer<typeof patientProfileSchema>;
 export type DocumentUploadInput = z.infer<typeof documentUploadSchema>;
 export type PresignedUrlRequest = z.infer<typeof presignedUrlRequestSchema>;
 export type ExtractionRequest = z.infer<typeof extractionRequestSchema>;
 export type FinancialProfileInput = z.infer<typeof financialProfileSchema>;
+export type GenomicReportExtractionInput = z.infer<typeof genomicReportExtractionSchema>;

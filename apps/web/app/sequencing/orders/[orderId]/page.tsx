@@ -289,6 +289,22 @@ export default function OrderDetailPage() {
         </div>
       )}
 
+      {/* Upload CTA when results are ready */}
+      {order.status === 'results_ready' && (
+        <div className="mt-8 rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 p-6">
+          <h3 className="font-semibold text-green-900">Your results are ready!</h3>
+          <p className="mt-1 text-sm text-green-800">
+            Upload your genomic report to identify actionable mutations and improve your trial matches.
+          </p>
+          <button
+            onClick={() => router.push('/sequencing/upload')}
+            className="mt-3 rounded-lg bg-green-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-green-700"
+          >
+            Upload your results
+          </button>
+        </div>
+      )}
+
       {/* Action buttons */}
       <div className="mt-8 flex gap-3">
         {canAdvance && (

@@ -9,6 +9,7 @@ export const DOCUMENT_TYPES = {
   LAB_REPORT: 'lab_report',
   TREATMENT_SUMMARY: 'treatment_summary',
   IMAGING_REPORT: 'imaging_report',
+  GENOMIC_REPORT: 'genomic_report',
   UNKNOWN: 'unknown',
 } as const;
 

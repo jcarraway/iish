@@ -5,6 +5,7 @@ import type {
   ParsedEligibility,
   MatchBreakdownItem,
   LLMAssessment,
+  MatchDelta,
 } from '@oncovax/shared';
 import { TRIAL_STATUSES } from '@oncovax/shared';
 
@@ -381,6 +382,147 @@ function ageMatch(
 }
 
 // ---------------------------------------------------------------------------
+// Genomic matching
+// ---------------------------------------------------------------------------
+
+function genomicMatch(
+  profile: PatientProfile,
+  eligibility: ParsedEligibility,
+): { status: 'match' | 'unknown' | 'mismatch'; reason: string; details: { matchedBiomarkers: string[]; matchedGenomicCriteria: string[] } } {
+  const genomic = profile.genomicData;
+  if (!genomic) {
+    return { status: 'unknown', reason: 'No genomic data available', details: { matchedBiomarkers: [], matchedGenomicCriteria: [] } };
+  }
+
+  const matchedBiomarkers: string[] = [];
+  const matchedGenomicCriteria: string[] = [];
+  let hasMismatch = false;
+  let mismatchReason = '';
+
+  const alterationGenes = genomic.alterations.map(a => a.gene.toLowerCase());
+  const alterationMap = new Map(genomic.alterations.map(a => [a.gene.toLowerCase(), a]));
+
+  // Check required biomarkers against genomic data
+  for (const req of eligibility.biomarkers.required) {
+    const reqName = req.name.toLowerCase();
+    const reqCondition = req.condition.toLowerCase();
+
+    // Check TMB threshold
+    if (reqName.includes('tmb') || reqName.includes('tumor mutational burden')) {
+      if (genomic.biomarkers.tmb) {
+        const thresholdMatch = reqCondition.match(/(?:>=?|≥)\s*(\d+)/);
+        if (thresholdMatch) {
+          const threshold = parseFloat(thresholdMatch[1]);
+          if (genomic.biomarkers.tmb.value >= threshold) {
+            matchedBiomarkers.push(`TMB ${genomic.biomarkers.tmb.value} ${genomic.biomarkers.tmb.unit} meets threshold ≥${threshold}`);
+          } else {
+            hasMismatch = true;
+            mismatchReason = `TMB ${genomic.biomarkers.tmb.value} below required ≥${threshold}`;
+          }
+        } else if (reqCondition.includes('high')) {
+          if (genomic.biomarkers.tmb.status.toLowerCase() === 'high') {
+            matchedBiomarkers.push(`TMB-High (${genomic.biomarkers.tmb.value} ${genomic.biomarkers.tmb.unit})`);
+          } else {
+            hasMismatch = true;
+            mismatchReason = `Trial requires TMB-High, yours is ${genomic.biomarkers.tmb.status}`;
+          }
+        }
+      }
+      continue;
+    }
+
+    // Check MSI status
+    if (reqName.includes('msi') || reqName.includes('microsatellite')) {
+      if (genomic.biomarkers.msi) {
+        if (reqCondition.includes('high') || reqCondition.includes('msi-h')) {
+          if (genomic.biomarkers.msi.status.toLowerCase().includes('high') || genomic.biomarkers.msi.status.toLowerCase() === 'msi-h') {
+            matchedBiomarkers.push(`MSI-High status matches`);
+          } else {
+            hasMismatch = true;
+            mismatchReason = `Trial requires MSI-High, yours is ${genomic.biomarkers.msi.status}`;
+          }
+        }
+      }
+      continue;
+    }
+
+    // Check PD-L1
+    if (reqName.includes('pd-l1') || reqName.includes('pdl1')) {
+      if (genomic.biomarkers.pdl1) {
+        const cpsMatch = reqCondition.match(/cps\s*(?:>=?|≥)\s*(\d+)/i);
+        const tpsMatch = reqCondition.match(/tps\s*(?:>=?|≥)\s*(\d+)/i);
+        if (cpsMatch && genomic.biomarkers.pdl1.cps !== null) {
+          const threshold = parseFloat(cpsMatch[1]);
+          if (genomic.biomarkers.pdl1.cps >= threshold) {
+            matchedBiomarkers.push(`PD-L1 CPS ${genomic.biomarkers.pdl1.cps} meets threshold ≥${threshold}`);
+          }
+        } else if (tpsMatch && genomic.biomarkers.pdl1.tps !== null) {
+          const threshold = parseFloat(tpsMatch[1]);
+          if (genomic.biomarkers.pdl1.tps >= threshold) {
+            matchedBiomarkers.push(`PD-L1 TPS ${genomic.biomarkers.pdl1.tps}% meets threshold ≥${threshold}`);
+          }
+        }
+      }
+      continue;
+    }
+
+    // Check specific gene mutations
+    for (const gene of alterationGenes) {
+      if (reqName.includes(gene) || gene.includes(reqName)) {
+        const alt = alterationMap.get(gene)!;
+        if (reqCondition.includes('mutation') || reqCondition.includes('positive') || reqCondition.includes('alteration')) {
+          matchedGenomicCriteria.push(`${alt.gene} ${alt.alteration} matches required ${req.name}`);
+        }
+      }
+    }
+  }
+
+  // Check excluded biomarkers against genomic data
+  for (const exc of eligibility.biomarkers.excluded) {
+    const excName = exc.name.toLowerCase();
+    for (const gene of alterationGenes) {
+      if (excName.includes(gene) || gene.includes(excName)) {
+        const alt = alterationMap.get(gene)!;
+        hasMismatch = true;
+        mismatchReason = `Trial excludes ${exc.name}, found ${alt.gene} ${alt.alteration}`;
+        break;
+      }
+    }
+  }
+
+  if (hasMismatch) {
+    return { status: 'mismatch', reason: mismatchReason, details: { matchedBiomarkers, matchedGenomicCriteria } };
+  }
+
+  if (matchedBiomarkers.length > 0 || matchedGenomicCriteria.length > 0) {
+    return {
+      status: 'match',
+      reason: `Genomic profile matches: ${[...matchedBiomarkers, ...matchedGenomicCriteria].join('; ')}`,
+      details: { matchedBiomarkers, matchedGenomicCriteria },
+    };
+  }
+
+  return { status: 'unknown', reason: 'No specific genomic criteria to match against', details: { matchedBiomarkers: [], matchedGenomicCriteria: [] } };
+}
+
+// ---------------------------------------------------------------------------
+// Dynamic weight function
+// ---------------------------------------------------------------------------
+
+function getWeights(hasGenomicData: boolean) {
+  if (!hasGenomicData) return WEIGHTS;
+  return {
+    cancerType: 0.25 * 0.75,
+    stage: 0.20 * 0.75,
+    biomarkers: 0.20 * 0.75,
+    priorTreatments: 0.15 * 0.75,
+    ecog: 0.10 * 0.75,
+    age: 0.10 * 0.75,
+    genomics: 0.25,
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Tier 2: Soft scoring
 // ---------------------------------------------------------------------------
 
@@ -424,6 +566,8 @@ function scoreTrial(profile: PatientProfile, trial: { parsedEligibility: ParsedE
   const elig = trial.parsedEligibility;
   const breakdown: MatchBreakdownItem[] = [];
   const blockers: string[] = [];
+  const hasGenomic = !!profile.genomicData;
+  const weights = getWeights(hasGenomic);
 
   // Cancer type (fuzzy)
   const ctStatus = cancerTypeFuzzyMatch(
@@ -433,7 +577,7 @@ function scoreTrial(profile: PatientProfile, trial: { parsedEligibility: ParsedE
   breakdown.push({
     category: 'cancerType',
     score: scoreStatus(ctStatus),
-    weight: WEIGHTS.cancerType,
+    weight: weights.cancerType,
     status: ctStatus,
     reason: ctStatus === 'match'
       ? 'Cancer type matches'
@@ -448,7 +592,7 @@ function scoreTrial(profile: PatientProfile, trial: { parsedEligibility: ParsedE
   breakdown.push({
     category: 'stage',
     score: scoreStatus(stStatus),
-    weight: WEIGHTS.stage,
+    weight: weights.stage,
     status: stStatus,
     reason: stStatus === 'match'
       ? `Stage ${profile.stage} matches trial requirement`
@@ -465,7 +609,7 @@ function scoreTrial(profile: PatientProfile, trial: { parsedEligibility: ParsedE
   breakdown.push({
     category: 'biomarkers',
     score: scoreStatus(bmResult.status),
-    weight: WEIGHTS.biomarkers,
+    weight: weights.biomarkers,
     status: bmResult.status,
     reason: bmResult.reason,
   });
@@ -476,7 +620,7 @@ function scoreTrial(profile: PatientProfile, trial: { parsedEligibility: ParsedE
   breakdown.push({
     category: 'priorTreatments',
     score: scoreStatus(txResult.status),
-    weight: WEIGHTS.priorTreatments,
+    weight: weights.priorTreatments,
     status: txResult.status,
     reason: txResult.reason,
   });
@@ -487,7 +631,7 @@ function scoreTrial(profile: PatientProfile, trial: { parsedEligibility: ParsedE
   breakdown.push({
     category: 'ecog',
     score: scoreStatus(ecResult.status),
-    weight: WEIGHTS.ecog,
+    weight: weights.ecog,
     status: ecResult.status,
     reason: ecResult.reason,
   });
@@ -498,11 +642,24 @@ function scoreTrial(profile: PatientProfile, trial: { parsedEligibility: ParsedE
   breakdown.push({
     category: 'age',
     score: scoreStatus(ageResult.status),
-    weight: WEIGHTS.age,
+    weight: weights.age,
     status: ageResult.status,
     reason: ageResult.reason,
   });
   if (ageResult.status === 'mismatch') blockers.push(ageResult.reason);
+
+  // Genomics (only if genomic data present)
+  if (hasGenomic) {
+    const gmResult = genomicMatch(profile, elig);
+    breakdown.push({
+      category: 'genomics',
+      score: scoreStatus(gmResult.status),
+      weight: (weights as { genomics: number }).genomics,
+      status: gmResult.status,
+      reason: gmResult.reason,
+    });
+    if (gmResult.status === 'mismatch') blockers.push(gmResult.reason);
+  }
 
   // Weighted sum
   const score = breakdown.reduce((sum, item) => sum + item.score * item.weight, 0);
@@ -698,6 +855,82 @@ export async function generateMatchesForPatient(patientId: string): Promise<numb
   return scored.length;
 }
 
+// ---------------------------------------------------------------------------
+// Compute match delta (before vs after genomic data)
+// ---------------------------------------------------------------------------
+
+export async function computeMatchDelta(patientId: string): Promise<MatchDelta> {
+  // Load existing matches (before scores)
+  const existingMatches = await prisma.match.findMany({
+    where: { patientId },
+    select: { trialId: true, matchScore: true, trial: { select: { nctId: true, title: true } } },
+  });
+  const beforeMap = new Map(existingMatches.map(m => [m.trialId, { score: m.matchScore, nctId: m.trial.nctId, title: m.trial.title }]));
+  const totalBefore = existingMatches.length;
+
+  // Re-run matching (now includes genomic data in profile)
+  await generateMatchesForPatient(patientId);
+
+  // Load new matches
+  const newMatches = await prisma.match.findMany({
+    where: { patientId },
+    select: { trialId: true, matchScore: true, matchBreakdown: true, trial: { select: { nctId: true, title: true } } },
+  });
+
+  const delta: MatchDelta = {
+    newMatches: [],
+    improvedMatches: [],
+    removedMatches: [],
+    totalBefore,
+    totalAfter: newMatches.length,
+  };
+
+  const afterTrialIds = new Set<string>();
+
+  for (const match of newMatches) {
+    afterTrialIds.add(match.trialId);
+    const before = beforeMap.get(match.trialId);
+
+    // Determine genomic basis from breakdown
+    const breakdown = match.matchBreakdown as { items?: { category: string; reason: string }[] } | null;
+    const genomicsItem = breakdown?.items?.find(i => i.category === 'genomics');
+    const genomicBasis = genomicsItem?.reason ?? '';
+
+    if (!before) {
+      delta.newMatches.push({
+        trialId: match.trialId,
+        nctId: match.trial.nctId,
+        title: match.trial.title,
+        matchScore: match.matchScore,
+        genomicBasis,
+      });
+    } else if (match.matchScore > before.score + 1) {
+      delta.improvedMatches.push({
+        trialId: match.trialId,
+        nctId: match.trial.nctId,
+        title: match.trial.title,
+        oldScore: before.score,
+        newScore: match.matchScore,
+        genomicBasis,
+      });
+    }
+  }
+
+  // Find removed matches
+  for (const [trialId, before] of beforeMap) {
+    if (!afterTrialIds.has(trialId)) {
+      delta.removedMatches.push({
+        trialId,
+        nctId: before.nctId,
+        title: before.title,
+        reason: 'Genomic data revealed incompatibility',
+      });
+    }
+  }
+
+  return delta;
+}
+
 // Exported for testing/reuse
 export {
   cancerTypeFuzzyMatch,
@@ -707,4 +940,5 @@ export {
   toCanonicalCancerType,
   parseStageNumeric,
   scoreTrial,
+  genomicMatch,
 };

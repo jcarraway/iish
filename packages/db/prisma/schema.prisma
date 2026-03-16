@@ -91,6 +91,7 @@ model Patient {
   matches           Match[]
   financialMatches  FinancialMatch[]
   sequencingOrders  SequencingOrder[]
+  genomicResults    GenomicResult[]
 
   @@map("patients")
 }
@@ -265,8 +266,9 @@ model SequencingOrder {
   createdAt           DateTime @default(now()) @map("created_at")
   updatedAt           DateTime @updatedAt @map("updated_at")
 
-  patient  Patient            @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  provider SequencingProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  patient        Patient            @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  provider       SequencingProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  genomicResult  GenomicResult?
 
   @@index([patientId, createdAt(sort: Desc)])
   @@index([providerId])
@@ -302,4 +304,34 @@ model UserEvent {
   @@index([userId, createdAt])
   @@index([event, createdAt])
   @@map("user_events")
+}
+
+model GenomicResult {
+  id                    String    @id @default(uuid()) @db.Uuid
+  patientId             String    @map("patient_id") @db.Uuid
+  orderId               String?   @unique @map("order_id") @db.Uuid
+  documentUploadId      String?   @map("document_upload_id") @db.Uuid
+  source                String    @db.VarChar(50)
+  provider              String
+  testName              String    @map("test_name")
+  reportDate            DateTime? @map("report_date")
+  specimenDate          DateTime? @map("specimen_date")
+  alterations           Json      @map("alterations")
+  biomarkers            Json      @map("biomarkers")
+  germlineFindings      Json?     @map("germline_findings")
+  reportTherapyMatches  Json?     @map("report_therapy_matches")
+  interpretation        Json?     @map("interpretation")
+  interpretationAt      DateTime? @map("interpretation_at")
+  patientConfirmed      Boolean   @default(false) @map("patient_confirmed")
+  extractionConfidence  Float?    @map("extraction_confidence")
+  matchDelta            Json?     @map("match_delta")
+  rematchedAt           DateTime? @map("rematched_at")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  patient Patient          @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  order   SequencingOrder? @relation(fields: [orderId], references: [id])
+
+  @@index([patientId, createdAt(sort: Desc)])
+  @@map("genomic_results")
 }

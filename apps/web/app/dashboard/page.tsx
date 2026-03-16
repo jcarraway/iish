@@ -13,6 +13,7 @@ interface DashboardData {
   fhirConnectionCount: number;
   sequencingOrderCount: number;
   sequencingLatestStatus: string | null;
+  genomicResultCount: number;
 }
 
 export default function DashboardPage() {
@@ -24,11 +25,12 @@ export default function DashboardPage() {
     async function loadDashboard() {
       try {
         // Load matches and financial data in parallel
-        const [matchRes, financialRes, fhirRes, ordersRes] = await Promise.all([
+        const [matchRes, financialRes, fhirRes, ordersRes, genomicRes] = await Promise.all([
           fetch('/api/matches').then(r => r.ok ? r.json() : null).catch(() => null),
           fetch('/api/financial').then(r => r.ok ? r.json() : null).catch(() => null),
           fetch('/api/fhir/connections').then(r => r.ok ? r.json() : null).catch(() => null),
           fetch('/api/sequencing/orders').then(r => r.ok ? r.json() : null).catch(() => null),
+          fetch('/api/genomics/results').then(r => r.ok ? r.json() : null).catch(() => null),
         ]);
 
         const activeConnections = (fhirRes?.connections ?? []).filter(
@@ -46,9 +48,10 @@ export default function DashboardPage() {
           fhirConnectionCount: activeConnections.length,
           sequencingOrderCount: orders.length,
           sequencingLatestStatus: orders[0]?.status ?? null,
+          genomicResultCount: genomicRes?.results?.length ?? 0,
         });
       } catch {
-        setData({ matchCount: 0, topMatchScore: null, financialEligibleCount: 0, financialTotalEstimated: 0, hasProfile: false, fhirConnectionCount: 0, sequencingOrderCount: 0, sequencingLatestStatus: null });
+        setData({ matchCount: 0, topMatchScore: null, financialEligibleCount: 0, financialTotalEstimated: 0, hasProfile: false, fhirConnectionCount: 0, sequencingOrderCount: 0, sequencingLatestStatus: null, genomicResultCount: 0 });
       } finally {
         setLoading(false);
       }
@@ -172,13 +175,18 @@ export default function DashboardPage() {
             </div>
             <h2 className="font-semibold text-gray-900">Sequencing</h2>
           </div>
-          {data.sequencingOrderCount > 0 ? (
+          {data.sequencingOrderCount > 0 || data.genomicResultCount > 0 ? (
             <>
               <p className="mt-3 text-2xl font-bold text-gray-900">{data.sequencingOrderCount}</p>
               <p className="text-xs text-gray-500">
                 order{data.sequencingOrderCount !== 1 ? 's' : ''}
                 {data.sequencingLatestStatus && ` · ${data.sequencingLatestStatus.replace(/_/g, ' ')}`}
               </p>
+              {data.genomicResultCount > 0 && (
+                <span className="mt-2 inline-block rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+                  Genomic data uploaded
+                </span>
+              )}
             </>
           ) : (
             <>

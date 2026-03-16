@@ -26,6 +26,14 @@ export interface PatientProfile {
   ecogStatus?: number;
   age?: number;
   zipCode?: string;
+  genomicData?: {
+    testProvider: string;
+    testName: string;
+    testDate: string | null;
+    alterations: GenomicAlteration[];
+    biomarkers: GenomicBiomarkers;
+    germlineFindings: GermlineFinding[] | null;
+  };
 }
 
 export interface ParsedEligibility {
@@ -377,4 +385,76 @@ export interface WaitingContent {
   clinicalTrialContext: string;
   timelineExpectations: string;
   generatedAt: string;
+}
+
+// --- Genomic Results Types ---
+
+export interface GenomicAlteration {
+  gene: string;
+  alteration: string;
+  alterationType: string;
+  variantAlleleFrequency: number | null;
+  clinicalSignificance: string;
+  therapyImplications: {
+    approvedTherapies: string[];
+    clinicalTrials: string[];
+    resistanceMutations: string[];
+  };
+  confidence: number;
+}
+
+export interface GenomicBiomarkers {
+  tmb: { value: number; unit: string; status: string } | null;
+  msi: { status: string; score: number | null } | null;
+  pdl1: { tps: number | null; cps: number | null } | null;
+  loh: { status: string } | null;
+  hrd: { score: number | null; status: string } | null;
+}
+
+export interface GermlineFinding {
+  gene: string;
+  variant: string;
+  significance: string;
+}
+
+export interface GenomicReportExtraction {
+  provider: string;
+  testName: string;
+  reportDate: string | null;
+  specimenDate: string | null;
+  specimenType: string | null;
+  genomicAlterations: GenomicAlteration[];
+  biomarkers: GenomicBiomarkers;
+  germlineFindings: GermlineFinding[] | null;
+  reportTherapyMatches: { therapy: string; evidence: string; gene: string }[];
+  extractionConfidence: number;
+}
+
+export interface GenomicInterpretation {
+  summary: string;
+  mutations: {
+    gene: string;
+    alteration: string;
+    explanation: string;
+    significance: 'actionable' | 'informational' | 'uncertain';
+    availableTherapies: string[];
+    relevantTrials: string[];
+    prognosisImpact: string | null;
+  }[];
+  biomarkerProfile: {
+    name: string;
+    value: string;
+    explanation: string;
+    immunotherapyRelevance: string;
+  }[];
+  questionsForOncologist: { question: string; whyItMatters: string }[];
+  generatedAt: string;
+}
+
+export interface MatchDelta {
+  newMatches: { trialId: string; nctId: string; title: string; matchScore: number; genomicBasis: string }[];
+  improvedMatches: { trialId: string; nctId: string; title: string; oldScore: number; newScore: number; genomicBasis: string }[];
+  removedMatches: { trialId: string; nctId: string; title: string; reason: string }[];
+  totalBefore: number;
+  totalAfter: number;
 }
