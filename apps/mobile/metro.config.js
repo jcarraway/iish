@@ -13,4 +13,7 @@ config.resolver.nodeModulesPaths = [
   path.resolve(monorepoRoot, 'node_modules'),
 ];
 
+// Enable symlinks for pnpm workspace packages
+config.resolver.unstable_enableSymlinks = true;
+
 module.exports = config;

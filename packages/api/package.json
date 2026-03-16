@@ -1,0 +1,26 @@
+{
+  "name": "@oncovax/api",
+  "version": "0.0.1",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@apollo/server": "^4.11.0",
+    "@as-integrations/next": "^3.1.0",
+    "graphql": "^16.9.0",
+    "@oncovax/shared": "workspace:*",
+    "@oncovax/db": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "@types/node": "^20.0.0"
+  }
+}
