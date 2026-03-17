@@ -38,6 +38,9 @@ import { discoverEndpoints, buildAuthorizeUrl, decryptToken } from '@/lib/fhir/s
 import { FhirClient } from '@/lib/fhir/client';
 import { extractFhirResources } from '@/lib/fhir/extract-resources';
 import { isValidTransition } from '@/lib/manufacturing-orders';
+import { refreshAccessToken, encryptToken } from '@/lib/fhir/smart-auth';
+import { mapFhirToPatientProfile } from '@/lib/fhir/mapper';
+import type { PatientProfile } from '@oncovax/shared';
 
 // ============================================================================
 // Adapter functions — bridge resolver signatures to actual lib functions
@@ -619,6 +622,139 @@ async function createSequencingOrderAdapter(patientId: string, providerId: strin
   });
 }
 
+// --- FHIR revoke/resync ---
+
+async function revokeFhirConnectionAdapter(patientId: string, connectionId: string) {
+  const connection = await prisma.fhirConnection.findFirst({
+    where: { id: connectionId, patientId },
+  });
+  if (!connection) throw new Error('Connection not found');
+
+  await prisma.fhirConnection.update({
+    where: { id: connection.id },
+    data: {
+      accessTokenEnc: null,
+      refreshTokenEnc: null,
+      tokenExpiresAt: null,
+      syncStatus: 'revoked',
+    },
+  });
+
+  // Clear FHIR-sourced fields from patient profile
+  const patient = await prisma.patient.findUnique({ where: { id: patientId } });
+  if (patient) {
+    const existingProfile = (patient.profile as PatientProfile | null) ?? {};
+    const existingFieldSources = (patient.fieldSources as Record<string, string> | null) ?? {};
+    const cleanedProfile = { ...existingProfile } as Record<string, unknown>;
+    const cleanedFieldSources = { ...existingFieldSources };
+
+    for (const [key, source] of Object.entries(existingFieldSources)) {
+      if (source === 'fhir') {
+        delete cleanedProfile[key];
+        delete cleanedFieldSources[key];
+      }
+    }
+
+    await prisma.patient.update({
+      where: { id: patientId },
+      data: {
+        profile: JSON.parse(JSON.stringify(cleanedProfile)),
+        fieldSources: JSON.parse(JSON.stringify(cleanedFieldSources)),
+      },
+    });
+  }
+
+  return true;
+}
+
+const EPIC_CLIENT_ID = process.env.EPIC_CLIENT_ID ?? 'oncovax-dev';
+
+async function resyncFhirConnectionAdapter(patientId: string, connectionId: string) {
+  const connection = await prisma.fhirConnection.findFirst({
+    where: { id: connectionId, patientId },
+    include: { healthSystem: true },
+  });
+  if (!connection || !connection.fhirBaseUrl) throw new Error('Connection not found');
+  if (connection.syncStatus === 'revoked') throw new Error('Connection has been revoked');
+  if (!connection.accessTokenEnc) throw new Error('No access token');
+
+  let accessToken = await decryptToken(connection.accessTokenEnc);
+
+  // Refresh token if expired or about to expire
+  const isExpiring = connection.tokenExpiresAt &&
+    new Date(connection.tokenExpiresAt).getTime() - Date.now() < 5 * 60 * 1000;
+
+  if (isExpiring && connection.refreshTokenEnc) {
+    const refreshToken = await decryptToken(connection.refreshTokenEnc);
+    const endpoints = await discoverEndpoints(connection.fhirBaseUrl);
+    const newTokens = await refreshAccessToken(endpoints.tokenUrl, refreshToken, EPIC_CLIENT_ID);
+
+    accessToken = newTokens.accessToken;
+    const newAccessEnc = await encryptToken(newTokens.accessToken);
+    const newRefreshEnc = newTokens.refreshToken
+      ? await encryptToken(newTokens.refreshToken)
+      : connection.refreshTokenEnc;
+
+    await prisma.fhirConnection.update({
+      where: { id: connection.id },
+      data: {
+        accessTokenEnc: newAccessEnc,
+        refreshTokenEnc: newRefreshEnc,
+        tokenExpiresAt: newTokens.expiresIn
+          ? new Date(Date.now() + newTokens.expiresIn * 1000)
+          : null,
+      },
+    });
+  }
+
+  const client = new FhirClient(connection.fhirBaseUrl, accessToken);
+  const rawData = await extractFhirResources(client, patientId);
+  const result = mapFhirToPatientProfile(rawData, connection.healthSystemName ?? undefined);
+
+  // Merge profile
+  const patient = await prisma.patient.findUnique({ where: { id: patientId } });
+  if (patient) {
+    const existingProfile = (patient.profile as PatientProfile | null) ?? {};
+    const existingFieldSources = (patient.fieldSources as Record<string, string> | null) ?? {};
+    const mergedProfile: Record<string, unknown> = { ...existingProfile };
+    const mergedFieldSources = { ...existingFieldSources };
+
+    for (const [key, value] of Object.entries(result.profile)) {
+      if (value !== undefined && value !== null) {
+        const existingSource = existingFieldSources[key];
+        if (!existingSource || existingSource !== 'manual') {
+          mergedProfile[key] = value;
+          mergedFieldSources[key] = 'fhir';
+        }
+      }
+    }
+
+    await prisma.patient.update({
+      where: { id: patientId },
+      data: {
+        profile: JSON.parse(JSON.stringify(mergedProfile)),
+        fieldSources: JSON.parse(JSON.stringify(mergedFieldSources)),
+      },
+    });
+  }
+
+  await prisma.fhirConnection.update({
+    where: { id: connection.id },
+    data: {
+      lastSyncedAt: new Date(),
+      resourcesPulled: JSON.parse(JSON.stringify(result.resourceSummary)),
+      syncStatus: 'synced',
+    },
+  });
+
+  return {
+    completeness: result.completeness,
+    missingFields: result.missingFields,
+    resourceSummary: result.resourceSummary,
+    extractedAt: result.extractedAt,
+  };
+}
+
 // ============================================================================
 // Apollo Server setup
 // ============================================================================
@@ -689,6 +825,8 @@ const handler = startServerAndCreateNextHandler<NextRequest, GraphQLContext>(ser
         getFhirConnections: fhirConnectionsAdapter,
         authorizeFhir: authorizeFhirAdapter,
         extractFhir: extractFhirAdapter,
+        revokeFhirConnection: revokeFhirConnectionAdapter,
+        resyncFhirConnection: resyncFhirConnectionAdapter,
 
         // Documents
         getPresignedUploadUrl,

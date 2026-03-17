@@ -17,6 +17,7 @@ query GetFhirConnections {
     syncStatus
     lastSyncedAt
     scopesGranted
+    resourcesPulled
   }
 }
 
@@ -28,4 +29,12 @@ mutation AuthorizeFhir($healthSystemId: String!) {
 
 mutation ExtractFhir($connectionId: String!) {
   extractFhir(connectionId: $connectionId)
+}
+
+mutation RevokeFhirConnection($connectionId: String!) {
+  revokeFhirConnection(connectionId: $connectionId)
+}
+
+mutation ResyncFhirConnection($connectionId: String!) {
+  resyncFhirConnection(connectionId: $connectionId)
 }

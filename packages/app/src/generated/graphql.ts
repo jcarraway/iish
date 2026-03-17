@@ -145,6 +145,7 @@ export type FhirConnection = {
   healthSystemName?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
   lastSyncedAt?: Maybe<Scalars['DateTime']['output']>;
+  resourcesPulled?: Maybe<Scalars['JSON']['output']>;
   scopesGranted?: Maybe<Array<Scalars['String']['output']>>;
   syncStatus?: Maybe<Scalars['String']['output']>;
 };
@@ -464,6 +465,7 @@ export type Mutation = {
   addOrderNote: ManufacturingOrder;
   assessRegulatoryPathway: RegulatoryPathwayAssessment;
   authorizeFhir: FhirAuthorizeResult;
+  cancelPipelineJob: PipelineJob;
   checkInsuranceCoverage: InsuranceCoverage;
   confirmGenomics: GenomicResult;
   connectSite: ManufacturingOrder;
@@ -485,6 +487,8 @@ export type Mutation = {
   rematch: MatchDelta;
   requestGeneralUploadUrl: UploadUrlResult;
   requestUploadUrl: UploadUrl;
+  resyncFhirConnection: Scalars['JSON']['output'];
+  revokeFhirConnection: Scalars['Boolean']['output'];
   savePatientIntake: Patient;
   submitMonitoringReport: MonitoringReport;
   submitPipelineJob: PipelineJob;
@@ -494,6 +498,7 @@ export type Mutation = {
   updateMatchStatus: Match;
   updatePatientProfile: Patient;
   updateRegulatoryDocumentStatus: RegulatoryDocument;
+  updateSequencingOrderStatus: SequencingOrder;
 };
 
 
@@ -515,6 +520,11 @@ export type MutationAssessRegulatoryPathwayArgs = {
 
 export type MutationAuthorizeFhirArgs = {
   healthSystemId: Scalars['String']['input'];
+};
+
+
+export type MutationCancelPipelineJobArgs = {
+  jobId: Scalars['String']['input'];
 };
 
 
@@ -610,6 +620,16 @@ export type MutationRequestUploadUrlArgs = {
 };
 
 
+export type MutationResyncFhirConnectionArgs = {
+  connectionId: Scalars['String']['input'];
+};
+
+
+export type MutationRevokeFhirConnectionArgs = {
+  connectionId: Scalars['String']['input'];
+};
+
+
 export type MutationSavePatientIntakeArgs = {
   input: PatientIntakeInput;
 };
@@ -660,6 +680,12 @@ export type MutationUpdatePatientProfileArgs = {
 export type MutationUpdateRegulatoryDocumentStatusArgs = {
   id: Scalars['String']['input'];
   reviewNotes?: InputMaybe<Scalars['String']['input']>;
+  status: Scalars['String']['input'];
+};
+
+
+export type MutationUpdateSequencingOrderStatusArgs = {
+  orderId: Scalars['String']['input'];
   status: Scalars['String']['input'];
 };
 
@@ -793,6 +819,7 @@ export type PipelineJob = {
   createdAt: Scalars['DateTime']['output'];
   currentStep?: Maybe<Scalars['String']['output']>;
   estimatedCompletion?: Maybe<Scalars['String']['output']>;
+  estimatedCostUsd?: Maybe<Scalars['Float']['output']>;
   hlaGenotype?: Maybe<Scalars['JSON']['output']>;
   id: Scalars['String']['output'];
   inputFormat: Scalars['String']['output'];
@@ -801,9 +828,11 @@ export type PipelineJob = {
   referenceGenome: Scalars['String']['output'];
   startedAt?: Maybe<Scalars['DateTime']['output']>;
   status: Scalars['String']['output'];
+  stepErrors?: Maybe<Scalars['JSON']['output']>;
   stepsCompleted: Array<Scalars['String']['output']>;
   tmb?: Maybe<Scalars['Float']['output']>;
   topNeoantigens?: Maybe<Scalars['JSON']['output']>;
+  totalComputeSeconds?: Maybe<Scalars['Float']['output']>;
   vaccineBlueprint?: Maybe<Scalars['JSON']['output']>;
   variantCount?: Maybe<Scalars['Int']['output']>;
 };
@@ -812,6 +841,7 @@ export type PipelineResultDownloads = {
   __typename?: 'PipelineResultDownloads';
   fullReportPdf?: Maybe<Scalars['String']['output']>;
   jobId: Scalars['String']['output'];
+  neoantigenReport?: Maybe<Scalars['String']['output']>;
   patientSummary?: Maybe<Scalars['String']['output']>;
   vaccineBlueprint?: Maybe<Scalars['String']['output']>;
 };
@@ -835,6 +865,7 @@ export type Query = {
   financialMatches: Array<FinancialMatch>;
   financialProgram?: Maybe<FinancialProgram>;
   financialPrograms: Array<FinancialProgram>;
+  genomicResult?: Maybe<GenomicResult>;
   genomicResults: Array<GenomicResult>;
   healthSystems: Array<HealthSystem>;
   manufacturingOrder?: Maybe<ManufacturingOrder>;
@@ -863,6 +894,7 @@ export type Query = {
   reportPdf: ReportPdfResult;
   sequencingBrief: Scalars['String']['output'];
   sequencingExplanation: SequencingExplanation;
+  sequencingOrder?: Maybe<SequencingOrder>;
   sequencingOrders: Array<SequencingOrder>;
   sequencingProviders: Array<SequencingProvider>;
   sequencingRecommendation: SequencingRecommendation;
@@ -887,6 +919,11 @@ export type QueryAdministrationSitesArgs = {
 
 export type QueryFinancialProgramArgs = {
   programId: Scalars['String']['input'];
+};
+
+
+export type QueryGenomicResultArgs = {
+  id: Scalars['String']['input'];
 };
 
 
@@ -990,6 +1027,11 @@ export type QuerySequencingBriefArgs = {
 };
 
 
+export type QuerySequencingOrderArgs = {
+  id: Scalars['String']['input'];
+};
+
+
 export type QueryTestRecommendationArgs = {
   preferComprehensive?: InputMaybe<Scalars['Boolean']['input']>;
   tissueAvailable?: InputMaybe<Scalars['Boolean']['input']>;
@@ -1074,11 +1116,14 @@ export type SequencingOrder = {
   __typename?: 'SequencingOrder';
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['String']['output'];
+  insuranceCoverage?: Maybe<Scalars['JSON']['output']>;
+  lomnContent?: Maybe<Scalars['String']['output']>;
   patientId: Scalars['String']['output'];
   provider?: Maybe<SequencingProvider>;
   providerId: Scalars['String']['output'];
   status: Scalars['String']['output'];
   testType: Scalars['String']['output'];
+  updatedAt?: Maybe<Scalars['DateTime']['output']>;
 };
 
 export type SequencingProvider = {
@@ -1278,7 +1323,7 @@ export type GetHealthSystemsQuery = { __typename?: 'Query', healthSystems: Array
 export type GetFhirConnectionsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetFhirConnectionsQuery = { __typename?: 'Query', fhirConnections: Array<{ __typename?: 'FhirConnection', id: string, healthSystemName?: string | null, syncStatus?: string | null, lastSyncedAt?: string | null, scopesGranted?: Array<string> | null }> };
+export type GetFhirConnectionsQuery = { __typename?: 'Query', fhirConnections: Array<{ __typename?: 'FhirConnection', id: string, healthSystemName?: string | null, syncStatus?: string | null, lastSyncedAt?: string | null, scopesGranted?: Array<string> | null, resourcesPulled?: Record<string, unknown> | null }> };
 
 export type AuthorizeFhirMutationVariables = Exact<{
   healthSystemId: Scalars['String']['input'];
@@ -1293,6 +1338,20 @@ export type ExtractFhirMutationVariables = Exact<{
 
 
 export type ExtractFhirMutation = { __typename?: 'Mutation', extractFhir: Record<string, unknown> };
+
+export type RevokeFhirConnectionMutationVariables = Exact<{
+  connectionId: Scalars['String']['input'];
+}>;
+
+
+export type RevokeFhirConnectionMutation = { __typename?: 'Mutation', revokeFhirConnection: boolean };
+
+export type ResyncFhirConnectionMutationVariables = Exact<{
+  connectionId: Scalars['String']['input'];
+}>;
+
+
+export type ResyncFhirConnectionMutation = { __typename?: 'Mutation', resyncFhirConnection: Record<string, unknown> };
 
 export type GetFinancialProgramsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1329,6 +1388,13 @@ export type GetGenomicResultsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type GetGenomicResultsQuery = { __typename?: 'Query', genomicResults: Array<{ __typename?: 'GenomicResult', id: string, patientId: string, provider: string, testName: string, reportDate?: string | null, interpretation?: Record<string, unknown> | null, createdAt: string, alterations: Array<{ __typename?: 'GenomicAlteration', gene: string, alteration: string, alterationType: string, variantAlleleFrequency?: number | null, clinicalSignificance: string, confidence: number, therapyImplications: { __typename?: 'TherapyImplications', approvedTherapies: Array<string>, clinicalTrials: Array<string>, resistanceMutations: Array<string> } }>, biomarkers?: { __typename?: 'GenomicBiomarkers', tmb?: { __typename?: 'TmbBiomarker', value: number, unit: string, status: string } | null, msi?: { __typename?: 'MsiBiomarker', status: string, score?: number | null } | null, pdl1?: { __typename?: 'Pdl1Biomarker', tps?: number | null, cps?: number | null } | null, loh?: { __typename?: 'LohBiomarker', status: string } | null, hrd?: { __typename?: 'HrdBiomarker', score?: number | null, status: string } | null } | null }> };
+
+export type GetGenomicResultQueryVariables = Exact<{
+  id: Scalars['String']['input'];
+}>;
+
+
+export type GetGenomicResultQuery = { __typename?: 'Query', genomicResult?: { __typename?: 'GenomicResult', id: string, patientId: string, provider: string, testName: string, reportDate?: string | null, interpretation?: Record<string, unknown> | null, createdAt: string, alterations: Array<{ __typename?: 'GenomicAlteration', gene: string, alteration: string, alterationType: string, variantAlleleFrequency?: number | null, clinicalSignificance: string, confidence: number, therapyImplications: { __typename?: 'TherapyImplications', approvedTherapies: Array<string>, clinicalTrials: Array<string>, resistanceMutations: Array<string> } }>, biomarkers?: { __typename?: 'GenomicBiomarkers', tmb?: { __typename?: 'TmbBiomarker', value: number, unit: string, status: string } | null, msi?: { __typename?: 'MsiBiomarker', status: string, score?: number | null } | null, pdl1?: { __typename?: 'Pdl1Biomarker', tps?: number | null, cps?: number | null } | null, loh?: { __typename?: 'LohBiomarker', status: string } | null, hrd?: { __typename?: 'HrdBiomarker', score?: number | null, status: string } | null } | null } | null };
 
 export type GetMatchDeltaQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1609,7 +1675,7 @@ export type GetPipelineJobQueryVariables = Exact<{
 }>;
 
 
-export type GetPipelineJobQuery = { __typename?: 'Query', pipelineJob?: { __typename?: 'PipelineJob', id: string, patientId: string, status: string, currentStep?: string | null, stepsCompleted: Array<string>, inputFormat: string, referenceGenome: string, startedAt?: string | null, completedAt?: string | null, estimatedCompletion?: string | null, variantCount?: number | null, tmb?: number | null, hlaGenotype?: Record<string, unknown> | null, neoantigenCount?: number | null, topNeoantigens?: Record<string, unknown> | null, vaccineBlueprint?: Record<string, unknown> | null, createdAt: string } | null };
+export type GetPipelineJobQuery = { __typename?: 'Query', pipelineJob?: { __typename?: 'PipelineJob', id: string, patientId: string, status: string, currentStep?: string | null, stepsCompleted: Array<string>, inputFormat: string, referenceGenome: string, startedAt?: string | null, completedAt?: string | null, estimatedCompletion?: string | null, variantCount?: number | null, tmb?: number | null, hlaGenotype?: Record<string, unknown> | null, neoantigenCount?: number | null, topNeoantigens?: Record<string, unknown> | null, vaccineBlueprint?: Record<string, unknown> | null, stepErrors?: Record<string, unknown> | null, totalComputeSeconds?: number | null, estimatedCostUsd?: number | null, createdAt: string } | null };
 
 export type GetNeoantigensQueryVariables = Exact<{
   pipelineJobId: Scalars['String']['input'];
@@ -1629,7 +1695,7 @@ export type GetPipelineResultsQueryVariables = Exact<{
 }>;
 
 
-export type GetPipelineResultsQuery = { __typename?: 'Query', pipelineResults: { __typename?: 'PipelineResultDownloads', jobId: string, patientSummary?: string | null, fullReportPdf?: string | null, vaccineBlueprint?: string | null } };
+export type GetPipelineResultsQuery = { __typename?: 'Query', pipelineResults: { __typename?: 'PipelineResultDownloads', jobId: string, patientSummary?: string | null, fullReportPdf?: string | null, vaccineBlueprint?: string | null, neoantigenReport?: string | null } };
 
 export type GetReportPdfQueryVariables = Exact<{
   pipelineJobId: Scalars['String']['input'];
@@ -1657,6 +1723,13 @@ export type SubmitPipelineJobMutationVariables = Exact<{
 
 export type SubmitPipelineJobMutation = { __typename?: 'Mutation', submitPipelineJob: { __typename?: 'PipelineJob', id: string, status: string, createdAt: string } };
 
+export type CancelPipelineJobMutationVariables = Exact<{
+  jobId: Scalars['String']['input'];
+}>;
+
+
+export type CancelPipelineJobMutation = { __typename?: 'Mutation', cancelPipelineJob: { __typename?: 'PipelineJob', id: string, status: string } };
+
 export type GenerateReportPdfMutationVariables = Exact<{
   pipelineJobId: Scalars['String']['input'];
   reportType: Scalars['String']['input'];
@@ -1674,6 +1747,13 @@ export type GetSequencingOrdersQueryVariables = Exact<{ [key: string]: never; }>
 
 
 export type GetSequencingOrdersQuery = { __typename?: 'Query', sequencingOrders: Array<{ __typename?: 'SequencingOrder', id: string, patientId: string, providerId: string, testType: string, status: string, createdAt: string, provider?: { __typename?: 'SequencingProvider', id: string, name: string, slug: string } | null }> };
+
+export type GetSequencingOrderQueryVariables = Exact<{
+  id: Scalars['String']['input'];
+}>;
+
+
+export type GetSequencingOrderQuery = { __typename?: 'Query', sequencingOrder?: { __typename?: 'SequencingOrder', id: string, patientId: string, providerId: string, testType: string, status: string, insuranceCoverage?: Record<string, unknown> | null, lomnContent?: string | null, createdAt: string, updatedAt?: string | null, provider?: { __typename?: 'SequencingProvider', id: string, name: string, slug: string, type: string } | null } | null };
 
 export type GetSequencingRecommendationQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1732,6 +1812,14 @@ export type GenerateSequencingRecommendationMutationVariables = Exact<{ [key: st
 
 
 export type GenerateSequencingRecommendationMutation = { __typename?: 'Mutation', generateSequencingRecommendation: { __typename?: 'SequencingRecommendation', level: string, headline: string, personalizedReasoning: string, whatItCouldReveal: Array<string>, howItHelpsRightNow: string, howItHelpsLater: string, guidelineRecommendation: string, generatedAt: string } };
+
+export type UpdateSequencingOrderStatusMutationVariables = Exact<{
+  orderId: Scalars['String']['input'];
+  status: Scalars['String']['input'];
+}>;
+
+
+export type UpdateSequencingOrderStatusMutation = { __typename?: 'Mutation', updateSequencingOrderStatus: { __typename?: 'SequencingOrder', id: string, status: string, updatedAt?: string | null } };
 
 export type CreateSequencingOrderMutationVariables = Exact<{
   providerId: Scalars['String']['input'];
@@ -2018,6 +2106,7 @@ export const GetFhirConnectionsDocument = gql`
     syncStatus
     lastSyncedAt
     scopesGranted
+    resourcesPulled
   }
 }
     `;
@@ -2120,6 +2209,68 @@ export function useExtractFhirMutation(baseOptions?: Apollo.MutationHookOptions<
 export type ExtractFhirMutationHookResult = ReturnType<typeof useExtractFhirMutation>;
 export type ExtractFhirMutationResult = Apollo.MutationResult<ExtractFhirMutation>;
 export type ExtractFhirMutationOptions = Apollo.BaseMutationOptions<ExtractFhirMutation, ExtractFhirMutationVariables>;
+export const RevokeFhirConnectionDocument = gql`
+    mutation RevokeFhirConnection($connectionId: String!) {
+  revokeFhirConnection(connectionId: $connectionId)
+}
+    `;
+export type RevokeFhirConnectionMutationFn = Apollo.MutationFunction<RevokeFhirConnectionMutation, RevokeFhirConnectionMutationVariables>;
+
+/**
+ * __useRevokeFhirConnectionMutation__
+ *
+ * To run a mutation, you first call `useRevokeFhirConnectionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRevokeFhirConnectionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [revokeFhirConnectionMutation, { data, loading, error }] = useRevokeFhirConnectionMutation({
+ *   variables: {
+ *      connectionId: // value for 'connectionId'
+ *   },
+ * });
+ */
+export function useRevokeFhirConnectionMutation(baseOptions?: Apollo.MutationHookOptions<RevokeFhirConnectionMutation, RevokeFhirConnectionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RevokeFhirConnectionMutation, RevokeFhirConnectionMutationVariables>(RevokeFhirConnectionDocument, options);
+      }
+export type RevokeFhirConnectionMutationHookResult = ReturnType<typeof useRevokeFhirConnectionMutation>;
+export type RevokeFhirConnectionMutationResult = Apollo.MutationResult<RevokeFhirConnectionMutation>;
+export type RevokeFhirConnectionMutationOptions = Apollo.BaseMutationOptions<RevokeFhirConnectionMutation, RevokeFhirConnectionMutationVariables>;
+export const ResyncFhirConnectionDocument = gql`
+    mutation ResyncFhirConnection($connectionId: String!) {
+  resyncFhirConnection(connectionId: $connectionId)
+}
+    `;
+export type ResyncFhirConnectionMutationFn = Apollo.MutationFunction<ResyncFhirConnectionMutation, ResyncFhirConnectionMutationVariables>;
+
+/**
+ * __useResyncFhirConnectionMutation__
+ *
+ * To run a mutation, you first call `useResyncFhirConnectionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useResyncFhirConnectionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [resyncFhirConnectionMutation, { data, loading, error }] = useResyncFhirConnectionMutation({
+ *   variables: {
+ *      connectionId: // value for 'connectionId'
+ *   },
+ * });
+ */
+export function useResyncFhirConnectionMutation(baseOptions?: Apollo.MutationHookOptions<ResyncFhirConnectionMutation, ResyncFhirConnectionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ResyncFhirConnectionMutation, ResyncFhirConnectionMutationVariables>(ResyncFhirConnectionDocument, options);
+      }
+export type ResyncFhirConnectionMutationHookResult = ReturnType<typeof useResyncFhirConnectionMutation>;
+export type ResyncFhirConnectionMutationResult = Apollo.MutationResult<ResyncFhirConnectionMutation>;
+export type ResyncFhirConnectionMutationOptions = Apollo.BaseMutationOptions<ResyncFhirConnectionMutation, ResyncFhirConnectionMutationVariables>;
 export const GetFinancialProgramsDocument = gql`
     query GetFinancialPrograms {
   financialPrograms {
@@ -2434,6 +2585,90 @@ export type GetGenomicResultsQueryHookResult = ReturnType<typeof useGetGenomicRe
 export type GetGenomicResultsLazyQueryHookResult = ReturnType<typeof useGetGenomicResultsLazyQuery>;
 export type GetGenomicResultsSuspenseQueryHookResult = ReturnType<typeof useGetGenomicResultsSuspenseQuery>;
 export type GetGenomicResultsQueryResult = Apollo.QueryResult<GetGenomicResultsQuery, GetGenomicResultsQueryVariables>;
+export const GetGenomicResultDocument = gql`
+    query GetGenomicResult($id: String!) {
+  genomicResult(id: $id) {
+    id
+    patientId
+    provider
+    testName
+    reportDate
+    alterations {
+      gene
+      alteration
+      alterationType
+      variantAlleleFrequency
+      clinicalSignificance
+      therapyImplications {
+        approvedTherapies
+        clinicalTrials
+        resistanceMutations
+      }
+      confidence
+    }
+    biomarkers {
+      tmb {
+        value
+        unit
+        status
+      }
+      msi {
+        status
+        score
+      }
+      pdl1 {
+        tps
+        cps
+      }
+      loh {
+        status
+      }
+      hrd {
+        score
+        status
+      }
+    }
+    interpretation
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useGetGenomicResultQuery__
+ *
+ * To run a query within a React component, call `useGetGenomicResultQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetGenomicResultQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetGenomicResultQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetGenomicResultQuery(baseOptions: Apollo.QueryHookOptions<GetGenomicResultQuery, GetGenomicResultQueryVariables> & ({ variables: GetGenomicResultQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetGenomicResultQuery, GetGenomicResultQueryVariables>(GetGenomicResultDocument, options);
+      }
+export function useGetGenomicResultLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetGenomicResultQuery, GetGenomicResultQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetGenomicResultQuery, GetGenomicResultQueryVariables>(GetGenomicResultDocument, options);
+        }
+// @ts-ignore
+export function useGetGenomicResultSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetGenomicResultQuery, GetGenomicResultQueryVariables>): Apollo.UseSuspenseQueryResult<GetGenomicResultQuery, GetGenomicResultQueryVariables>;
+export function useGetGenomicResultSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetGenomicResultQuery, GetGenomicResultQueryVariables>): Apollo.UseSuspenseQueryResult<GetGenomicResultQuery | undefined, GetGenomicResultQueryVariables>;
+export function useGetGenomicResultSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetGenomicResultQuery, GetGenomicResultQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetGenomicResultQuery, GetGenomicResultQueryVariables>(GetGenomicResultDocument, options);
+        }
+export type GetGenomicResultQueryHookResult = ReturnType<typeof useGetGenomicResultQuery>;
+export type GetGenomicResultLazyQueryHookResult = ReturnType<typeof useGetGenomicResultLazyQuery>;
+export type GetGenomicResultSuspenseQueryHookResult = ReturnType<typeof useGetGenomicResultSuspenseQuery>;
+export type GetGenomicResultQueryResult = Apollo.QueryResult<GetGenomicResultQuery, GetGenomicResultQueryVariables>;
 export const GetMatchDeltaDocument = gql`
     query GetMatchDelta {
   matchDelta {
@@ -4526,6 +4761,9 @@ export const GetPipelineJobDocument = gql`
     neoantigenCount
     topNeoantigens
     vaccineBlueprint
+    stepErrors
+    totalComputeSeconds
+    estimatedCostUsd
     createdAt
   }
 }
@@ -4648,6 +4886,7 @@ export const GetPipelineResultsDocument = gql`
     patientSummary
     fullReportPdf
     vaccineBlueprint
+    neoantigenReport
   }
 }
     `;
@@ -4826,6 +5065,40 @@ export function useSubmitPipelineJobMutation(baseOptions?: Apollo.MutationHookOp
 export type SubmitPipelineJobMutationHookResult = ReturnType<typeof useSubmitPipelineJobMutation>;
 export type SubmitPipelineJobMutationResult = Apollo.MutationResult<SubmitPipelineJobMutation>;
 export type SubmitPipelineJobMutationOptions = Apollo.BaseMutationOptions<SubmitPipelineJobMutation, SubmitPipelineJobMutationVariables>;
+export const CancelPipelineJobDocument = gql`
+    mutation CancelPipelineJob($jobId: String!) {
+  cancelPipelineJob(jobId: $jobId) {
+    id
+    status
+  }
+}
+    `;
+export type CancelPipelineJobMutationFn = Apollo.MutationFunction<CancelPipelineJobMutation, CancelPipelineJobMutationVariables>;
+
+/**
+ * __useCancelPipelineJobMutation__
+ *
+ * To run a mutation, you first call `useCancelPipelineJobMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCancelPipelineJobMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [cancelPipelineJobMutation, { data, loading, error }] = useCancelPipelineJobMutation({
+ *   variables: {
+ *      jobId: // value for 'jobId'
+ *   },
+ * });
+ */
+export function useCancelPipelineJobMutation(baseOptions?: Apollo.MutationHookOptions<CancelPipelineJobMutation, CancelPipelineJobMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CancelPipelineJobMutation, CancelPipelineJobMutationVariables>(CancelPipelineJobDocument, options);
+      }
+export type CancelPipelineJobMutationHookResult = ReturnType<typeof useCancelPipelineJobMutation>;
+export type CancelPipelineJobMutationResult = Apollo.MutationResult<CancelPipelineJobMutation>;
+export type CancelPipelineJobMutationOptions = Apollo.BaseMutationOptions<CancelPipelineJobMutation, CancelPipelineJobMutationVariables>;
 export const GenerateReportPdfDocument = gql`
     mutation GenerateReportPdf($pipelineJobId: String!, $reportType: String!) {
   generateReportPdf(pipelineJobId: $pipelineJobId, reportType: $reportType) {
@@ -4969,6 +5242,63 @@ export type GetSequencingOrdersQueryHookResult = ReturnType<typeof useGetSequenc
 export type GetSequencingOrdersLazyQueryHookResult = ReturnType<typeof useGetSequencingOrdersLazyQuery>;
 export type GetSequencingOrdersSuspenseQueryHookResult = ReturnType<typeof useGetSequencingOrdersSuspenseQuery>;
 export type GetSequencingOrdersQueryResult = Apollo.QueryResult<GetSequencingOrdersQuery, GetSequencingOrdersQueryVariables>;
+export const GetSequencingOrderDocument = gql`
+    query GetSequencingOrder($id: String!) {
+  sequencingOrder(id: $id) {
+    id
+    patientId
+    providerId
+    testType
+    status
+    provider {
+      id
+      name
+      slug
+      type
+    }
+    insuranceCoverage
+    lomnContent
+    createdAt
+    updatedAt
+  }
+}
+    `;
+
+/**
+ * __useGetSequencingOrderQuery__
+ *
+ * To run a query within a React component, call `useGetSequencingOrderQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSequencingOrderQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSequencingOrderQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetSequencingOrderQuery(baseOptions: Apollo.QueryHookOptions<GetSequencingOrderQuery, GetSequencingOrderQueryVariables> & ({ variables: GetSequencingOrderQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetSequencingOrderQuery, GetSequencingOrderQueryVariables>(GetSequencingOrderDocument, options);
+      }
+export function useGetSequencingOrderLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSequencingOrderQuery, GetSequencingOrderQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetSequencingOrderQuery, GetSequencingOrderQueryVariables>(GetSequencingOrderDocument, options);
+        }
+// @ts-ignore
+export function useGetSequencingOrderSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetSequencingOrderQuery, GetSequencingOrderQueryVariables>): Apollo.UseSuspenseQueryResult<GetSequencingOrderQuery, GetSequencingOrderQueryVariables>;
+export function useGetSequencingOrderSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetSequencingOrderQuery, GetSequencingOrderQueryVariables>): Apollo.UseSuspenseQueryResult<GetSequencingOrderQuery | undefined, GetSequencingOrderQueryVariables>;
+export function useGetSequencingOrderSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetSequencingOrderQuery, GetSequencingOrderQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetSequencingOrderQuery, GetSequencingOrderQueryVariables>(GetSequencingOrderDocument, options);
+        }
+export type GetSequencingOrderQueryHookResult = ReturnType<typeof useGetSequencingOrderQuery>;
+export type GetSequencingOrderLazyQueryHookResult = ReturnType<typeof useGetSequencingOrderLazyQuery>;
+export type GetSequencingOrderSuspenseQueryHookResult = ReturnType<typeof useGetSequencingOrderSuspenseQuery>;
+export type GetSequencingOrderQueryResult = Apollo.QueryResult<GetSequencingOrderQuery, GetSequencingOrderQueryVariables>;
 export const GetSequencingRecommendationDocument = gql`
     query GetSequencingRecommendation {
   sequencingRecommendation {
@@ -5404,6 +5734,42 @@ export function useGenerateSequencingRecommendationMutation(baseOptions?: Apollo
 export type GenerateSequencingRecommendationMutationHookResult = ReturnType<typeof useGenerateSequencingRecommendationMutation>;
 export type GenerateSequencingRecommendationMutationResult = Apollo.MutationResult<GenerateSequencingRecommendationMutation>;
 export type GenerateSequencingRecommendationMutationOptions = Apollo.BaseMutationOptions<GenerateSequencingRecommendationMutation, GenerateSequencingRecommendationMutationVariables>;
+export const UpdateSequencingOrderStatusDocument = gql`
+    mutation UpdateSequencingOrderStatus($orderId: String!, $status: String!) {
+  updateSequencingOrderStatus(orderId: $orderId, status: $status) {
+    id
+    status
+    updatedAt
+  }
+}
+    `;
+export type UpdateSequencingOrderStatusMutationFn = Apollo.MutationFunction<UpdateSequencingOrderStatusMutation, UpdateSequencingOrderStatusMutationVariables>;
+
+/**
+ * __useUpdateSequencingOrderStatusMutation__
+ *
+ * To run a mutation, you first call `useUpdateSequencingOrderStatusMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateSequencingOrderStatusMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateSequencingOrderStatusMutation, { data, loading, error }] = useUpdateSequencingOrderStatusMutation({
+ *   variables: {
+ *      orderId: // value for 'orderId'
+ *      status: // value for 'status'
+ *   },
+ * });
+ */
+export function useUpdateSequencingOrderStatusMutation(baseOptions?: Apollo.MutationHookOptions<UpdateSequencingOrderStatusMutation, UpdateSequencingOrderStatusMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateSequencingOrderStatusMutation, UpdateSequencingOrderStatusMutationVariables>(UpdateSequencingOrderStatusDocument, options);
+      }
+export type UpdateSequencingOrderStatusMutationHookResult = ReturnType<typeof useUpdateSequencingOrderStatusMutation>;
+export type UpdateSequencingOrderStatusMutationResult = Apollo.MutationResult<UpdateSequencingOrderStatusMutation>;
+export type UpdateSequencingOrderStatusMutationOptions = Apollo.BaseMutationOptions<UpdateSequencingOrderStatusMutation, UpdateSequencingOrderStatusMutationVariables>;
 export const CreateSequencingOrderDocument = gql`
     mutation CreateSequencingOrder($providerId: String!, $testType: String!) {
   createSequencingOrder(providerId: $providerId, testType: $testType) {

@@ -27,6 +27,30 @@ export const fhirResolvers = {
       if (!ctx.session) throw new Error('UNAUTHORIZED');
       return ctx.lib.authorizeFhir(ctx.session.userId, healthSystemId);
     },
+    revokeFhirConnection: async (
+      _: unknown,
+      { connectionId }: { connectionId: string },
+      ctx: ResolverContext,
+    ) => {
+      if (!ctx.session) throw new Error('UNAUTHORIZED');
+      const patient = await ctx.prisma.patient.findUnique({
+        where: { userId: ctx.session.userId },
+      });
+      if (!patient) throw new Error('Patient not found');
+      return ctx.lib.revokeFhirConnection(patient.id, connectionId);
+    },
+    resyncFhirConnection: async (
+      _: unknown,
+      { connectionId }: { connectionId: string },
+      ctx: ResolverContext,
+    ) => {
+      if (!ctx.session) throw new Error('UNAUTHORIZED');
+      const patient = await ctx.prisma.patient.findUnique({
+        where: { userId: ctx.session.userId },
+      });
+      if (!patient) throw new Error('Patient not found');
+      return ctx.lib.resyncFhirConnection(patient.id, connectionId);
+    },
     extractFhir: async (
       _: unknown,
       { connectionId }: { connectionId: string },

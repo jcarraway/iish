@@ -35,6 +35,9 @@ query GetPipelineJob($id: String!) {
     neoantigenCount
     topNeoantigens
     vaccineBlueprint
+    stepErrors
+    totalComputeSeconds
+    estimatedCostUsd
     createdAt
   }
 }
@@ -85,6 +88,7 @@ query GetPipelineResults($pipelineJobId: String!) {
     patientSummary
     fullReportPdf
     vaccineBlueprint
+    neoantigenReport
   }
 }
 
@@ -124,6 +128,13 @@ mutation SubmitPipelineJob(
     id
     status
     createdAt
+  }
+}
+
+mutation CancelPipelineJob($jobId: String!) {
+  cancelPipelineJob(jobId: $jobId) {
+    id
+    status
   }
 }
 

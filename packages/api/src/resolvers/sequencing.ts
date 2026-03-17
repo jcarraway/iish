@@ -16,6 +16,17 @@ export const sequencingResolvers = {
     website: (parent: Record<string, unknown>) => (parent.details as Record<string, unknown>)?.website ?? null,
   },
   Query: {
+    sequencingOrder: async (
+      _: unknown,
+      { id }: { id: string },
+      ctx: ResolverContext,
+    ) => {
+      if (!ctx.session) throw new Error('UNAUTHORIZED');
+      return ctx.prisma.sequencingOrder.findUnique({
+        where: { id },
+        include: { provider: true },
+      });
+    },
     sequencingProviders: async (_: unknown, __: unknown, ctx: ResolverContext) => {
       return ctx.prisma.sequencingProvider.findMany({
         where: { active: true },
@@ -47,6 +58,18 @@ export const sequencingResolvers = {
       });
       if (!patient) throw new Error('Patient not found');
       return ctx.lib.checkCoverage(patient.id, insurer, testType);
+    },
+    updateSequencingOrderStatus: async (
+      _: unknown,
+      { orderId, status }: { orderId: string; status: string },
+      ctx: ResolverContext,
+    ) => {
+      if (!ctx.session) throw new Error('UNAUTHORIZED');
+      return ctx.prisma.sequencingOrder.update({
+        where: { id: orderId },
+        data: { status },
+        include: { provider: true },
+      });
     },
     createSequencingOrder: async (
       _: unknown,

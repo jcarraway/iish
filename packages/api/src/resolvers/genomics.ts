@@ -2,6 +2,14 @@ import type { ResolverContext } from '../context';
 
 export const genomicResolvers = {
   Query: {
+    genomicResult: async (
+      _: unknown,
+      { id }: { id: string },
+      ctx: ResolverContext,
+    ) => {
+      if (!ctx.session) throw new Error('UNAUTHORIZED');
+      return ctx.prisma.genomicResult.findUnique({ where: { id } });
+    },
     genomicResults: async (_: unknown, __: unknown, ctx: ResolverContext) => {
       if (!ctx.session) throw new Error('UNAUTHORIZED');
       const patient = await ctx.prisma.patient.findUnique({

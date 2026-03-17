@@ -313,7 +313,10 @@ export const typeDefs = `#graphql
     testType: String!
     status: String!
     provider: SequencingProvider
+    insuranceCoverage: JSON
+    lomnContent: String
     createdAt: DateTime!
+    updatedAt: DateTime
   }
 
   type InsuranceCoverage {
@@ -484,6 +487,9 @@ export const typeDefs = `#graphql
     neoantigenCount: Int
     topNeoantigens: JSON
     vaccineBlueprint: JSON
+    stepErrors: JSON
+    totalComputeSeconds: Float
+    estimatedCostUsd: Float
     createdAt: DateTime!
   }
 
@@ -516,6 +522,7 @@ export const typeDefs = `#graphql
     patientSummary: String
     fullReportPdf: String
     vaccineBlueprint: String
+    neoantigenReport: String
   }
 
   type ReportPdfResult {
@@ -721,6 +728,7 @@ export const typeDefs = `#graphql
     syncStatus: String
     lastSyncedAt: DateTime
     scopesGranted: [String!]
+    resourcesPulled: JSON
   }
 
   type FhirAuthorizeResult {
@@ -770,6 +778,7 @@ export const typeDefs = `#graphql
     # Sequencing
     sequencingProviders: [SequencingProvider!]!
     sequencingOrders: [SequencingOrder!]!
+    sequencingOrder(id: String!): SequencingOrder
 
     # Sequencing Guide
     sequencingRecommendation: SequencingRecommendation!
@@ -781,6 +790,7 @@ export const typeDefs = `#graphql
 
     # Genomics
     genomicResults: [GenomicResult!]!
+    genomicResult(id: String!): GenomicResult
     matchDelta: MatchDelta
 
     # Pipeline
@@ -942,6 +952,11 @@ export const typeDefs = `#graphql
     rematch: MatchDelta!
 
     # Pipeline
+    cancelPipelineJob(jobId: String!): PipelineJob!
+    updateSequencingOrderStatus(orderId: String!, status: String!): SequencingOrder!
+    revokeFhirConnection(connectionId: String!): Boolean!
+    resyncFhirConnection(connectionId: String!): JSON!
+
     submitPipelineJob(
       tumorDataPath: String!
       normalDataPath: String!

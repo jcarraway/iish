@@ -19,6 +19,22 @@ export const pipelineResolvers = {
     },
   },
   Mutation: {
+    cancelPipelineJob: async (
+      _: unknown,
+      { jobId }: { jobId: string },
+      ctx: ResolverContext,
+    ) => {
+      if (!ctx.session) throw new Error('UNAUTHORIZED');
+      const job = await ctx.prisma.pipelineJob.findUnique({ where: { id: jobId } });
+      if (!job) throw new Error('Pipeline job not found');
+      if (!['queued', 'running'].includes(job.status)) {
+        throw new Error(`Cannot cancel job with status: ${job.status}`);
+      }
+      return ctx.prisma.pipelineJob.update({
+        where: { id: jobId },
+        data: { status: 'cancelled' },
+      });
+    },
     submitPipelineJob: async (
       _: unknown,
       args: {

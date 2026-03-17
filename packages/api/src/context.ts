@@ -71,6 +71,8 @@ export interface GraphQLContext {
     getFhirConnections: (patientId: string) => Promise<any>;
     authorizeFhir: (userId: string, healthSystemId: string) => Promise<any>;
     extractFhir: (patientId: string, connectionId: string) => Promise<any>;
+    revokeFhirConnection: (patientId: string, connectionId: string) => Promise<any>;
+    resyncFhirConnection: (patientId: string, connectionId: string) => Promise<any>;
 
     // Documents
     getPresignedUploadUrl: (filename: string, contentType: string) => Promise<any>;

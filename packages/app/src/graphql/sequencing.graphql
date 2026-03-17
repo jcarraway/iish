@@ -34,6 +34,26 @@ query GetSequencingOrders {
   }
 }
 
+query GetSequencingOrder($id: String!) {
+  sequencingOrder(id: $id) {
+    id
+    patientId
+    providerId
+    testType
+    status
+    provider {
+      id
+      name
+      slug
+      type
+    }
+    insuranceCoverage
+    lomnContent
+    createdAt
+    updatedAt
+  }
+}
+
 query GetSequencingRecommendation {
   sequencingRecommendation {
     level
@@ -156,6 +176,14 @@ mutation GenerateSequencingRecommendation {
     howItHelpsLater
     guidelineRecommendation
     generatedAt
+  }
+}
+
+mutation UpdateSequencingOrderStatus($orderId: String!, $status: String!) {
+  updateSequencingOrderStatus(orderId: $orderId, status: $status) {
+    id
+    status
+    updatedAt
   }
 }
 

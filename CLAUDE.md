@@ -18,9 +18,9 @@ oncovax/
 ├── docker-compose.yml          # Local dev: postgres:15-alpine + redis:7-alpine
 ├── packages/
 │   ├── ui/                     # Thin RN + Solito re-exports (@oncovax/ui)
-│   ├── app/                    # 8 shared screens, 22 Dripsy components, theme, 70 generated hooks (@oncovax/app)
-│   │   └── src/{screens[8],components[22],providers,theme,graphql,generated,index}.ts
-│   ├── api/                    # Apollo Server schema (45+ types, 27Q, 25M) + 18 resolver files (@oncovax/api)
+│   ├── app/                    # 46 shared screens, 22 Dripsy components, theme, 76+ generated hooks (@oncovax/app)
+│   │   └── src/{screens[46],components[22],providers,theme,graphql,generated,utils,index}.ts
+│   ├── api/                    # Apollo Server schema (45+ types, 29Q, 29M) + 18 resolver files (@oncovax/api)
 │   │   └── src/{schema,resolvers[18 files],context,index}.ts
 │   ├── db/                     # Prisma 7 + PostgreSQL (23 models)
 │   │   ├── prisma/schema.prisma
@@ -73,15 +73,14 @@ export async function POST(req: NextRequest) {
 | `publicProcedure` | No session check |
 | `packages/api/src/routers/X.ts` | `apps/web/app/api/X/route.ts` |
 
-### UI: Dripsy + Solito (Cross-Platform, Migration in Progress)
+### UI: Dripsy + Solito (Cross-Platform, Screen Migration Complete)
 - **Shared components:** 22 Dripsy components in `packages/app/src/components/` — cross-platform ready
-- **Shared screens:** 8 screens in `packages/app/src/screens/` — migrated in D3, web pages re-pointed
-- **Web (legacy):** 24 Tailwind components in `apps/web/components/` — still used by unmigrated pages (D4-D6)
-- Both old and new coexist until screen migration completes (D4-D6 remaining)
+- **Shared screens:** 46 screens in `packages/app/src/screens/` — all migratable screens done (D3-D6)
+- **Web pages:** All migratable pages are thin re-exports: `'use client'; export { XxxScreen as default } from '@oncovax/app';`
+- **Web (legacy remnants):** 24 Tailwind components still in `apps/web/components/` (dead code except DocumentUploader + AdministrationSiteMap)
 - Shared components use Dripsy `sx` prop with theme tokens, Solito `Link` for navigation
 - Web-only components (not shared): `DocumentUploader` (File API), `AdministrationSiteMap` (Mapbox)
 - Custom `Picker` component replaces `<select>` cross-platform (web: native select, native: Modal list)
-- Migrated web pages are thin re-exports: `'use client'; export { XxxScreen as default } from '@oncovax/app';`
 - Has `cn()` utility (clsx + tailwind-merge) in `apps/web/lib/utils.ts` (used by legacy web components only)
 
 ### Prisma 7 (Critical Differences from Prisma 5/6)
@@ -115,11 +114,13 @@ export async function POST(req: NextRequest) {
 - *M1:* Manufacturing partner directory (15 CDMOs seeded across 3 tiers), regulatory pathway advisor (decision tree + 8 Claude-powered document templates), 3 Prisma models (ManufacturingPartner, RegulatoryPathwayAssessment, RegulatoryDocument), 10 API routes (4 manufacturing + 6 regulatory), 3 components, 8 pages under `/manufacture/`.
 - *M2:* Order workflow (9-stage lifecycle: inquiry → quote → production → QC → shipping → administration), provider network (12 administration sites seeded, proximity search with Haversine distance), post-administration monitoring (8-timepoint schedule, AE escalation checking), provider portal. 3 Prisma models (ManufacturingOrder, AdministrationSite, PostAdministrationReport), 11 API routes, 7 components, 12 pages, 3 lib files. Dashboard + nav integration.
 
-**Cross-Platform Foundation (D0-D3):**
+**Cross-Platform Migration (D0-D6, complete):**
 - *D0:* `packages/ui/` (RN + Solito re-exports), `packages/app/` (Dripsy theme, providers, Apollo cache config), `packages/api/` (Apollo Server schema + resolvers wrapping lib/). Web + mobile configured with Apollo Client, DripsyProvider, react-native-web.
 - *D1:* 22 of 24 components migrated from Tailwind to Dripsy in `packages/app/src/components/`. Custom cross-platform Picker. `ADVERSE_EVENT_OPTIONS` moved to shared constants. Web-only: DocumentUploader, AdministrationSiteMap.
 - *D2:* Complete GraphQL layer — schema expanded to 45+ types, 27 queries, 25 mutations. 7 new resolver files (18 total). 25 adapter functions in route handler. 13 `.graphql` operation documents (70 operations). Codegen produces 5082-line generated file with 70 typed React hooks.
-- *D3:* 8 screens migrated to shared Dripsy + Apollo (Home, Auth, Learn, Start, Matches, Financial, SequencingHub, Providers). SequencingProvider schema gap fixed (type field + detail field resolvers). 8 web pages re-pointed as thin `'use client'` re-exports. First screens using Apollo hooks instead of `useState`+`fetch()`.
+- *D3:* 8 screens migrated to shared Dripsy + Apollo (Home, Auth, Learn, Start, Matches, Financial, SequencingHub, Providers). SequencingProvider schema gap fixed (type field + detail field resolvers). 8 web pages re-pointed as thin `'use client'` re-exports.
+- *D4+D5:* 26 more screens (detail, manufacturing, monitoring, dashboard, intake, sequencing journey, translate). Schema expanded with intake/extract/order mutations. 26 web pages re-pointed.
+- *D6:* Final 12 screens (pipeline 7 + sequencing detail 4 + records 1). Schema expanded to 29 queries, 29 mutations. 4 new resolver operations, 2 complex FHIR adapters. 12 web pages re-pointed. **All 46 migratable screens now shared.**
 
 ## What's NOT Built Yet
 
@@ -176,6 +177,6 @@ export async function POST(req: NextRequest) {
 
 - **No tests** — zero test files in web/mobile (only Rust unit tests)
 - **No error monitoring** — no Sentry, no error boundaries
-- **No state management lib** — 8 screens use Apollo Client hooks, remaining ~37 screens still use useState + useEffect + fetch (D4-D6 migration pending)
-- **Mobile is skeleton** — providers configured but screens are placeholders (8 shared screens ready, mobile wiring pending D7-D8)
+- **Mobile is skeleton** — providers configured but all 46 shared screens exist; mobile navigator wiring pending (D7-D8)
+- **Dead web components** — 22 Tailwind components in `apps/web/components/` are now superseded by Dripsy versions but not yet deleted
 - **No notification system** — only magic link email via Resend

@@ -41,3 +41,21 @@ export { ManualIntakeScreen } from './ManualIntakeScreen';
 export { MyChartScreen } from './MyChartScreen';
 export { SequencingGuideScreen } from './SequencingGuideScreen';
 export { InsuranceCoverageScreen } from './InsuranceCoverageScreen';
+
+// D6 — Pipeline screens
+export { PipelineLandingScreen } from './PipelineLandingScreen';
+export { PipelineJobsScreen } from './PipelineJobsScreen';
+export { PipelineJobDetailScreen } from './PipelineJobDetailScreen';
+export { NeoantigenExplorerScreen } from './NeoantigenExplorerScreen';
+export { PipelineReportsScreen } from './PipelineReportsScreen';
+export { PipelineBlueprintScreen } from './PipelineBlueprintScreen';
+export { PipelineTrialsScreen } from './PipelineTrialsScreen';
+
+// D6 — Sequencing detail screens
+export { SequencingOrdersScreen } from './SequencingOrdersScreen';
+export { SequencingOrderDetailScreen } from './SequencingOrderDetailScreen';
+export { GenomicConfirmScreen } from './GenomicConfirmScreen';
+export { GenomicResultsScreen } from './GenomicResultsScreen';
+
+// D6 — Records
+export { FhirRecordsScreen } from './FhirRecordsScreen';

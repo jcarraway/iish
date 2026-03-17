@@ -30,6 +30,38 @@ query GetGenomicResults {
   }
 }
 
+query GetGenomicResult($id: String!) {
+  genomicResult(id: $id) {
+    id
+    patientId
+    provider
+    testName
+    reportDate
+    alterations {
+      gene
+      alteration
+      alterationType
+      variantAlleleFrequency
+      clinicalSignificance
+      therapyImplications {
+        approvedTherapies
+        clinicalTrials
+        resistanceMutations
+      }
+      confidence
+    }
+    biomarkers {
+      tmb { value unit status }
+      msi { status score }
+      pdl1 { tps cps }
+      loh { status }
+      hrd { score status }
+    }
+    interpretation
+    createdAt
+  }
+}
+
 query GetMatchDelta {
   matchDelta {
     newMatches {
