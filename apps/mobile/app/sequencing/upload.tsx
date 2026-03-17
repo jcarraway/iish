@@ -1,7 +1,7 @@
 import { View, Text, Pressable } from 'dripsy';
 import { useRouter } from 'expo-router';
 
-export default function UploadPlaceholder() {
+export default function SequencingUploadPlaceholder() {
   const router = useRouter();
   return (
     <View sx={{ flex: 1, justifyContent: 'center', alignItems: 'center', p: '$6', bg: 'background' }}>
@@ -9,7 +9,7 @@ export default function UploadPlaceholder() {
         Document upload requires a web browser
       </Text>
       <Text sx={{ fontSize: 14, color: 'muted', mb: '$5', textAlign: 'center' }}>
-        Please use the OncoVax website to upload pathology reports and medical documents.
+        Please use the OncoVax website to upload sequencing reports and genomic data files.
       </Text>
       <Pressable
         onPress={() => router.back()}

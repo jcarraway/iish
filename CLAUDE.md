@@ -14,7 +14,8 @@ oncovax/
 │   │   ├── components/         # 24 React components (web-only, Tailwind)
 │   │   └── lib/                # 40 library files (see below)
 │   └── mobile/                 # Expo SDK 54, React Native 0.76.9, Dripsy + Solito
-│       └── lib/apollo.ts       # Apollo Client with expo-secure-store auth
+│       ├── app/                # Expo Router — 52 route files across 13 directories
+│       └── lib/                # apollo.ts (GraphQL client), auth.ts (SecureStore guard)
 ├── docker-compose.yml          # Local dev: postgres:15-alpine + redis:7-alpine
 ├── packages/
 │   ├── ui/                     # Thin RN + Solito re-exports (@oncovax/ui)
@@ -77,6 +78,9 @@ export async function POST(req: NextRequest) {
 - **Shared components:** 22 Dripsy components in `packages/app/src/components/` — cross-platform ready
 - **Shared screens:** 46 screens in `packages/app/src/screens/` — all migratable screens done (D3-D6)
 - **Web pages:** All migratable pages are thin re-exports: `'use client'; export { XxxScreen as default } from '@oncovax/app';`
+- **Mobile routes:** All 46 screens wired via Expo Router — 50 route files (30 direct re-exports, 17 param wrappers, 3 upload placeholders)
+- **Mobile tabs:** 5-tab layout (Home, Matches, Sequencing, Pipeline, More) with Ionicons
+- **Mobile auth:** `useProtectedRoute()` hook — SecureStore token check + redirect to `/auth` modal
 - **Web (legacy remnants):** 24 Tailwind components still in `apps/web/components/` (dead code except DocumentUploader + AdministrationSiteMap)
 - Shared components use Dripsy `sx` prop with theme tokens, Solito `Link` for navigation
 - Web-only components (not shared): `DocumentUploader` (File API), `AdministrationSiteMap` (Mapbox)
@@ -114,13 +118,14 @@ export async function POST(req: NextRequest) {
 - *M1:* Manufacturing partner directory (15 CDMOs seeded across 3 tiers), regulatory pathway advisor (decision tree + 8 Claude-powered document templates), 3 Prisma models (ManufacturingPartner, RegulatoryPathwayAssessment, RegulatoryDocument), 10 API routes (4 manufacturing + 6 regulatory), 3 components, 8 pages under `/manufacture/`.
 - *M2:* Order workflow (9-stage lifecycle: inquiry → quote → production → QC → shipping → administration), provider network (12 administration sites seeded, proximity search with Haversine distance), post-administration monitoring (8-timepoint schedule, AE escalation checking), provider portal. 3 Prisma models (ManufacturingOrder, AdministrationSite, PostAdministrationReport), 11 API routes, 7 components, 12 pages, 3 lib files. Dashboard + nav integration.
 
-**Cross-Platform Migration (D0-D6, complete):**
+**Cross-Platform Migration (D0-D7, complete):**
 - *D0:* `packages/ui/` (RN + Solito re-exports), `packages/app/` (Dripsy theme, providers, Apollo cache config), `packages/api/` (Apollo Server schema + resolvers wrapping lib/). Web + mobile configured with Apollo Client, DripsyProvider, react-native-web.
 - *D1:* 22 of 24 components migrated from Tailwind to Dripsy in `packages/app/src/components/`. Custom cross-platform Picker. `ADVERSE_EVENT_OPTIONS` moved to shared constants. Web-only: DocumentUploader, AdministrationSiteMap.
 - *D2:* Complete GraphQL layer — schema expanded to 45+ types, 27 queries, 25 mutations. 7 new resolver files (18 total). 25 adapter functions in route handler. 13 `.graphql` operation documents (70 operations). Codegen produces 5082-line generated file with 70 typed React hooks.
 - *D3:* 8 screens migrated to shared Dripsy + Apollo (Home, Auth, Learn, Start, Matches, Financial, SequencingHub, Providers). SequencingProvider schema gap fixed (type field + detail field resolvers). 8 web pages re-pointed as thin `'use client'` re-exports.
 - *D4+D5:* 26 more screens (detail, manufacturing, monitoring, dashboard, intake, sequencing journey, translate). Schema expanded with intake/extract/order mutations. 26 web pages re-pointed.
 - *D6:* Final 12 screens (pipeline 7 + sequencing detail 4 + records 1). Schema expanded to 29 queries, 29 mutations. 4 new resolver operations, 2 complex FHIR adapters. 12 web pages re-pointed. **All 46 migratable screens now shared.**
+- *D7:* Mobile app routing — 52 route files wired to all 46 shared screens via Expo Router. Auth guard (`useProtectedRoute`), 5-tab layout (Home/Matches/Sequencing/Pipeline/More), MoreScreen navigation grid, 3 upload placeholders. **Mobile app functionally complete.**
 
 ## What's NOT Built Yet
 
@@ -177,6 +182,7 @@ export async function POST(req: NextRequest) {
 
 - **No tests** — zero test files in web/mobile (only Rust unit tests)
 - **No error monitoring** — no Sentry, no error boundaries
-- **Mobile is skeleton** — providers configured but all 46 shared screens exist; mobile navigator wiring pending (D7-D8)
+- **Mobile auth flow incomplete** — `useProtectedRoute` checks token existence but magic link → token storage not wired end-to-end
+- **Mobile upload screens** — 3 placeholder pages ("requires web browser") for document/sequencing/pipeline upload
 - **Dead web components** — 22 Tailwind components in `apps/web/components/` are now superseded by Dripsy versions but not yet deleted
 - **No notification system** — only magic link email via Resend
