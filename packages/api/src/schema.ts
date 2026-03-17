@@ -569,6 +569,28 @@ export const typeDefs = `#graphql
     batchNumber: String
     trackingNumber: String
     partnerName: String
+    message: String
+    quoteExpiresAt: String
+    productionStartedAt: String
+    productionEstimatedCompletion: String
+    qcStartedAt: String
+    qcCompletedAt: String
+    qcPassed: Boolean
+    qcNotes: String
+    shippedAt: String
+    shippingCarrier: String
+    shippingConditions: String
+    deliveredAt: String
+    administeredAt: String
+    administeredBy: String
+    paymentStatus: String
+    assessmentId: String
+    administrationSiteId: String
+    notes: JSON
+    partner: ManufacturingPartner
+    administrationSite: AdministrationSite
+    assessment: RegulatoryPathwayAssessment
+    reports: [MonitoringReport!]!
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -592,6 +614,9 @@ export const typeDefs = `#graphql
     documentType: String!
     content: String!
     status: String!
+    reviewNotes: String
+    reviewedAt: String
+    reviewedBy: String
     createdAt: DateTime!
   }
 
@@ -620,6 +645,11 @@ export const typeDefs = `#graphql
     type: String!
     city: String
     state: String
+    address: String
+    zip: String
+    country: String
+    lat: Float
+    lng: Float
     distance: Float
     canAdministerMrna: Boolean!
     hasInfusionCenter: Boolean!
@@ -628,7 +658,10 @@ export const typeDefs = `#graphql
     investigationalExp: Boolean!
     irbAffiliation: String
     verified: Boolean!
+    contactName: String
+    contactEmail: String
     contactPhone: String
+    willingToAdminister: Boolean
     website: String
   }
 
@@ -766,10 +799,12 @@ export const typeDefs = `#graphql
     regulatoryAssessments: [RegulatoryPathwayAssessment!]!
     regulatoryAssessment(id: String!): RegulatoryPathwayAssessment
     regulatoryDocuments(assessmentId: String!): [RegulatoryDocument!]!
+    regulatoryDocument(id: String!): RegulatoryDocument
     recommendedPartners(pipelineJobId: String!): [PartnerRecommendation!]!
 
     # Monitoring
     administrationSites(lat: Float, lng: Float, radiusMiles: Float): [AdministrationSite!]!
+    administrationSite(id: String!): AdministrationSite
     monitoringReports(orderId: String!): [MonitoringReport!]!
     monitoringSchedule(orderId: String!): [MonitoringScheduleEntry!]!
 
@@ -781,6 +816,36 @@ export const typeDefs = `#graphql
   # ============================================================================
   # Mutations
   # ============================================================================
+
+  # ============================================================================
+  # Patient Intake
+  # ============================================================================
+
+  input PatientIntakeInput {
+    profile: JSON!
+    fieldSources: JSON
+    fieldConfidence: JSON
+    intakePath: String!
+    documents: [DocumentMetaInput!]
+    claudeApiCost: Float
+  }
+
+  input DocumentMetaInput {
+    s3Key: String!
+    filename: String!
+    mimeType: String!
+    fileSize: Int!
+  }
+
+  type ExtractionResult {
+    status: String!
+    profile: JSON
+    fieldSources: JSON
+    fieldConfidence: JSON
+    extractions: JSON
+    claudeApiCost: Float
+    error: String
+  }
 
   input PatientProfileInput {
     cancerType: String
@@ -895,9 +960,22 @@ export const typeDefs = `#graphql
     connectSite(orderId: String!, siteId: String!): ManufacturingOrder!
     addOrderNote(orderId: String!, note: String!): ManufacturingOrder!
 
+    # Regulatory
+    updateRegulatoryDocumentStatus(id: String!, status: String!, reviewNotes: String): RegulatoryDocument!
+
+    # Financial
+    subscribeFinancialProgram(programId: String!): Boolean!
+
     # FHIR
     authorizeFhir(healthSystemId: String!): FhirAuthorizeResult!
     extractFhir(connectionId: String!): JSON!
+
+    # Patient Intake
+    savePatientIntake(input: PatientIntakeInput!): Patient!
+    extractDocuments(s3Keys: [String!]!, mimeTypes: [String!]!): ExtractionResult!
+
+    # Sequencing Orders
+    createSequencingOrder(providerId: String!, testType: String!): SequencingOrder!
 
     # Monitoring
     submitMonitoringReport(input: MonitoringReportInput!): MonitoringReport!

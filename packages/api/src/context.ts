@@ -76,6 +76,13 @@ export interface GraphQLContext {
     getPresignedUploadUrl: (filename: string, contentType: string) => Promise<any>;
     extractDocument: (documentId: string) => Promise<any>;
     requestGeneralUploadUrl: (filename: string, contentType: string, bucket?: string) => Promise<any>;
+
+    // Patient Intake
+    savePatientIntake: (userId: string, email: string, input: any) => Promise<any>;
+    extractDocuments: (s3Keys: string[], mimeTypes: string[]) => Promise<any>;
+
+    // Sequencing Orders
+    createSequencingOrder: (patientId: string, providerId: string, testType: string) => Promise<any>;
   };
 }
 

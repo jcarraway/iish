@@ -1,16 +1,8 @@
 import type { ManufacturingOrderStatus } from '@oncovax/shared';
 
-export const ORDER_STATUS_LABELS: Record<ManufacturingOrderStatus, string> = {
-  inquiry_sent: 'Inquiry Sent',
-  quote_received: 'Quote Received',
-  quote_accepted: 'Quote Accepted',
-  blueprint_transferred: 'Blueprint Transferred',
-  in_production: 'In Production',
-  qc_in_progress: 'QC In Progress',
-  shipped: 'Shipped',
-  delivered: 'Delivered',
-  ready_for_administration: 'Ready for Administration',
-};
+// Re-export from shared package
+export { ORDER_STATUS_LABELS, getOrderTimeline } from '@oncovax/shared';
+export type { TimelineEntry } from '@oncovax/shared';
 
 const STATUS_ORDER: ManufacturingOrderStatus[] = [
   'inquiry_sent',
@@ -43,46 +35,6 @@ export function getNextOrderStatus(current: ManufacturingOrderStatus): Manufactu
 
 export function isValidTransition(from: ManufacturingOrderStatus, to: ManufacturingOrderStatus): boolean {
   return VALID_TRANSITIONS[from]?.includes(to) ?? false;
-}
-
-export interface TimelineEntry {
-  status: ManufacturingOrderStatus;
-  label: string;
-  date: string | null;
-  completed: boolean;
-  current: boolean;
-}
-
-export function getOrderTimeline(order: {
-  status: string;
-  createdAt: string | Date;
-  blueprintSentAt?: string | Date | null;
-  productionStartedAt?: string | Date | null;
-  qcStartedAt?: string | Date | null;
-  qcCompletedAt?: string | Date | null;
-  shippedAt?: string | Date | null;
-  deliveredAt?: string | Date | null;
-  administeredAt?: string | Date | null;
-}): TimelineEntry[] {
-  const currentIdx = STATUS_ORDER.indexOf(order.status as ManufacturingOrderStatus);
-
-  const dateMap: Partial<Record<ManufacturingOrderStatus, string | Date | null | undefined>> = {
-    inquiry_sent: order.createdAt,
-    blueprint_transferred: order.blueprintSentAt,
-    in_production: order.productionStartedAt,
-    qc_in_progress: order.qcStartedAt,
-    shipped: order.shippedAt,
-    delivered: order.deliveredAt,
-    ready_for_administration: order.administeredAt,
-  };
-
-  return STATUS_ORDER.map((status, idx) => ({
-    status,
-    label: ORDER_STATUS_LABELS[status],
-    date: dateMap[status] ? new Date(dateMap[status] as string | Date).toISOString() : null,
-    completed: idx < currentIdx,
-    current: idx === currentIdx,
-  }));
 }
 
 export function packageBlueprint(pipelineJob: {

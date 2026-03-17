@@ -1,6 +1,33 @@
 import type { ResolverContext } from '../context';
 
 export const manufacturingResolvers = {
+  ManufacturingOrder: {
+    partner: async (parent: { partnerId: string }, _: unknown, ctx: ResolverContext) => {
+      return ctx.prisma.manufacturingPartner.findUnique({ where: { id: parent.partnerId } });
+    },
+    administrationSite: async (
+      parent: { administrationSiteId?: string | null },
+      _: unknown,
+      ctx: ResolverContext,
+    ) => {
+      if (!parent.administrationSiteId) return null;
+      return ctx.prisma.administrationSite.findUnique({ where: { id: parent.administrationSiteId } });
+    },
+    assessment: async (
+      parent: { assessmentId?: string | null },
+      _: unknown,
+      ctx: ResolverContext,
+    ) => {
+      if (!parent.assessmentId) return null;
+      return ctx.prisma.regulatoryPathwayAssessment.findUnique({ where: { id: parent.assessmentId } });
+    },
+    reports: async (parent: { id: string }, _: unknown, ctx: ResolverContext) => {
+      return ctx.prisma.postAdministrationReport.findMany({
+        where: { orderId: parent.id },
+        orderBy: { createdAt: 'desc' },
+      });
+    },
+  },
   Query: {
     manufacturingPartners: async (
       _: unknown,
@@ -59,6 +86,10 @@ export const manufacturingResolvers = {
         orderBy: { createdAt: 'desc' },
       });
     },
+    regulatoryDocument: async (_: unknown, { id }: { id: string }, ctx: ResolverContext) => {
+      if (!ctx.session) throw new Error('UNAUTHORIZED');
+      return ctx.prisma.regulatoryDocument.findUnique({ where: { id } });
+    },
   },
   Mutation: {
     createManufacturingOrder: async (
@@ -100,6 +131,17 @@ export const manufacturingResolvers = {
     ) => {
       if (!ctx.session) throw new Error('UNAUTHORIZED');
       return ctx.lib.generateDocument(assessmentId, documentType);
+    },
+    updateRegulatoryDocumentStatus: async (
+      _: unknown,
+      { id, status, reviewNotes }: { id: string; status: string; reviewNotes?: string },
+      ctx: ResolverContext,
+    ) => {
+      if (!ctx.session) throw new Error('UNAUTHORIZED');
+      return ctx.prisma.regulatoryDocument.update({
+        where: { id },
+        data: { status, ...(reviewNotes !== undefined ? { reviewNotes } : {}) },
+      });
     },
   },
 };

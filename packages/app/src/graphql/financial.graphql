@@ -61,3 +61,7 @@ mutation MatchFinancialPrograms($input: FinancialProfileInput!) {
     assistanceCategories
   }
 }
+
+mutation SubscribeFinancialProgram($programId: String!) {
+  subscribeFinancialProgram(programId: $programId)
+}

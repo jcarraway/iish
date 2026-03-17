@@ -1,3 +1,4 @@
+// D3 screens
 export { HomeScreen } from './HomeScreen';
 export { AuthScreen } from './AuthScreen';
 export { LearnScreen } from './LearnScreen';
@@ -6,3 +7,37 @@ export { MatchesScreen } from './MatchesScreen';
 export { FinancialScreen } from './FinancialScreen';
 export { SequencingHubScreen } from './SequencingHubScreen';
 export { ProvidersScreen } from './ProvidersScreen';
+
+// D4 — Detail screens
+export { MatchDetailScreen } from './MatchDetailScreen';
+export { OncologistBriefScreen } from './OncologistBriefScreen';
+export { FinancialProgramScreen } from './FinancialProgramScreen';
+
+// D4 — Manufacturing screens
+export { ManufactureLandingScreen } from './ManufactureLandingScreen';
+export { ManufacturingPartnersScreen } from './ManufacturingPartnersScreen';
+export { ManufacturingPartnerDetailScreen } from './ManufacturingPartnerDetailScreen';
+export { ManufacturingOrdersScreen } from './ManufacturingOrdersScreen';
+export { NewManufacturingOrderScreen } from './NewManufacturingOrderScreen';
+export { ManufacturingOrderDetailScreen } from './ManufacturingOrderDetailScreen';
+export { OrderTrackingScreen } from './OrderTrackingScreen';
+export { RegulatoryLandingScreen } from './RegulatoryLandingScreen';
+export { RegulatoryAssessmentScreen } from './RegulatoryAssessmentScreen';
+export { RegulatoryRecommendationScreen } from './RegulatoryRecommendationScreen';
+export { RegulatoryDocumentsScreen } from './RegulatoryDocumentsScreen';
+export { RegulatoryDocumentDetailScreen } from './RegulatoryDocumentDetailScreen';
+export { AdministrationSiteDetailScreen } from './AdministrationSiteDetailScreen';
+
+// D4 — Monitoring screens
+export { MonitoringDashboardScreen } from './MonitoringDashboardScreen';
+export { MonitoringReportScreen } from './MonitoringReportScreen';
+export { MonitoringHistoryScreen } from './MonitoringHistoryScreen';
+
+// D5 — Dashboard + Intake + Sequencing + Translate
+export { DashboardScreen } from './DashboardScreen';
+export { TranslateScreen } from './TranslateScreen';
+export { ConfirmProfileScreen } from './ConfirmProfileScreen';
+export { ManualIntakeScreen } from './ManualIntakeScreen';
+export { MyChartScreen } from './MyChartScreen';
+export { SequencingGuideScreen } from './SequencingGuideScreen';
+export { InsuranceCoverageScreen } from './InsuranceCoverageScreen';

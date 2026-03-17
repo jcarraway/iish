@@ -19,6 +19,13 @@ export const financialResolvers = {
         orderBy: { createdAt: 'desc' },
       });
     },
+    financialProgram: async (
+      _: unknown,
+      { programId }: { programId: string },
+      ctx: ResolverContext,
+    ) => {
+      return ctx.prisma.financialProgram.findUnique({ where: { id: programId } });
+    },
   },
   Mutation: {
     matchFinancialPrograms: async (
@@ -32,6 +39,16 @@ export const financialResolvers = {
       });
       if (!patient) throw new Error('Patient not found');
       return ctx.lib.matchFinancialPrograms(patient.id, input);
+    },
+    subscribeFinancialProgram: async (
+      _: unknown,
+      { programId }: { programId: string },
+      ctx: ResolverContext,
+    ) => {
+      if (!ctx.session) throw new Error('UNAUTHORIZED');
+      // Stub: log interest for future notification
+      console.log(`Patient subscribed to financial program ${programId} reopening notifications`);
+      return true;
     },
   },
 };

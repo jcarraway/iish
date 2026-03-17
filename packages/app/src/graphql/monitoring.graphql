@@ -18,6 +18,33 @@ query GetAdministrationSites($lat: Float, $lng: Float, $radiusMiles: Float) {
   }
 }
 
+query GetAdministrationSite($id: String!) {
+  administrationSite(id: $id) {
+    id
+    name
+    type
+    city
+    state
+    address
+    zip
+    country
+    lat
+    lng
+    canAdministerMrna
+    hasInfusionCenter
+    hasEmergencyResponse
+    hasMonitoringCapacity
+    investigationalExp
+    irbAffiliation
+    verified
+    contactName
+    contactEmail
+    contactPhone
+    willingToAdminister
+    website
+  }
+}
+
 query GetMonitoringReports($orderId: String!) {
   monitoringReports(orderId: $orderId) {
     id

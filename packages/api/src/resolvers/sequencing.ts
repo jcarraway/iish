@@ -48,5 +48,17 @@ export const sequencingResolvers = {
       if (!patient) throw new Error('Patient not found');
       return ctx.lib.checkCoverage(patient.id, insurer, testType);
     },
+    createSequencingOrder: async (
+      _: unknown,
+      { providerId, testType }: { providerId: string; testType: string },
+      ctx: ResolverContext,
+    ) => {
+      if (!ctx.session) throw new Error('UNAUTHORIZED');
+      const patient = await ctx.prisma.patient.findUnique({
+        where: { userId: ctx.session.userId },
+      });
+      if (!patient) throw new Error('Patient not found');
+      return ctx.lib.createSequencingOrder(patient.id, providerId, testType);
+    },
   },
 };

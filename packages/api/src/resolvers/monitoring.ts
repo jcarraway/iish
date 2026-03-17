@@ -9,6 +9,9 @@ export const monitoringResolvers = {
     ) => {
       return ctx.lib.searchSites({ lat, lng, radiusMiles });
     },
+    administrationSite: async (_: unknown, { id }: { id: string }, ctx: ResolverContext) => {
+      return ctx.prisma.administrationSite.findUnique({ where: { id } });
+    },
     monitoringReports: async (
       _: unknown,
       { orderId }: { orderId: string },

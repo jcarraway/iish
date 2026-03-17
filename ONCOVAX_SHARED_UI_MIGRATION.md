@@ -481,73 +481,145 @@ All screens in `packages/app/src/screens/`, exported via barrel `index.ts`.
 - `@oncovax/web` (Next.js) — builds clean (95 pages)
 - Only warnings: react-native-web 0.19 hydrate/unmountComponentAtNode (harmless)
 
-### D4: Detail + complex form screens (10 screens)
+### D4: Detail + Manufacturing + Monitoring screens (19 screens) ✅ COMPLETE
 
-Screens with route params, detail views, complex forms, and multi-step state.
+Migrated 19 screens: 3 detail screens completing D3 areas, 13 manufacturing screens (full MANUFACTURE journey), and 3 monitoring screens.
 
-| Page | Lines | Screen name | Key hooks |
+#### Prerequisites built:
+- **Cross-platform utilities** (`packages/app/src/utils/`): `clipboard.ts`, `confirm.ts`, `linking.ts` — Platform-branched helpers for `navigator.clipboard`/`confirm()`/`window.open()` vs RN equivalents
+- **Manufacturing constants** moved from `apps/web/lib/manufacturing-orders.ts` to `packages/shared/src/constants.ts` — `ORDER_STATUS_LABELS`, `TimelineEntry`, `getOrderTimeline()`
+- **GraphQL schema expanded**: 19 new fields on `ManufacturingOrder` (partner, site, assessment, reports, timeline fields), 8 new fields on `AdministrationSite`, `reviewNotes`/`reviewedAt`/`reviewedBy` on `RegulatoryDocument`, 2 new queries (`regulatoryDocument`, `administrationSite`), 2 new mutations (`updateRegulatoryDocumentStatus`, `subscribeFinancialProgram`)
+- **3 resolver files updated**: manufacturing.ts (field resolvers + query + mutation), monitoring.ts (administrationSite query), financial.ts (financialProgram query + subscribeFinancialProgram mutation)
+- **3 GraphQL operation files expanded** + codegen regenerated
+
+#### Screens created:
+
+**Detail screens (3):**
+
+| Page | Screen name | Key hooks |
+|---|---|---|
+| `app/matches/[trialId]/page.tsx` | `MatchDetailScreen` | `useGetMatchQuery` — eligibility breakdown, trial sites, interventions |
+| `app/matches/[trialId]/contact/page.tsx` | `OncologistBriefScreen` | `useGetOncologistBriefQuery` — copy/print, disclaimer |
+| `app/financial/[programId]/page.tsx` | `FinancialProgramScreen` | `useGetFinancialProgramQuery`, `useSubscribeFinancialProgramMutation` |
+
+**Manufacturing screens (13):**
+
+| Page | Screen name | Key hooks |
+|---|---|---|
+| `app/manufacture/page.tsx` | `ManufactureLandingScreen` | `useGetMatchesQuery`, `useGetPipelineJobsQuery`, `useGetManufacturingOrdersQuery` |
+| `app/manufacture/partners/page.tsx` | `ManufacturingPartnersScreen` | `useGetManufacturingPartnersQuery` — 3 Picker filters |
+| `app/manufacture/partners/[partnerId]/page.tsx` | `ManufacturingPartnerDetailScreen` | `useGetManufacturingPartnerQuery` |
+| `app/manufacture/orders/page.tsx` | `ManufacturingOrdersScreen` | `useGetManufacturingOrdersQuery` |
+| `app/manufacture/orders/new/page.tsx` | `NewManufacturingOrderScreen` | `useGetManufacturingPartnersQuery`, `useGetPipelineJobsQuery`, `useCreateManufacturingOrderMutation` |
+| `app/manufacture/orders/[orderId]/page.tsx` | `ManufacturingOrderDetailScreen` | Expanded `useGetManufacturingOrderQuery`, `useAcceptQuoteMutation`, `useAddOrderNoteMutation` — most complex (~310 lines) |
+| `app/manufacture/orders/[orderId]/tracking/page.tsx` | `OrderTrackingScreen` | `useGetManufacturingOrderQuery` |
+| `app/manufacture/regulatory/page.tsx` | `RegulatoryLandingScreen` | None (static 4-pathway overview) |
+| `app/manufacture/regulatory/assessment/page.tsx` | `RegulatoryAssessmentScreen` | `useGetPatientQuery`, `useGetPipelineJobsQuery`, `useAssessRegulatoryPathwayMutation` |
+| `app/manufacture/regulatory/recommendation/page.tsx` | `RegulatoryRecommendationScreen` | `useGetRegulatoryAssessmentQuery`, `useGenerateRegulatoryDocumentMutation` |
+| `app/manufacture/regulatory/documents/page.tsx` | `RegulatoryDocumentsScreen` | `useGetRegulatoryAssessmentsQuery`, `useGetRegulatoryDocumentsQuery` |
+| `app/manufacture/regulatory/documents/[id]/page.tsx` | `RegulatoryDocumentDetailScreen` | `useGetRegulatoryDocumentQuery`, `useUpdateRegulatoryDocumentStatusMutation` |
+| `app/manufacture/providers/[siteId]/page.tsx` | `AdministrationSiteDetailScreen` | `useGetAdministrationSiteQuery`, `useConnectSiteMutation`, `useGetManufacturingOrdersQuery` |
+
+**Monitoring screens (3):**
+
+| Page | Screen name | Key hooks |
+|---|---|---|
+| `app/manufacture/monitoring/page.tsx` | `MonitoringDashboardScreen` | `useGetManufacturingOrdersQuery`, `useGetMonitoringScheduleQuery` |
+| `app/manufacture/monitoring/[orderId]/report/page.tsx` | `MonitoringReportScreen` | `useGetMonitoringScheduleQuery`, `useSubmitMonitoringReportMutation` |
+| `app/manufacture/monitoring/[orderId]/history/page.tsx` | `MonitoringHistoryScreen` | `useGetMonitoringReportsQuery` — QoL bar chart, AE summary |
+
+#### Web pages re-pointed (19 thin wrappers)
+Dynamic route pages extract params via `useParams` and pass as props. Pages with `useSearchParams` wrapped in `Suspense`.
+
+**NOT migrated (web-only):** `app/manufacture/providers/page.tsx` — uses `AdministrationSiteMap` (Mapbox)
+
+#### D4 platform conversions:
+- `window.location.reload()` → `refetch()` from Apollo (ManufacturingOrderDetail)
+- `sessionStorage` → route query params + Apollo fetch (Regulatory recommendation flow)
+- `confirm()` → `confirmAction()` utility (RegulatoryDocumentDetail)
+- `window.open()` → `openExternalUrl()` via `Linking` (PartnerDetail)
+- `navigator.clipboard` → `copyToClipboard()` utility (OncologistBrief)
+- `window.print()` → conditionally hidden on native (OncologistBrief)
+- Inline SVGs → emoji text in colored circles
+- `<select>` → `Picker` component (Partners, Orders/new, Assessment)
+
+#### D4 type fixes:
+- `LLMAssessment.overallAssessment`: GraphQL `string` → cast to union type
+- `ManufacturingPartnerCard`: `costRangeMin`/`costRangeMax` etc. need `?? null` (not `?? undefined`)
+- `OrderStatusCard`: takes `order` object prop (not flat props)
+- `RegulatoryDocumentCard`: needs `title`, `reviewedAt`, `reviewedBy`, `onView` props
+- `PathwayRecommendation`: `recommended`/`requiredDocuments` need casts to union types
+- `Picker`: prop is `value` (not `selectedValue`), `placeholder` (not `label`)
+
+#### Build verification ✅
+- `@oncovax/app` (tsc) — builds clean
+- `@oncovax/api` (tsc) — builds clean
+- `@oncovax/web` (Next.js) — builds clean
+
+---
+
+### D5: Dashboard + Intake + Sequencing Journey + Translate (7 screens) ✅ COMPLETE
+
+Migrated 7 screens covering the core patient journey: dashboard, treatment translation, patient intake (3 screens), and sequencing guide (2 screens).
+
+#### Prerequisites built:
+- **GraphQL schema expanded:** 3 new types (`PatientIntakeInput`, `DocumentMetaInput`, `ExtractionResult`), 3 new mutations (`savePatientIntake`, `extractDocuments`, `createSequencingOrder`)
+- **Resolver updates:** `patients.ts` — Patient field resolvers mapping Prisma `intakePath` → GraphQL `intakeMethod`, resolving `email`/`name` from User relation; added `savePatientIntake`, `extractDocuments` mutations. `sequencing.ts` — added `createSequencingOrder` mutation
+- **Route handler:** 3 new adapter functions (`savePatientIntakeAdapter`, `extractDocumentsAdapter`, `createSequencingOrderAdapter`)
+- **GraphQL operations:** 3 new mutations added to `patient.graphql` + `sequencing.graphql`; codegen regenerated
+
+#### Screens created:
+
+| Page | Screen name | Key hooks | Key patterns |
 |---|---|---|---|
-| `app/dashboard/page.tsx` | ~200 | `DashboardScreen` | `useGetPatientQuery`, `useGetMatchesQuery`, `useGetSequencingOrdersQuery`, `useGetPipelineJobsQuery`, `useGetManufacturingOrdersQuery` |
-| `app/matches/[trialId]/page.tsx` | ~250 | `TrialDetailScreen` | `useGetMatchQuery` (by id from params) |
-| `app/matches/[trialId]/contact/page.tsx` | ~120 | `OncologistBriefScreen` | `useGetOncologistBriefQuery` |
-| `app/translate/page.tsx` | ~280 | `TranslateScreen` | `useGetMatchesQuery`, `useTranslateTreatmentMutation` |
-| `app/financial/[programId]/page.tsx` | ~150 | `FinancialDetailScreen` | `useGetFinancialProgramQuery` |
-| `app/start/confirm/page.tsx` | 644 | `ConfirmProfileScreen` | `useGetPatientQuery`, `useUpdateProfileMutation`, `useGetDocumentsQuery`, `useExtractDocumentMutation` |
-| `app/start/manual/page.tsx` | ~200 | `ManualIntakeScreen` | `useCreatePatientManualMutation` |
-| `app/start/mychart/page.tsx` | ~250 | `MyChartScreen` | `useGetHealthSystemsQuery`, `useAuthorizeFhirMutation`, `useGetFhirConnectionsQuery` |
-| `app/sequencing/guide/page.tsx` | ~350 | `SequencingGuideScreen` | `useGetSequencingRecommendationQuery`, `useGetSequencingExplanationQuery`, `useGetTestRecommendationQuery`, `useGetConversationGuideQuery`, `useGetWaitingContentQuery` |
-| `app/sequencing/insurance/page.tsx` | ~180 | `InsuranceCoverageScreen` | `useCheckCoverageMutation`, `useGenerateLomnMutation` |
+| `app/dashboard/page.tsx` | `DashboardScreen` | 6 parallel queries with `errorPolicy: 'ignore'` | DashboardCard helper, emoji icons, conditional hasProfile state |
+| `app/translate/page.tsx` | `TranslateScreen` | `useGetMatchesQuery`, `useTranslateTreatmentMutation` | Loading step animation, `formatTranslationAsText`, Platform guard for `window.print()` |
+| `app/start/confirm/page.tsx` | `ConfirmProfileScreen` | `useMeQuery`, `useGetPatientQuery`, `useSavePatientIntakeMutation`, `useExtractDocumentsMutation` | 3 intake paths (manual/mychart/upload), ConfidenceBadge, Picker for ECOG, financial section with toggle buttons, Platform guard for sessionStorage |
+| `app/start/manual/page.tsx` | `ManualIntakeScreen` | None | Thin wrapper around `ManualIntakeWizard`, Platform guard for sessionStorage |
+| `app/start/mychart/page.tsx` | `MyChartScreen` | `useAuthorizeFhirMutation`, `useExtractFhirMutation` | 6-step state machine, Platform guard for `window.location.href` vs `Linking.openURL`, OAuth callback props |
+| `app/sequencing/guide/page.tsx` | `SequencingGuideScreen` | 4 lazy queries + `useCreateSequencingOrderMutation` | 5-step wizard, toggle buttons, accordion, `copyToClipboard`, step indicator |
+| `app/sequencing/insurance/page.tsx` | `InsuranceCoverageScreen` | `useCheckCoverageMutation`, `useGenerateLomnMutation` | 2 Pickers, status color mapping, LOMN generation + copy |
 
-**D4 special cases:**
-- `ConfirmProfileScreen` (644 lines) — most complex screen. Has localStorage persistence, inline editing, financial profile collection. Use `Platform.OS === 'web' ? localStorage : null` for persistence (mobile gets fresh data from server).
-- `SequencingGuideScreen` — 5 sequential sections, each with its own query. Use multiple `useLazyQuery` hooks, fetch sequentially as user progresses.
-- `ManualIntakeScreen` — wraps `ManualIntakeWizard` shared component (already migrated in D1). Screen is thin wrapper.
-- `MyChartScreen` — FHIR OAuth flow involves browser redirect. On mobile, use `Linking.openURL` for OAuth.
-- Route params: `[trialId]`, `[programId]` → `useParams<{ trialId: string }>()` from solito/navigation
+#### Web pages re-pointed (7 thin wrappers):
+- `apps/web/app/dashboard/page.tsx` → simple re-export
+- `apps/web/app/translate/page.tsx` → simple re-export
+- `apps/web/app/start/manual/page.tsx` → simple re-export
+- `apps/web/app/sequencing/guide/page.tsx` → simple re-export
+- `apps/web/app/sequencing/insurance/page.tsx` → simple re-export
+- `apps/web/app/start/confirm/page.tsx` → Suspense + `useSearchParams` → pass `path` prop
+- `apps/web/app/start/mychart/page.tsx` → Suspense + `useSearchParams` → pass OAuth callback params
 
-### D5: Manufacturing + monitoring screens (15 screens)
+#### D5 type fixes:
+- **Prisma schema mismatch:** Patient model has `intakePath` not `intakeMethod`, no `email`/`name` columns — resolved with Patient field resolvers and adapter fix
+- **Picker props:** `value`/`onValueChange`/`options` (not `selectedValue`/`items`)
+- **TypeScript cast:** `result.extractions as unknown as any[]` (can't cast Record directly to array)
 
-| Page | Screen name |
-|---|---|
-| `app/manufacture/page.tsx` | `ManufactureHubScreen` |
-| `app/manufacture/partners/page.tsx` | `ManufacturingPartnersScreen` |
-| `app/manufacture/partners/[partnerId]/page.tsx` | `ManufacturingPartnerDetailScreen` |
-| `app/manufacture/orders/page.tsx` | `ManufacturingOrdersScreen` |
-| `app/manufacture/orders/new/page.tsx` | `NewManufacturingOrderScreen` |
-| `app/manufacture/orders/[orderId]/page.tsx` | `ManufacturingOrderDetailScreen` |
-| `app/manufacture/orders/[orderId]/tracking/page.tsx` | `OrderTrackingScreen` |
-| `app/manufacture/regulatory/page.tsx` | `RegulatoryHubScreen` |
-| `app/manufacture/regulatory/assessment/page.tsx` | `RegulatoryAssessmentScreen` |
-| `app/manufacture/regulatory/recommendation/page.tsx` | `RegulatoryRecommendationScreen` |
-| `app/manufacture/regulatory/documents/page.tsx` | `RegulatoryDocumentsScreen` |
-| `app/manufacture/regulatory/documents/[id]/page.tsx` | `RegulatoryDocumentDetailScreen` |
-| `app/manufacture/monitoring/page.tsx` | `MonitoringDashboardScreen` |
-| `app/manufacture/monitoring/[orderId]/report/page.tsx` | `MonitoringReportScreen` |
-| `app/manufacture/monitoring/[orderId]/history/page.tsx` | `MonitoringHistoryScreen` |
-| `app/manufacture/providers/page.tsx` | `AdministrationSitesScreen` |
-| `app/manufacture/providers/[siteId]/page.tsx` | `AdministrationSiteDetailScreen` |
+#### Build verification ✅
+- `@oncovax/api` (tsc) — builds clean
+- `@oncovax/app` (tsc) — builds clean
+- `@oncovax/web` (Next.js) — builds clean
 
-### D6: Pipeline + sequencing detail + records (12 screens)
+### D6: Pipeline + Sequencing Detail + Records (12 screens)
 
-| Page | Screen name |
-|---|---|
-| `app/pipeline/page.tsx` | `PipelineHubScreen` |
-| `app/pipeline/upload/page.tsx` | `PipelineUploadScreen` (web-only: keeps DocumentUploader) |
-| `app/pipeline/jobs/page.tsx` | `PipelineJobsScreen` |
-| `app/pipeline/jobs/[jobId]/page.tsx` | `PipelineJobDetailScreen` |
-| `app/pipeline/jobs/[jobId]/neoantigens/page.tsx` | `NeoantigenListScreen` |
-| `app/pipeline/jobs/[jobId]/reports/page.tsx` | `PipelineReportsScreen` |
-| `app/pipeline/jobs/[jobId]/blueprint/page.tsx` | `VaccineBlueprintScreen` |
-| `app/pipeline/jobs/[jobId]/trials/page.tsx` | `NeoantigenTrialsScreen` |
-| `app/sequencing/orders/page.tsx` | `SequencingOrdersScreen` |
-| `app/sequencing/orders/[orderId]/page.tsx` | `SequencingOrderDetailScreen` |
-| `app/sequencing/confirm/page.tsx` | `GenomicConfirmScreen` |
-| `app/sequencing/results/page.tsx` | `GenomicResultsScreen` |
-| `app/dashboard/records/page.tsx` | `FhirRecordsScreen` |
+| Page | Screen name | Key hooks |
+|---|---|---|
+| `app/pipeline/page.tsx` | `PipelineHubScreen` | `useGetPipelineJobsQuery` |
+| `app/pipeline/jobs/page.tsx` | `PipelineJobsScreen` | `useGetPipelineJobsQuery` |
+| `app/pipeline/jobs/[jobId]/page.tsx` | `PipelineJobDetailScreen` | `useGetPipelineJobQuery` |
+| `app/pipeline/jobs/[jobId]/neoantigens/page.tsx` | `NeoantigenListScreen` | `useGetNeoantigensQuery` |
+| `app/pipeline/jobs/[jobId]/reports/page.tsx` | `PipelineReportsScreen` | `useGetReportPdfQuery`, `useGenerateReportPdfMutation` |
+| `app/pipeline/jobs/[jobId]/blueprint/page.tsx` | `VaccineBlueprintScreen` | `useGetPipelineResultsQuery` |
+| `app/pipeline/jobs/[jobId]/trials/page.tsx` | `NeoantigenTrialsScreen` | `useGetNeoantigenTrialsQuery` |
+| `app/sequencing/orders/page.tsx` | `SequencingOrdersScreen` | `useGetSequencingOrdersQuery` |
+| `app/sequencing/orders/[orderId]/page.tsx` | `SequencingOrderDetailScreen` | `useGetSequencingOrderQuery` (TBD) |
+| `app/sequencing/confirm/page.tsx` | `GenomicConfirmScreen` | `useGetGenomicResultsQuery`, `useConfirmGenomicsMutation` |
+| `app/sequencing/results/page.tsx` | `GenomicResultsScreen` | `useGetGenomicResultsQuery`, `useInterpretGenomicsMutation` |
+| `app/dashboard/records/page.tsx` | `FhirRecordsScreen` | `useGetFhirConnectionsQuery` |
 
 **Web-only pages** (NOT migrated, stay as Tailwind):
 - `app/start/upload/page.tsx` — wraps DocumentUploader (File API / drag-drop / XMLHttpRequest)
 - `app/pipeline/upload/page.tsx` — wraps DocumentUploader for pipeline data upload
+- `app/manufacture/providers/page.tsx` — uses AdministrationSiteMap (Mapbox)
 - `app/admin/*` — admin tools, web-only
 - `app/provider/*` — provider portal, web-only for now
 

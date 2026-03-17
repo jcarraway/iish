@@ -100,3 +100,26 @@ mutation CreatePatientManual($input: ManualIntakeInput!) {
     intakeMethod
   }
 }
+
+mutation SavePatientIntake($input: PatientIntakeInput!) {
+  savePatientIntake(input: $input) {
+    id
+    profile {
+      cancerType
+      stage
+    }
+    intakeMethod
+  }
+}
+
+mutation ExtractDocuments($s3Keys: [String!]!, $mimeTypes: [String!]!) {
+  extractDocuments(s3Keys: $s3Keys, mimeTypes: $mimeTypes) {
+    status
+    profile
+    fieldSources
+    fieldConfidence
+    extractions
+    claudeApiCost
+    error
+  }
+}

@@ -13,6 +13,9 @@ export * from './hooks';
 // Context
 export * from './context';
 
+// Utilities
+export * from './utils';
+
 // Apollo cache utilities
 export { createCache, typePolicies } from './lib/apollo';
 

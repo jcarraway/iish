@@ -558,6 +558,67 @@ async function generalUploadUrlAdapter(filename: string, contentType: string, bu
   };
 }
 
+// --- Patient Intake ---
+
+async function savePatientIntakeAdapter(userId: string, _email: string, input: any) {
+  const existing = await prisma.patient.findUnique({ where: { userId } });
+  const profileData = {
+    ...input.profile,
+  };
+  if (existing) {
+    return prisma.patient.update({
+      where: { id: existing.id },
+      data: {
+        profile: profileData,
+        intakePath: input.intakePath,
+        fieldSources: input.fieldSources || undefined,
+        fieldConfidence: input.fieldConfidence || undefined,
+      },
+    });
+  }
+  return prisma.patient.create({
+    data: {
+      userId,
+      profile: profileData,
+      intakePath: input.intakePath,
+      fieldSources: input.fieldSources || undefined,
+      fieldConfidence: input.fieldConfidence || undefined,
+    },
+  });
+}
+
+async function extractDocumentsAdapter(s3Keys: string[], mimeTypes: string[]) {
+  try {
+    const result = await runExtractionPipeline('graphql', s3Keys, mimeTypes);
+    return {
+      status: 'completed',
+      profile: result.profile || null,
+      fieldSources: result.fieldSources || null,
+      fieldConfidence: result.fieldConfidence || null,
+      extractions: result.extractions || null,
+      claudeApiCost: result.claudeApiCost || null,
+      error: null,
+    };
+  } catch (err: any) {
+    return {
+      status: 'failed',
+      profile: null,
+      fieldSources: null,
+      fieldConfidence: null,
+      extractions: null,
+      claudeApiCost: null,
+      error: err.message || 'Extraction failed',
+    };
+  }
+}
+
+async function createSequencingOrderAdapter(patientId: string, providerId: string, testType: string) {
+  return prisma.sequencingOrder.create({
+    data: { patientId, providerId, testType, status: 'pending' },
+    include: { provider: true },
+  });
+}
+
 // ============================================================================
 // Apollo Server setup
 // ============================================================================
@@ -633,6 +694,13 @@ const handler = startServerAndCreateNextHandler<NextRequest, GraphQLContext>(ser
         getPresignedUploadUrl,
         extractDocument,
         requestGeneralUploadUrl: generalUploadUrlAdapter,
+
+        // Patient Intake
+        savePatientIntake: savePatientIntakeAdapter,
+        extractDocuments: extractDocumentsAdapter,
+
+        // Sequencing Orders
+        createSequencingOrder: createSequencingOrderAdapter,
       },
     };
   },

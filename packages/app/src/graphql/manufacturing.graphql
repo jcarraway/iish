@@ -54,6 +54,8 @@ query GetManufacturingOrders {
     batchNumber
     trackingNumber
     partnerName
+    message
+    administeredAt
     createdAt
     updatedAt
   }
@@ -73,6 +75,50 @@ query GetManufacturingOrder($id: String!) {
     batchNumber
     trackingNumber
     partnerName
+    message
+    quoteExpiresAt
+    productionStartedAt
+    productionEstimatedCompletion
+    qcStartedAt
+    qcCompletedAt
+    qcPassed
+    qcNotes
+    shippedAt
+    shippingCarrier
+    shippingConditions
+    deliveredAt
+    administeredAt
+    administeredBy
+    paymentStatus
+    assessmentId
+    administrationSiteId
+    notes
+    partner {
+      id
+      name
+      slug
+      type
+      contactUrl
+    }
+    administrationSite {
+      id
+      name
+      city
+      state
+    }
+    assessment {
+      id
+      recommended
+      rationale
+    }
+    reports {
+      id
+      reportType
+      daysPostAdministration
+      hasAdverseEvents
+      status
+      createdAt
+    }
     createdAt
     updatedAt
   }
@@ -132,6 +178,23 @@ query GetRegulatoryDocuments($assessmentId: String!) {
     documentType
     content
     status
+    reviewNotes
+    reviewedAt
+    reviewedBy
+    createdAt
+  }
+}
+
+query GetRegulatoryDocument($id: String!) {
+  regulatoryDocument(id: $id) {
+    id
+    assessmentId
+    documentType
+    content
+    status
+    reviewNotes
+    reviewedAt
+    reviewedBy
     createdAt
   }
 }
@@ -194,5 +257,14 @@ mutation GenerateRegulatoryDocument($assessmentId: String!, $documentType: Strin
     documentType
     content
     status
+  }
+}
+
+mutation UpdateRegulatoryDocumentStatus($id: String!, $status: String!, $reviewNotes: String) {
+  updateRegulatoryDocumentStatus(id: $id, status: $status, reviewNotes: $reviewNotes) {
+    id
+    status
+    reviewNotes
+    reviewedAt
   }
 }

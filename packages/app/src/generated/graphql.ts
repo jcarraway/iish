@@ -21,9 +21,13 @@ export type Scalars = {
 
 export type AdministrationSite = {
   __typename?: 'AdministrationSite';
+  address?: Maybe<Scalars['String']['output']>;
   canAdministerMrna: Scalars['Boolean']['output'];
   city?: Maybe<Scalars['String']['output']>;
+  contactEmail?: Maybe<Scalars['String']['output']>;
+  contactName?: Maybe<Scalars['String']['output']>;
   contactPhone?: Maybe<Scalars['String']['output']>;
+  country?: Maybe<Scalars['String']['output']>;
   distance?: Maybe<Scalars['Float']['output']>;
   hasEmergencyResponse: Scalars['Boolean']['output'];
   hasInfusionCenter: Scalars['Boolean']['output'];
@@ -31,11 +35,15 @@ export type AdministrationSite = {
   id: Scalars['String']['output'];
   investigationalExp: Scalars['Boolean']['output'];
   irbAffiliation?: Maybe<Scalars['String']['output']>;
+  lat?: Maybe<Scalars['Float']['output']>;
+  lng?: Maybe<Scalars['Float']['output']>;
   name: Scalars['String']['output'];
   state?: Maybe<Scalars['String']['output']>;
   type: Scalars['String']['output'];
   verified: Scalars['Boolean']['output'];
   website?: Maybe<Scalars['String']['output']>;
+  willingToAdminister?: Maybe<Scalars['Boolean']['output']>;
+  zip?: Maybe<Scalars['String']['output']>;
 };
 
 export type AdverseEvent = {
@@ -98,6 +106,13 @@ export type Document = {
   type: Scalars['String']['output'];
 };
 
+export type DocumentMetaInput = {
+  fileSize: Scalars['Int']['input'];
+  filename: Scalars['String']['input'];
+  mimeType: Scalars['String']['input'];
+  s3Key: Scalars['String']['input'];
+};
+
 export type DrugCard = {
   __typename?: 'DrugCard';
   commonSideEffects: Array<SideEffect>;
@@ -107,6 +122,17 @@ export type DrugCard = {
   seriousSideEffects: Array<Scalars['String']['output']>;
   tips: Array<Scalars['String']['output']>;
   whyThisDrug: Scalars['String']['output'];
+};
+
+export type ExtractionResult = {
+  __typename?: 'ExtractionResult';
+  claudeApiCost?: Maybe<Scalars['Float']['output']>;
+  error?: Maybe<Scalars['String']['output']>;
+  extractions?: Maybe<Scalars['JSON']['output']>;
+  fieldConfidence?: Maybe<Scalars['JSON']['output']>;
+  fieldSources?: Maybe<Scalars['JSON']['output']>;
+  profile?: Maybe<Scalars['JSON']['output']>;
+  status: Scalars['String']['output'];
 };
 
 export type FhirAuthorizeResult = {
@@ -283,16 +309,38 @@ export type ManualIntakeInput = {
 
 export type ManufacturingOrder = {
   __typename?: 'ManufacturingOrder';
+  administeredAt?: Maybe<Scalars['String']['output']>;
+  administeredBy?: Maybe<Scalars['String']['output']>;
+  administrationSite?: Maybe<AdministrationSite>;
+  administrationSiteId?: Maybe<Scalars['String']['output']>;
+  assessment?: Maybe<RegulatoryPathwayAssessment>;
+  assessmentId?: Maybe<Scalars['String']['output']>;
   batchNumber?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['DateTime']['output'];
+  deliveredAt?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
+  message?: Maybe<Scalars['String']['output']>;
+  notes?: Maybe<Scalars['JSON']['output']>;
+  partner?: Maybe<ManufacturingPartner>;
   partnerId: Scalars['String']['output'];
   partnerName?: Maybe<Scalars['String']['output']>;
   patientId: Scalars['String']['output'];
+  paymentStatus?: Maybe<Scalars['String']['output']>;
   pipelineJobId: Scalars['String']['output'];
+  productionEstimatedCompletion?: Maybe<Scalars['String']['output']>;
+  productionStartedAt?: Maybe<Scalars['String']['output']>;
+  qcCompletedAt?: Maybe<Scalars['String']['output']>;
+  qcNotes?: Maybe<Scalars['String']['output']>;
+  qcPassed?: Maybe<Scalars['Boolean']['output']>;
+  qcStartedAt?: Maybe<Scalars['String']['output']>;
   quoteCurrency?: Maybe<Scalars['String']['output']>;
+  quoteExpiresAt?: Maybe<Scalars['String']['output']>;
   quotePrice?: Maybe<Scalars['Float']['output']>;
   quoteTurnaroundWeeks?: Maybe<Scalars['Int']['output']>;
+  reports: Array<MonitoringReport>;
+  shippedAt?: Maybe<Scalars['String']['output']>;
+  shippingCarrier?: Maybe<Scalars['String']['output']>;
+  shippingConditions?: Maybe<Scalars['String']['output']>;
   status: Scalars['String']['output'];
   totalCost?: Maybe<Scalars['Float']['output']>;
   trackingNumber?: Maybe<Scalars['String']['output']>;
@@ -421,7 +469,9 @@ export type Mutation = {
   connectSite: ManufacturingOrder;
   createManufacturingOrder: ManufacturingOrder;
   createPatientManual: Patient;
+  createSequencingOrder: SequencingOrder;
   extractDocument: Document;
+  extractDocuments: ExtractionResult;
   extractFhir: Scalars['JSON']['output'];
   extractGenomicReport: GenomicResult;
   generateLOMN: Lomn;
@@ -435,12 +485,15 @@ export type Mutation = {
   rematch: MatchDelta;
   requestGeneralUploadUrl: UploadUrlResult;
   requestUploadUrl: UploadUrl;
+  savePatientIntake: Patient;
   submitMonitoringReport: MonitoringReport;
   submitPipelineJob: PipelineJob;
+  subscribeFinancialProgram: Scalars['Boolean']['output'];
   translateTreatment: TreatmentTranslation;
   updateManufacturingOrderStatus: ManufacturingOrder;
   updateMatchStatus: Match;
   updatePatientProfile: Patient;
+  updateRegulatoryDocumentStatus: RegulatoryDocument;
 };
 
 
@@ -494,8 +547,20 @@ export type MutationCreatePatientManualArgs = {
 };
 
 
+export type MutationCreateSequencingOrderArgs = {
+  providerId: Scalars['String']['input'];
+  testType: Scalars['String']['input'];
+};
+
+
 export type MutationExtractDocumentArgs = {
   documentId: Scalars['String']['input'];
+};
+
+
+export type MutationExtractDocumentsArgs = {
+  mimeTypes: Array<Scalars['String']['input']>;
+  s3Keys: Array<Scalars['String']['input']>;
 };
 
 
@@ -545,6 +610,11 @@ export type MutationRequestUploadUrlArgs = {
 };
 
 
+export type MutationSavePatientIntakeArgs = {
+  input: PatientIntakeInput;
+};
+
+
 export type MutationSubmitMonitoringReportArgs = {
   input: MonitoringReportInput;
 };
@@ -556,6 +626,11 @@ export type MutationSubmitPipelineJobArgs = {
   referenceGenome: Scalars['String']['input'];
   rnaDataPath?: InputMaybe<Scalars['String']['input']>;
   tumorDataPath: Scalars['String']['input'];
+};
+
+
+export type MutationSubscribeFinancialProgramArgs = {
+  programId: Scalars['String']['input'];
 };
 
 
@@ -579,6 +654,13 @@ export type MutationUpdateMatchStatusArgs = {
 
 export type MutationUpdatePatientProfileArgs = {
   input: PatientProfileInput;
+};
+
+
+export type MutationUpdateRegulatoryDocumentStatusArgs = {
+  id: Scalars['String']['input'];
+  reviewNotes?: InputMaybe<Scalars['String']['input']>;
+  status: Scalars['String']['input'];
 };
 
 export type NeoantigenCandidate = {
@@ -666,6 +748,15 @@ export type Patient = {
   updatedAt: Scalars['DateTime']['output'];
 };
 
+export type PatientIntakeInput = {
+  claudeApiCost?: InputMaybe<Scalars['Float']['input']>;
+  documents?: InputMaybe<Array<DocumentMetaInput>>;
+  fieldConfidence?: InputMaybe<Scalars['JSON']['input']>;
+  fieldSources?: InputMaybe<Scalars['JSON']['input']>;
+  intakePath: Scalars['String']['input'];
+  profile: Scalars['JSON']['input'];
+};
+
 export type PatientProfile = {
   __typename?: 'PatientProfile';
   age?: Maybe<Scalars['Int']['output']>;
@@ -736,6 +827,7 @@ export type PriorTreatment = {
 
 export type Query = {
   __typename?: 'Query';
+  administrationSite?: Maybe<AdministrationSite>;
   administrationSites: Array<AdministrationSite>;
   conversationGuide: ConversationGuide;
   documents: Array<Document>;
@@ -766,6 +858,7 @@ export type Query = {
   recommendedPartners: Array<PartnerRecommendation>;
   regulatoryAssessment?: Maybe<RegulatoryPathwayAssessment>;
   regulatoryAssessments: Array<RegulatoryPathwayAssessment>;
+  regulatoryDocument?: Maybe<RegulatoryDocument>;
   regulatoryDocuments: Array<RegulatoryDocument>;
   reportPdf: ReportPdfResult;
   sequencingBrief: Scalars['String']['output'];
@@ -777,6 +870,11 @@ export type Query = {
   trial?: Maybe<Trial>;
   trials: Array<Trial>;
   waitingContent: WaitingContent;
+};
+
+
+export type QueryAdministrationSiteArgs = {
+  id: Scalars['String']['input'];
 };
 
 
@@ -869,6 +967,11 @@ export type QueryRegulatoryAssessmentArgs = {
 };
 
 
+export type QueryRegulatoryDocumentArgs = {
+  id: Scalars['String']['input'];
+};
+
+
 export type QueryRegulatoryDocumentsArgs = {
   assessmentId: Scalars['String']['input'];
 };
@@ -925,6 +1028,9 @@ export type RegulatoryDocument = {
   createdAt: Scalars['DateTime']['output'];
   documentType: Scalars['String']['output'];
   id: Scalars['String']['output'];
+  reviewNotes?: Maybe<Scalars['String']['output']>;
+  reviewedAt?: Maybe<Scalars['String']['output']>;
+  reviewedBy?: Maybe<Scalars['String']['output']>;
   status: Scalars['String']['output'];
 };
 
@@ -1212,6 +1318,13 @@ export type MatchFinancialProgramsMutationVariables = Exact<{
 
 export type MatchFinancialProgramsMutation = { __typename?: 'Mutation', matchFinancialPrograms: Array<{ __typename?: 'FinancialMatch', programId: string, programName: string, organization: string, type: string, matchStatus: string, estimatedBenefit?: string | null, matchReasoning: string, missingInfo: Array<string>, maxBenefitAmount?: number | null, applicationUrl?: string | null, website: string, assistanceCategories: Array<string> }> };
 
+export type SubscribeFinancialProgramMutationVariables = Exact<{
+  programId: Scalars['String']['input'];
+}>;
+
+
+export type SubscribeFinancialProgramMutation = { __typename?: 'Mutation', subscribeFinancialProgram: boolean };
+
 export type GetGenomicResultsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -1265,14 +1378,14 @@ export type GetManufacturingPartnerQuery = { __typename?: 'Query', manufacturing
 export type GetManufacturingOrdersQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetManufacturingOrdersQuery = { __typename?: 'Query', manufacturingOrders: Array<{ __typename?: 'ManufacturingOrder', id: string, patientId: string, partnerId: string, pipelineJobId: string, status: string, quotePrice?: number | null, quoteCurrency?: string | null, quoteTurnaroundWeeks?: number | null, totalCost?: number | null, batchNumber?: string | null, trackingNumber?: string | null, partnerName?: string | null, createdAt: string, updatedAt: string }> };
+export type GetManufacturingOrdersQuery = { __typename?: 'Query', manufacturingOrders: Array<{ __typename?: 'ManufacturingOrder', id: string, patientId: string, partnerId: string, pipelineJobId: string, status: string, quotePrice?: number | null, quoteCurrency?: string | null, quoteTurnaroundWeeks?: number | null, totalCost?: number | null, batchNumber?: string | null, trackingNumber?: string | null, partnerName?: string | null, message?: string | null, administeredAt?: string | null, createdAt: string, updatedAt: string }> };
 
 export type GetManufacturingOrderQueryVariables = Exact<{
   id: Scalars['String']['input'];
 }>;
 
 
-export type GetManufacturingOrderQuery = { __typename?: 'Query', manufacturingOrder?: { __typename?: 'ManufacturingOrder', id: string, patientId: string, partnerId: string, pipelineJobId: string, status: string, quotePrice?: number | null, quoteCurrency?: string | null, quoteTurnaroundWeeks?: number | null, totalCost?: number | null, batchNumber?: string | null, trackingNumber?: string | null, partnerName?: string | null, createdAt: string, updatedAt: string } | null };
+export type GetManufacturingOrderQuery = { __typename?: 'Query', manufacturingOrder?: { __typename?: 'ManufacturingOrder', id: string, patientId: string, partnerId: string, pipelineJobId: string, status: string, quotePrice?: number | null, quoteCurrency?: string | null, quoteTurnaroundWeeks?: number | null, totalCost?: number | null, batchNumber?: string | null, trackingNumber?: string | null, partnerName?: string | null, message?: string | null, quoteExpiresAt?: string | null, productionStartedAt?: string | null, productionEstimatedCompletion?: string | null, qcStartedAt?: string | null, qcCompletedAt?: string | null, qcPassed?: boolean | null, qcNotes?: string | null, shippedAt?: string | null, shippingCarrier?: string | null, shippingConditions?: string | null, deliveredAt?: string | null, administeredAt?: string | null, administeredBy?: string | null, paymentStatus?: string | null, assessmentId?: string | null, administrationSiteId?: string | null, notes?: Record<string, unknown> | null, createdAt: string, updatedAt: string, partner?: { __typename?: 'ManufacturingPartner', id: string, name: string, slug: string, type: string, contactUrl?: string | null } | null, administrationSite?: { __typename?: 'AdministrationSite', id: string, name: string, city?: string | null, state?: string | null } | null, assessment?: { __typename?: 'RegulatoryPathwayAssessment', id: string, recommended: string, rationale: string } | null, reports: Array<{ __typename?: 'MonitoringReport', id: string, reportType: string, daysPostAdministration: number, hasAdverseEvents: boolean, status: string, createdAt: string }> } | null };
 
 export type GetRecommendedPartnersQueryVariables = Exact<{
   pipelineJobId: Scalars['String']['input'];
@@ -1298,7 +1411,14 @@ export type GetRegulatoryDocumentsQueryVariables = Exact<{
 }>;
 
 
-export type GetRegulatoryDocumentsQuery = { __typename?: 'Query', regulatoryDocuments: Array<{ __typename?: 'RegulatoryDocument', id: string, assessmentId: string, documentType: string, content: string, status: string, createdAt: string }> };
+export type GetRegulatoryDocumentsQuery = { __typename?: 'Query', regulatoryDocuments: Array<{ __typename?: 'RegulatoryDocument', id: string, assessmentId: string, documentType: string, content: string, status: string, reviewNotes?: string | null, reviewedAt?: string | null, reviewedBy?: string | null, createdAt: string }> };
+
+export type GetRegulatoryDocumentQueryVariables = Exact<{
+  id: Scalars['String']['input'];
+}>;
+
+
+export type GetRegulatoryDocumentQuery = { __typename?: 'Query', regulatoryDocument?: { __typename?: 'RegulatoryDocument', id: string, assessmentId: string, documentType: string, content: string, status: string, reviewNotes?: string | null, reviewedAt?: string | null, reviewedBy?: string | null, createdAt: string } | null };
 
 export type CreateManufacturingOrderMutationVariables = Exact<{
   partnerId: Scalars['String']['input'];
@@ -1355,6 +1475,15 @@ export type GenerateRegulatoryDocumentMutationVariables = Exact<{
 
 export type GenerateRegulatoryDocumentMutation = { __typename?: 'Mutation', generateRegulatoryDocument: { __typename?: 'RegulatoryDocument', id: string, documentType: string, content: string, status: string } };
 
+export type UpdateRegulatoryDocumentStatusMutationVariables = Exact<{
+  id: Scalars['String']['input'];
+  status: Scalars['String']['input'];
+  reviewNotes?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type UpdateRegulatoryDocumentStatusMutation = { __typename?: 'Mutation', updateRegulatoryDocumentStatus: { __typename?: 'RegulatoryDocument', id: string, status: string, reviewNotes?: string | null, reviewedAt?: string | null } };
+
 export type GetMatchesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -1403,6 +1532,13 @@ export type GetAdministrationSitesQueryVariables = Exact<{
 
 export type GetAdministrationSitesQuery = { __typename?: 'Query', administrationSites: Array<{ __typename?: 'AdministrationSite', id: string, name: string, type: string, city?: string | null, state?: string | null, distance?: number | null, canAdministerMrna: boolean, hasInfusionCenter: boolean, hasEmergencyResponse: boolean, hasMonitoringCapacity: boolean, investigationalExp: boolean, irbAffiliation?: string | null, verified: boolean, contactPhone?: string | null, website?: string | null }> };
 
+export type GetAdministrationSiteQueryVariables = Exact<{
+  id: Scalars['String']['input'];
+}>;
+
+
+export type GetAdministrationSiteQuery = { __typename?: 'Query', administrationSite?: { __typename?: 'AdministrationSite', id: string, name: string, type: string, city?: string | null, state?: string | null, address?: string | null, zip?: string | null, country?: string | null, lat?: number | null, lng?: number | null, canAdministerMrna: boolean, hasInfusionCenter: boolean, hasEmergencyResponse: boolean, hasMonitoringCapacity: boolean, investigationalExp: boolean, irbAffiliation?: string | null, verified: boolean, contactName?: string | null, contactEmail?: string | null, contactPhone?: string | null, willingToAdminister?: boolean | null, website?: string | null } | null };
+
 export type GetMonitoringReportsQueryVariables = Exact<{
   orderId: Scalars['String']['input'];
 }>;
@@ -1447,6 +1583,21 @@ export type CreatePatientManualMutationVariables = Exact<{
 
 
 export type CreatePatientManualMutation = { __typename?: 'Mutation', createPatientManual: { __typename?: 'Patient', id: string, name?: string | null, intakeMethod?: string | null, profile?: { __typename?: 'PatientProfile', cancerType?: string | null, stage?: string | null, age?: number | null, zipCode?: string | null } | null } };
+
+export type SavePatientIntakeMutationVariables = Exact<{
+  input: PatientIntakeInput;
+}>;
+
+
+export type SavePatientIntakeMutation = { __typename?: 'Mutation', savePatientIntake: { __typename?: 'Patient', id: string, intakeMethod?: string | null, profile?: { __typename?: 'PatientProfile', cancerType?: string | null, stage?: string | null } | null } };
+
+export type ExtractDocumentsMutationVariables = Exact<{
+  s3Keys: Array<Scalars['String']['input']> | Scalars['String']['input'];
+  mimeTypes: Array<Scalars['String']['input']> | Scalars['String']['input'];
+}>;
+
+
+export type ExtractDocumentsMutation = { __typename?: 'Mutation', extractDocuments: { __typename?: 'ExtractionResult', status: string, profile?: Record<string, unknown> | null, fieldSources?: Record<string, unknown> | null, fieldConfidence?: Record<string, unknown> | null, extractions?: Record<string, unknown> | null, claudeApiCost?: number | null, error?: string | null } };
 
 export type GetPipelineJobsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1581,6 +1732,14 @@ export type GenerateSequencingRecommendationMutationVariables = Exact<{ [key: st
 
 
 export type GenerateSequencingRecommendationMutation = { __typename?: 'Mutation', generateSequencingRecommendation: { __typename?: 'SequencingRecommendation', level: string, headline: string, personalizedReasoning: string, whatItCouldReveal: Array<string>, howItHelpsRightNow: string, howItHelpsLater: string, guidelineRecommendation: string, generatedAt: string } };
+
+export type CreateSequencingOrderMutationVariables = Exact<{
+  providerId: Scalars['String']['input'];
+  testType: Scalars['String']['input'];
+}>;
+
+
+export type CreateSequencingOrderMutation = { __typename?: 'Mutation', createSequencingOrder: { __typename?: 'SequencingOrder', id: string, status: string, provider?: { __typename?: 'SequencingProvider', id: string, name: string } | null } };
 
 export type GetTrialsQueryVariables = Exact<{
   cancerType?: InputMaybe<Scalars['String']['input']>;
@@ -2161,6 +2320,37 @@ export function useMatchFinancialProgramsMutation(baseOptions?: Apollo.MutationH
 export type MatchFinancialProgramsMutationHookResult = ReturnType<typeof useMatchFinancialProgramsMutation>;
 export type MatchFinancialProgramsMutationResult = Apollo.MutationResult<MatchFinancialProgramsMutation>;
 export type MatchFinancialProgramsMutationOptions = Apollo.BaseMutationOptions<MatchFinancialProgramsMutation, MatchFinancialProgramsMutationVariables>;
+export const SubscribeFinancialProgramDocument = gql`
+    mutation SubscribeFinancialProgram($programId: String!) {
+  subscribeFinancialProgram(programId: $programId)
+}
+    `;
+export type SubscribeFinancialProgramMutationFn = Apollo.MutationFunction<SubscribeFinancialProgramMutation, SubscribeFinancialProgramMutationVariables>;
+
+/**
+ * __useSubscribeFinancialProgramMutation__
+ *
+ * To run a mutation, you first call `useSubscribeFinancialProgramMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSubscribeFinancialProgramMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [subscribeFinancialProgramMutation, { data, loading, error }] = useSubscribeFinancialProgramMutation({
+ *   variables: {
+ *      programId: // value for 'programId'
+ *   },
+ * });
+ */
+export function useSubscribeFinancialProgramMutation(baseOptions?: Apollo.MutationHookOptions<SubscribeFinancialProgramMutation, SubscribeFinancialProgramMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SubscribeFinancialProgramMutation, SubscribeFinancialProgramMutationVariables>(SubscribeFinancialProgramDocument, options);
+      }
+export type SubscribeFinancialProgramMutationHookResult = ReturnType<typeof useSubscribeFinancialProgramMutation>;
+export type SubscribeFinancialProgramMutationResult = Apollo.MutationResult<SubscribeFinancialProgramMutation>;
+export type SubscribeFinancialProgramMutationOptions = Apollo.BaseMutationOptions<SubscribeFinancialProgramMutation, SubscribeFinancialProgramMutationVariables>;
 export const GetGenomicResultsDocument = gql`
     query GetGenomicResults {
   genomicResults {
@@ -2635,6 +2825,8 @@ export const GetManufacturingOrdersDocument = gql`
     batchNumber
     trackingNumber
     partnerName
+    message
+    administeredAt
     createdAt
     updatedAt
   }
@@ -2690,6 +2882,50 @@ export const GetManufacturingOrderDocument = gql`
     batchNumber
     trackingNumber
     partnerName
+    message
+    quoteExpiresAt
+    productionStartedAt
+    productionEstimatedCompletion
+    qcStartedAt
+    qcCompletedAt
+    qcPassed
+    qcNotes
+    shippedAt
+    shippingCarrier
+    shippingConditions
+    deliveredAt
+    administeredAt
+    administeredBy
+    paymentStatus
+    assessmentId
+    administrationSiteId
+    notes
+    partner {
+      id
+      name
+      slug
+      type
+      contactUrl
+    }
+    administrationSite {
+      id
+      name
+      city
+      state
+    }
+    assessment {
+      id
+      recommended
+      rationale
+    }
+    reports {
+      id
+      reportType
+      daysPostAdministration
+      hasAdverseEvents
+      status
+      createdAt
+    }
     createdAt
     updatedAt
   }
@@ -2896,6 +3132,9 @@ export const GetRegulatoryDocumentsDocument = gql`
     documentType
     content
     status
+    reviewNotes
+    reviewedAt
+    reviewedBy
     createdAt
   }
 }
@@ -2936,6 +3175,57 @@ export type GetRegulatoryDocumentsQueryHookResult = ReturnType<typeof useGetRegu
 export type GetRegulatoryDocumentsLazyQueryHookResult = ReturnType<typeof useGetRegulatoryDocumentsLazyQuery>;
 export type GetRegulatoryDocumentsSuspenseQueryHookResult = ReturnType<typeof useGetRegulatoryDocumentsSuspenseQuery>;
 export type GetRegulatoryDocumentsQueryResult = Apollo.QueryResult<GetRegulatoryDocumentsQuery, GetRegulatoryDocumentsQueryVariables>;
+export const GetRegulatoryDocumentDocument = gql`
+    query GetRegulatoryDocument($id: String!) {
+  regulatoryDocument(id: $id) {
+    id
+    assessmentId
+    documentType
+    content
+    status
+    reviewNotes
+    reviewedAt
+    reviewedBy
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useGetRegulatoryDocumentQuery__
+ *
+ * To run a query within a React component, call `useGetRegulatoryDocumentQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetRegulatoryDocumentQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetRegulatoryDocumentQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetRegulatoryDocumentQuery(baseOptions: Apollo.QueryHookOptions<GetRegulatoryDocumentQuery, GetRegulatoryDocumentQueryVariables> & ({ variables: GetRegulatoryDocumentQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetRegulatoryDocumentQuery, GetRegulatoryDocumentQueryVariables>(GetRegulatoryDocumentDocument, options);
+      }
+export function useGetRegulatoryDocumentLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetRegulatoryDocumentQuery, GetRegulatoryDocumentQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetRegulatoryDocumentQuery, GetRegulatoryDocumentQueryVariables>(GetRegulatoryDocumentDocument, options);
+        }
+// @ts-ignore
+export function useGetRegulatoryDocumentSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetRegulatoryDocumentQuery, GetRegulatoryDocumentQueryVariables>): Apollo.UseSuspenseQueryResult<GetRegulatoryDocumentQuery, GetRegulatoryDocumentQueryVariables>;
+export function useGetRegulatoryDocumentSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetRegulatoryDocumentQuery, GetRegulatoryDocumentQueryVariables>): Apollo.UseSuspenseQueryResult<GetRegulatoryDocumentQuery | undefined, GetRegulatoryDocumentQueryVariables>;
+export function useGetRegulatoryDocumentSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetRegulatoryDocumentQuery, GetRegulatoryDocumentQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetRegulatoryDocumentQuery, GetRegulatoryDocumentQueryVariables>(GetRegulatoryDocumentDocument, options);
+        }
+export type GetRegulatoryDocumentQueryHookResult = ReturnType<typeof useGetRegulatoryDocumentQuery>;
+export type GetRegulatoryDocumentLazyQueryHookResult = ReturnType<typeof useGetRegulatoryDocumentLazyQuery>;
+export type GetRegulatoryDocumentSuspenseQueryHookResult = ReturnType<typeof useGetRegulatoryDocumentSuspenseQuery>;
+export type GetRegulatoryDocumentQueryResult = Apollo.QueryResult<GetRegulatoryDocumentQuery, GetRegulatoryDocumentQueryVariables>;
 export const CreateManufacturingOrderDocument = gql`
     mutation CreateManufacturingOrder($partnerId: String!, $pipelineJobId: String!) {
   createManufacturingOrder(partnerId: $partnerId, pipelineJobId: $pipelineJobId) {
@@ -3199,6 +3489,48 @@ export function useGenerateRegulatoryDocumentMutation(baseOptions?: Apollo.Mutat
 export type GenerateRegulatoryDocumentMutationHookResult = ReturnType<typeof useGenerateRegulatoryDocumentMutation>;
 export type GenerateRegulatoryDocumentMutationResult = Apollo.MutationResult<GenerateRegulatoryDocumentMutation>;
 export type GenerateRegulatoryDocumentMutationOptions = Apollo.BaseMutationOptions<GenerateRegulatoryDocumentMutation, GenerateRegulatoryDocumentMutationVariables>;
+export const UpdateRegulatoryDocumentStatusDocument = gql`
+    mutation UpdateRegulatoryDocumentStatus($id: String!, $status: String!, $reviewNotes: String) {
+  updateRegulatoryDocumentStatus(
+    id: $id
+    status: $status
+    reviewNotes: $reviewNotes
+  ) {
+    id
+    status
+    reviewNotes
+    reviewedAt
+  }
+}
+    `;
+export type UpdateRegulatoryDocumentStatusMutationFn = Apollo.MutationFunction<UpdateRegulatoryDocumentStatusMutation, UpdateRegulatoryDocumentStatusMutationVariables>;
+
+/**
+ * __useUpdateRegulatoryDocumentStatusMutation__
+ *
+ * To run a mutation, you first call `useUpdateRegulatoryDocumentStatusMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateRegulatoryDocumentStatusMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateRegulatoryDocumentStatusMutation, { data, loading, error }] = useUpdateRegulatoryDocumentStatusMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      status: // value for 'status'
+ *      reviewNotes: // value for 'reviewNotes'
+ *   },
+ * });
+ */
+export function useUpdateRegulatoryDocumentStatusMutation(baseOptions?: Apollo.MutationHookOptions<UpdateRegulatoryDocumentStatusMutation, UpdateRegulatoryDocumentStatusMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateRegulatoryDocumentStatusMutation, UpdateRegulatoryDocumentStatusMutationVariables>(UpdateRegulatoryDocumentStatusDocument, options);
+      }
+export type UpdateRegulatoryDocumentStatusMutationHookResult = ReturnType<typeof useUpdateRegulatoryDocumentStatusMutation>;
+export type UpdateRegulatoryDocumentStatusMutationResult = Apollo.MutationResult<UpdateRegulatoryDocumentStatusMutation>;
+export type UpdateRegulatoryDocumentStatusMutationOptions = Apollo.BaseMutationOptions<UpdateRegulatoryDocumentStatusMutation, UpdateRegulatoryDocumentStatusMutationVariables>;
 export const GetMatchesDocument = gql`
     query GetMatches {
   matches {
@@ -3571,6 +3903,70 @@ export type GetAdministrationSitesQueryHookResult = ReturnType<typeof useGetAdmi
 export type GetAdministrationSitesLazyQueryHookResult = ReturnType<typeof useGetAdministrationSitesLazyQuery>;
 export type GetAdministrationSitesSuspenseQueryHookResult = ReturnType<typeof useGetAdministrationSitesSuspenseQuery>;
 export type GetAdministrationSitesQueryResult = Apollo.QueryResult<GetAdministrationSitesQuery, GetAdministrationSitesQueryVariables>;
+export const GetAdministrationSiteDocument = gql`
+    query GetAdministrationSite($id: String!) {
+  administrationSite(id: $id) {
+    id
+    name
+    type
+    city
+    state
+    address
+    zip
+    country
+    lat
+    lng
+    canAdministerMrna
+    hasInfusionCenter
+    hasEmergencyResponse
+    hasMonitoringCapacity
+    investigationalExp
+    irbAffiliation
+    verified
+    contactName
+    contactEmail
+    contactPhone
+    willingToAdminister
+    website
+  }
+}
+    `;
+
+/**
+ * __useGetAdministrationSiteQuery__
+ *
+ * To run a query within a React component, call `useGetAdministrationSiteQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAdministrationSiteQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAdministrationSiteQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetAdministrationSiteQuery(baseOptions: Apollo.QueryHookOptions<GetAdministrationSiteQuery, GetAdministrationSiteQueryVariables> & ({ variables: GetAdministrationSiteQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetAdministrationSiteQuery, GetAdministrationSiteQueryVariables>(GetAdministrationSiteDocument, options);
+      }
+export function useGetAdministrationSiteLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAdministrationSiteQuery, GetAdministrationSiteQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetAdministrationSiteQuery, GetAdministrationSiteQueryVariables>(GetAdministrationSiteDocument, options);
+        }
+// @ts-ignore
+export function useGetAdministrationSiteSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetAdministrationSiteQuery, GetAdministrationSiteQueryVariables>): Apollo.UseSuspenseQueryResult<GetAdministrationSiteQuery, GetAdministrationSiteQueryVariables>;
+export function useGetAdministrationSiteSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetAdministrationSiteQuery, GetAdministrationSiteQueryVariables>): Apollo.UseSuspenseQueryResult<GetAdministrationSiteQuery | undefined, GetAdministrationSiteQueryVariables>;
+export function useGetAdministrationSiteSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetAdministrationSiteQuery, GetAdministrationSiteQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetAdministrationSiteQuery, GetAdministrationSiteQueryVariables>(GetAdministrationSiteDocument, options);
+        }
+export type GetAdministrationSiteQueryHookResult = ReturnType<typeof useGetAdministrationSiteQuery>;
+export type GetAdministrationSiteLazyQueryHookResult = ReturnType<typeof useGetAdministrationSiteLazyQuery>;
+export type GetAdministrationSiteSuspenseQueryHookResult = ReturnType<typeof useGetAdministrationSiteSuspenseQuery>;
+export type GetAdministrationSiteQueryResult = Apollo.QueryResult<GetAdministrationSiteQuery, GetAdministrationSiteQueryVariables>;
 export const GetMonitoringReportsDocument = gql`
     query GetMonitoringReports($orderId: String!) {
   monitoringReports(orderId: $orderId) {
@@ -3978,6 +4374,84 @@ export function useCreatePatientManualMutation(baseOptions?: Apollo.MutationHook
 export type CreatePatientManualMutationHookResult = ReturnType<typeof useCreatePatientManualMutation>;
 export type CreatePatientManualMutationResult = Apollo.MutationResult<CreatePatientManualMutation>;
 export type CreatePatientManualMutationOptions = Apollo.BaseMutationOptions<CreatePatientManualMutation, CreatePatientManualMutationVariables>;
+export const SavePatientIntakeDocument = gql`
+    mutation SavePatientIntake($input: PatientIntakeInput!) {
+  savePatientIntake(input: $input) {
+    id
+    profile {
+      cancerType
+      stage
+    }
+    intakeMethod
+  }
+}
+    `;
+export type SavePatientIntakeMutationFn = Apollo.MutationFunction<SavePatientIntakeMutation, SavePatientIntakeMutationVariables>;
+
+/**
+ * __useSavePatientIntakeMutation__
+ *
+ * To run a mutation, you first call `useSavePatientIntakeMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSavePatientIntakeMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [savePatientIntakeMutation, { data, loading, error }] = useSavePatientIntakeMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useSavePatientIntakeMutation(baseOptions?: Apollo.MutationHookOptions<SavePatientIntakeMutation, SavePatientIntakeMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SavePatientIntakeMutation, SavePatientIntakeMutationVariables>(SavePatientIntakeDocument, options);
+      }
+export type SavePatientIntakeMutationHookResult = ReturnType<typeof useSavePatientIntakeMutation>;
+export type SavePatientIntakeMutationResult = Apollo.MutationResult<SavePatientIntakeMutation>;
+export type SavePatientIntakeMutationOptions = Apollo.BaseMutationOptions<SavePatientIntakeMutation, SavePatientIntakeMutationVariables>;
+export const ExtractDocumentsDocument = gql`
+    mutation ExtractDocuments($s3Keys: [String!]!, $mimeTypes: [String!]!) {
+  extractDocuments(s3Keys: $s3Keys, mimeTypes: $mimeTypes) {
+    status
+    profile
+    fieldSources
+    fieldConfidence
+    extractions
+    claudeApiCost
+    error
+  }
+}
+    `;
+export type ExtractDocumentsMutationFn = Apollo.MutationFunction<ExtractDocumentsMutation, ExtractDocumentsMutationVariables>;
+
+/**
+ * __useExtractDocumentsMutation__
+ *
+ * To run a mutation, you first call `useExtractDocumentsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useExtractDocumentsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [extractDocumentsMutation, { data, loading, error }] = useExtractDocumentsMutation({
+ *   variables: {
+ *      s3Keys: // value for 's3Keys'
+ *      mimeTypes: // value for 'mimeTypes'
+ *   },
+ * });
+ */
+export function useExtractDocumentsMutation(baseOptions?: Apollo.MutationHookOptions<ExtractDocumentsMutation, ExtractDocumentsMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ExtractDocumentsMutation, ExtractDocumentsMutationVariables>(ExtractDocumentsDocument, options);
+      }
+export type ExtractDocumentsMutationHookResult = ReturnType<typeof useExtractDocumentsMutation>;
+export type ExtractDocumentsMutationResult = Apollo.MutationResult<ExtractDocumentsMutation>;
+export type ExtractDocumentsMutationOptions = Apollo.BaseMutationOptions<ExtractDocumentsMutation, ExtractDocumentsMutationVariables>;
 export const GetPipelineJobsDocument = gql`
     query GetPipelineJobs {
   pipelineJobs {
@@ -4930,6 +5404,45 @@ export function useGenerateSequencingRecommendationMutation(baseOptions?: Apollo
 export type GenerateSequencingRecommendationMutationHookResult = ReturnType<typeof useGenerateSequencingRecommendationMutation>;
 export type GenerateSequencingRecommendationMutationResult = Apollo.MutationResult<GenerateSequencingRecommendationMutation>;
 export type GenerateSequencingRecommendationMutationOptions = Apollo.BaseMutationOptions<GenerateSequencingRecommendationMutation, GenerateSequencingRecommendationMutationVariables>;
+export const CreateSequencingOrderDocument = gql`
+    mutation CreateSequencingOrder($providerId: String!, $testType: String!) {
+  createSequencingOrder(providerId: $providerId, testType: $testType) {
+    id
+    status
+    provider {
+      id
+      name
+    }
+  }
+}
+    `;
+export type CreateSequencingOrderMutationFn = Apollo.MutationFunction<CreateSequencingOrderMutation, CreateSequencingOrderMutationVariables>;
+
+/**
+ * __useCreateSequencingOrderMutation__
+ *
+ * To run a mutation, you first call `useCreateSequencingOrderMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateSequencingOrderMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createSequencingOrderMutation, { data, loading, error }] = useCreateSequencingOrderMutation({
+ *   variables: {
+ *      providerId: // value for 'providerId'
+ *      testType: // value for 'testType'
+ *   },
+ * });
+ */
+export function useCreateSequencingOrderMutation(baseOptions?: Apollo.MutationHookOptions<CreateSequencingOrderMutation, CreateSequencingOrderMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateSequencingOrderMutation, CreateSequencingOrderMutationVariables>(CreateSequencingOrderDocument, options);
+      }
+export type CreateSequencingOrderMutationHookResult = ReturnType<typeof useCreateSequencingOrderMutation>;
+export type CreateSequencingOrderMutationResult = Apollo.MutationResult<CreateSequencingOrderMutation>;
+export type CreateSequencingOrderMutationOptions = Apollo.BaseMutationOptions<CreateSequencingOrderMutation, CreateSequencingOrderMutationVariables>;
 export const GetTrialsDocument = gql`
     query GetTrials($cancerType: String, $phase: String, $limit: Int) {
   trials(cancerType: $cancerType, phase: $phase, limit: $limit) {
