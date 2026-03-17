@@ -19,11 +19,11 @@ oncovax/
 ├── docker-compose.yml          # Local dev: postgres:15-alpine + redis:7-alpine
 ├── packages/
 │   ├── ui/                     # Thin RN + Solito re-exports (@oncovax/ui)
-│   ├── app/                    # 46 shared screens, 22 Dripsy components, theme, 76+ generated hooks (@oncovax/app)
-│   │   └── src/{screens[46],components[22],providers,theme,graphql,generated,utils,index}.ts
-│   ├── api/                    # Apollo Server schema (45+ types, 30Q, 30M) + 18 resolver files (@oncovax/api)
-│   │   └── src/{schema,resolvers[18 files],context,index}.ts
-│   ├── db/                     # Prisma 7 + PostgreSQL (23 models)
+│   ├── app/                    # 50 shared screens, 22 Dripsy components, theme, 82+ generated hooks (@oncovax/app)
+│   │   └── src/{screens[50],components[22],providers,theme,graphql,generated,utils,index}.ts
+│   ├── api/                    # Apollo Server schema (48+ types, 33Q, 32M) + 19 resolver files (@oncovax/api)
+│   │   └── src/{schema,resolvers[19 files],context,index}.ts
+│   ├── db/                     # Prisma 7 + PostgreSQL (26 models)
 │   │   ├── prisma/schema.prisma
 │   │   └── prisma.config.ts    # defineConfig — url goes HERE, not in schema
 │   ├── shared/                 # Types (720+ lines), Zod schemas, constants, auth
@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
 
 ### UI: Dripsy + Solito (Cross-Platform, Screen Migration Complete)
 - **Shared components:** 22 Dripsy components in `packages/app/src/components/` — cross-platform ready
-- **Shared screens:** 46 screens in `packages/app/src/screens/` — all migratable screens done (D3-D6)
+- **Shared screens:** 50 screens in `packages/app/src/screens/` — all migratable screens done (D3-D6) + 4 survivorship screens (S1)
 - **Web pages:** All migratable pages are thin re-exports: `'use client'; export { XxxScreen as default } from '@oncovax/app';`
 - **Mobile routes:** All 46 screens wired via Expo Router — 50 route files (30 direct re-exports, 17 param wrappers, 3 upload placeholders)
 - **Mobile tabs:** 5-tab layout (Home, Matches, Sequencing, Pipeline, More) with Ionicons
@@ -127,9 +127,12 @@ export async function POST(req: NextRequest) {
 - *D7:* Mobile app routing — 52 route files wired to all 46 shared screens via Expo Router. Auth guard (`useProtectedRoute`), 5-tab layout (Home/Matches/Sequencing/Pipeline/More), MoreScreen navigation grid, 3 upload placeholders. **Mobile app functionally complete.**
 - *D8:* Dead code cleanup + REST→GraphQL migration. Deleted 21 dead Tailwind components + `utils.ts`. Added `requestMagicLink` mutation + `generateReport` query + `isCancerCenter` field. Migrated 5 shared files from `fetch('/api/...')` to GraphQL hooks. **All shared code now uses GraphQL exclusively — mobile-compatible.**
 
+**Phase 5 — SURVIVE (S1, in progress):**
+- *S1:* Survivorship foundation + care plan generation. 3 Prisma models (SurvivorshipPlan, SurveillanceEvent, JournalEntry), 2-step Claude pipeline SCP generator (clinical grounding → patient-facing translation), GraphQL layer (3 queries, 2 mutations, 1 input, 1 resolver file), 4 shared Dripsy screens (SurviveDashboard, TreatmentComplete, SCPReading, SurviveStub), 9 web pages under `/survive/`, 9 mobile routes, MoreScreen + Dashboard integration. **Treatment completion → SCP generation → reading experience → survivorship dashboard.**
+
 ## What's NOT Built Yet
 
-**Phase 5 — SURVIVE** (Sessions S1-S8): Survivorship care plans, surveillance scheduling, symptom journal, lifestyle engine, psychosocial support, ctDNA monitoring, recurrence cascade.
+**Phase 5 — SURVIVE** (Sessions S2-S8): Surveillance scheduling UI, symptom journal UI, lifestyle engine, psychosocial support, ctDNA monitoring, recurrence cascade.
 
 **Cross-cutting:** INTEL (research intelligence), LEARN (educational content/SEO), VISUAL (30 visualizations), CARE (care commerce), COOL (cold capping), ENGINE (opportunity detection).
 

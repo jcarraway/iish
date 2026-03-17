@@ -277,6 +277,21 @@ export type InsuranceCoverage = {
   testType: Scalars['String']['output'];
 };
 
+export type JournalEntry = {
+  __typename?: 'JournalEntry';
+  createdAt: Scalars['DateTime']['output'];
+  energy?: Maybe<Scalars['Int']['output']>;
+  entryDate: Scalars['String']['output'];
+  hotFlashes?: Maybe<Scalars['Int']['output']>;
+  id: Scalars['String']['output'];
+  jointPain?: Maybe<Scalars['Int']['output']>;
+  mood?: Maybe<Scalars['Int']['output']>;
+  notes?: Maybe<Scalars['String']['output']>;
+  pain?: Maybe<Scalars['Int']['output']>;
+  patientId: Scalars['String']['output'];
+  sleepQuality?: Maybe<Scalars['Int']['output']>;
+};
+
 export type LlmAssessment = {
   __typename?: 'LLMAssessment';
   actionItems: Array<Scalars['String']['output']>;
@@ -468,6 +483,7 @@ export type Mutation = {
   authorizeFhir: FhirAuthorizeResult;
   cancelPipelineJob: PipelineJob;
   checkInsuranceCoverage: InsuranceCoverage;
+  completeTreatment: SurvivorshipPlan;
   confirmGenomics: GenomicResult;
   connectSite: ManufacturingOrder;
   createManufacturingOrder: ManufacturingOrder;
@@ -485,6 +501,7 @@ export type Mutation = {
   interpretGenomics: GenomicInterpretation;
   logout: Scalars['Boolean']['output'];
   matchFinancialPrograms: Array<FinancialMatch>;
+  refreshSCP: SurvivorshipPlan;
   rematch: MatchDelta;
   requestGeneralUploadUrl: UploadUrlResult;
   requestMagicLink: Scalars['Boolean']['output'];
@@ -533,6 +550,11 @@ export type MutationCancelPipelineJobArgs = {
 export type MutationCheckInsuranceCoverageArgs = {
   insurer: Scalars['String']['input'];
   testType: Scalars['String']['input'];
+};
+
+
+export type MutationCompleteTreatmentArgs = {
+  input: TreatmentCompletionInput;
 };
 
 
@@ -877,6 +899,7 @@ export type Query = {
   genomicResult?: Maybe<GenomicResult>;
   genomicResults: Array<GenomicResult>;
   healthSystems: Array<HealthSystem>;
+  journalEntries: Array<JournalEntry>;
   manufacturingOrder?: Maybe<ManufacturingOrder>;
   manufacturingOrders: Array<ManufacturingOrder>;
   manufacturingPartner?: Maybe<ManufacturingPartner>;
@@ -907,6 +930,8 @@ export type Query = {
   sequencingOrders: Array<SequencingOrder>;
   sequencingProviders: Array<SequencingProvider>;
   sequencingRecommendation: SequencingRecommendation;
+  surveillanceSchedule: Array<SurveillanceEvent>;
+  survivorshipPlan?: Maybe<SurvivorshipPlan>;
   testRecommendation: TestRecommendation;
   trial?: Maybe<Trial>;
   trials: Array<Trial>;
@@ -944,6 +969,11 @@ export type QueryGenomicResultArgs = {
 
 export type QueryHealthSystemsArgs = {
   search?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryJournalEntriesArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -1187,6 +1217,39 @@ export type SideEffect = {
   timing: Scalars['String']['output'];
 };
 
+export type SurveillanceEvent = {
+  __typename?: 'SurveillanceEvent';
+  completedDate?: Maybe<Scalars['String']['output']>;
+  createdAt: Scalars['DateTime']['output'];
+  description?: Maybe<Scalars['String']['output']>;
+  dueDate?: Maybe<Scalars['String']['output']>;
+  frequency?: Maybe<Scalars['String']['output']>;
+  guidelineSource?: Maybe<Scalars['String']['output']>;
+  id: Scalars['String']['output'];
+  nextDueDate?: Maybe<Scalars['String']['output']>;
+  patientId: Scalars['String']['output'];
+  planId: Scalars['String']['output'];
+  resultSummary?: Maybe<Scalars['String']['output']>;
+  status: Scalars['String']['output'];
+  title: Scalars['String']['output'];
+  type: Scalars['String']['output'];
+};
+
+export type SurvivorshipPlan = {
+  __typename?: 'SurvivorshipPlan';
+  completionType: Scalars['String']['output'];
+  createdAt: Scalars['DateTime']['output'];
+  currentPhase: Scalars['String']['output'];
+  id: Scalars['String']['output'];
+  lastGeneratedAt: Scalars['DateTime']['output'];
+  nextReviewDate?: Maybe<Scalars['String']['output']>;
+  ongoingTherapies: Array<Scalars['String']['output']>;
+  patientId: Scalars['String']['output'];
+  planContent: Scalars['JSON']['output'];
+  riskCategory?: Maybe<Scalars['String']['output']>;
+  treatmentCompletionDate: Scalars['String']['output'];
+};
+
 export type TalkingPoint = {
   __typename?: 'TalkingPoint';
   detail: Scalars['String']['output'];
@@ -1243,6 +1306,14 @@ export type TmbBiomarker = {
   status: Scalars['String']['output'];
   unit: Scalars['String']['output'];
   value: Scalars['Float']['output'];
+};
+
+export type TreatmentCompletionInput = {
+  completionDate: Scalars['String']['input'];
+  completionType: Scalars['String']['input'];
+  newSymptoms?: InputMaybe<Scalars['String']['input']>;
+  ongoingTherapies: Array<Scalars['String']['input']>;
+  wantsReminders: Scalars['Boolean']['input'];
 };
 
 export type TreatmentTranslation = {
@@ -1859,6 +1930,35 @@ export type CreateSequencingOrderMutationVariables = Exact<{
 
 
 export type CreateSequencingOrderMutation = { __typename?: 'Mutation', createSequencingOrder: { __typename?: 'SequencingOrder', id: string, status: string, provider?: { __typename?: 'SequencingProvider', id: string, name: string } | null } };
+
+export type GetSurvivorshipPlanQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetSurvivorshipPlanQuery = { __typename?: 'Query', survivorshipPlan?: { __typename?: 'SurvivorshipPlan', id: string, patientId: string, treatmentCompletionDate: string, completionType: string, ongoingTherapies: Array<string>, planContent: Record<string, unknown>, riskCategory?: string | null, currentPhase: string, lastGeneratedAt: string, nextReviewDate?: string | null, createdAt: string } | null };
+
+export type GetSurveillanceScheduleQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetSurveillanceScheduleQuery = { __typename?: 'Query', surveillanceSchedule: Array<{ __typename?: 'SurveillanceEvent', id: string, patientId: string, planId: string, type: string, title: string, description?: string | null, frequency?: string | null, guidelineSource?: string | null, dueDate?: string | null, status: string, completedDate?: string | null, resultSummary?: string | null, nextDueDate?: string | null, createdAt: string }> };
+
+export type GetJournalEntriesQueryVariables = Exact<{
+  limit?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type GetJournalEntriesQuery = { __typename?: 'Query', journalEntries: Array<{ __typename?: 'JournalEntry', id: string, patientId: string, entryDate: string, energy?: number | null, pain?: number | null, mood?: number | null, sleepQuality?: number | null, hotFlashes?: number | null, jointPain?: number | null, notes?: string | null, createdAt: string }> };
+
+export type CompleteTreatmentMutationVariables = Exact<{
+  input: TreatmentCompletionInput;
+}>;
+
+
+export type CompleteTreatmentMutation = { __typename?: 'Mutation', completeTreatment: { __typename?: 'SurvivorshipPlan', id: string, patientId: string, treatmentCompletionDate: string, completionType: string, ongoingTherapies: Array<string>, planContent: Record<string, unknown>, riskCategory?: string | null, currentPhase: string, lastGeneratedAt: string, nextReviewDate?: string | null, createdAt: string } };
+
+export type RefreshScpMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type RefreshScpMutation = { __typename?: 'Mutation', refreshSCP: { __typename?: 'SurvivorshipPlan', id: string, patientId: string, treatmentCompletionDate: string, completionType: string, ongoingTherapies: Array<string>, planContent: Record<string, unknown>, riskCategory?: string | null, currentPhase: string, lastGeneratedAt: string, nextReviewDate?: string | null, createdAt: string } };
 
 export type GetTrialsQueryVariables = Exact<{
   cancerType?: InputMaybe<Scalars['String']['input']>;
@@ -5915,6 +6015,251 @@ export function useCreateSequencingOrderMutation(baseOptions?: Apollo.MutationHo
 export type CreateSequencingOrderMutationHookResult = ReturnType<typeof useCreateSequencingOrderMutation>;
 export type CreateSequencingOrderMutationResult = Apollo.MutationResult<CreateSequencingOrderMutation>;
 export type CreateSequencingOrderMutationOptions = Apollo.BaseMutationOptions<CreateSequencingOrderMutation, CreateSequencingOrderMutationVariables>;
+export const GetSurvivorshipPlanDocument = gql`
+    query GetSurvivorshipPlan {
+  survivorshipPlan {
+    id
+    patientId
+    treatmentCompletionDate
+    completionType
+    ongoingTherapies
+    planContent
+    riskCategory
+    currentPhase
+    lastGeneratedAt
+    nextReviewDate
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useGetSurvivorshipPlanQuery__
+ *
+ * To run a query within a React component, call `useGetSurvivorshipPlanQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSurvivorshipPlanQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSurvivorshipPlanQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetSurvivorshipPlanQuery(baseOptions?: Apollo.QueryHookOptions<GetSurvivorshipPlanQuery, GetSurvivorshipPlanQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetSurvivorshipPlanQuery, GetSurvivorshipPlanQueryVariables>(GetSurvivorshipPlanDocument, options);
+      }
+export function useGetSurvivorshipPlanLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSurvivorshipPlanQuery, GetSurvivorshipPlanQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetSurvivorshipPlanQuery, GetSurvivorshipPlanQueryVariables>(GetSurvivorshipPlanDocument, options);
+        }
+// @ts-ignore
+export function useGetSurvivorshipPlanSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetSurvivorshipPlanQuery, GetSurvivorshipPlanQueryVariables>): Apollo.UseSuspenseQueryResult<GetSurvivorshipPlanQuery, GetSurvivorshipPlanQueryVariables>;
+export function useGetSurvivorshipPlanSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetSurvivorshipPlanQuery, GetSurvivorshipPlanQueryVariables>): Apollo.UseSuspenseQueryResult<GetSurvivorshipPlanQuery | undefined, GetSurvivorshipPlanQueryVariables>;
+export function useGetSurvivorshipPlanSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetSurvivorshipPlanQuery, GetSurvivorshipPlanQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetSurvivorshipPlanQuery, GetSurvivorshipPlanQueryVariables>(GetSurvivorshipPlanDocument, options);
+        }
+export type GetSurvivorshipPlanQueryHookResult = ReturnType<typeof useGetSurvivorshipPlanQuery>;
+export type GetSurvivorshipPlanLazyQueryHookResult = ReturnType<typeof useGetSurvivorshipPlanLazyQuery>;
+export type GetSurvivorshipPlanSuspenseQueryHookResult = ReturnType<typeof useGetSurvivorshipPlanSuspenseQuery>;
+export type GetSurvivorshipPlanQueryResult = Apollo.QueryResult<GetSurvivorshipPlanQuery, GetSurvivorshipPlanQueryVariables>;
+export const GetSurveillanceScheduleDocument = gql`
+    query GetSurveillanceSchedule {
+  surveillanceSchedule {
+    id
+    patientId
+    planId
+    type
+    title
+    description
+    frequency
+    guidelineSource
+    dueDate
+    status
+    completedDate
+    resultSummary
+    nextDueDate
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useGetSurveillanceScheduleQuery__
+ *
+ * To run a query within a React component, call `useGetSurveillanceScheduleQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSurveillanceScheduleQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSurveillanceScheduleQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetSurveillanceScheduleQuery(baseOptions?: Apollo.QueryHookOptions<GetSurveillanceScheduleQuery, GetSurveillanceScheduleQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetSurveillanceScheduleQuery, GetSurveillanceScheduleQueryVariables>(GetSurveillanceScheduleDocument, options);
+      }
+export function useGetSurveillanceScheduleLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSurveillanceScheduleQuery, GetSurveillanceScheduleQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetSurveillanceScheduleQuery, GetSurveillanceScheduleQueryVariables>(GetSurveillanceScheduleDocument, options);
+        }
+// @ts-ignore
+export function useGetSurveillanceScheduleSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetSurveillanceScheduleQuery, GetSurveillanceScheduleQueryVariables>): Apollo.UseSuspenseQueryResult<GetSurveillanceScheduleQuery, GetSurveillanceScheduleQueryVariables>;
+export function useGetSurveillanceScheduleSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetSurveillanceScheduleQuery, GetSurveillanceScheduleQueryVariables>): Apollo.UseSuspenseQueryResult<GetSurveillanceScheduleQuery | undefined, GetSurveillanceScheduleQueryVariables>;
+export function useGetSurveillanceScheduleSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetSurveillanceScheduleQuery, GetSurveillanceScheduleQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetSurveillanceScheduleQuery, GetSurveillanceScheduleQueryVariables>(GetSurveillanceScheduleDocument, options);
+        }
+export type GetSurveillanceScheduleQueryHookResult = ReturnType<typeof useGetSurveillanceScheduleQuery>;
+export type GetSurveillanceScheduleLazyQueryHookResult = ReturnType<typeof useGetSurveillanceScheduleLazyQuery>;
+export type GetSurveillanceScheduleSuspenseQueryHookResult = ReturnType<typeof useGetSurveillanceScheduleSuspenseQuery>;
+export type GetSurveillanceScheduleQueryResult = Apollo.QueryResult<GetSurveillanceScheduleQuery, GetSurveillanceScheduleQueryVariables>;
+export const GetJournalEntriesDocument = gql`
+    query GetJournalEntries($limit: Int) {
+  journalEntries(limit: $limit) {
+    id
+    patientId
+    entryDate
+    energy
+    pain
+    mood
+    sleepQuality
+    hotFlashes
+    jointPain
+    notes
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useGetJournalEntriesQuery__
+ *
+ * To run a query within a React component, call `useGetJournalEntriesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetJournalEntriesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetJournalEntriesQuery({
+ *   variables: {
+ *      limit: // value for 'limit'
+ *   },
+ * });
+ */
+export function useGetJournalEntriesQuery(baseOptions?: Apollo.QueryHookOptions<GetJournalEntriesQuery, GetJournalEntriesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetJournalEntriesQuery, GetJournalEntriesQueryVariables>(GetJournalEntriesDocument, options);
+      }
+export function useGetJournalEntriesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetJournalEntriesQuery, GetJournalEntriesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetJournalEntriesQuery, GetJournalEntriesQueryVariables>(GetJournalEntriesDocument, options);
+        }
+// @ts-ignore
+export function useGetJournalEntriesSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetJournalEntriesQuery, GetJournalEntriesQueryVariables>): Apollo.UseSuspenseQueryResult<GetJournalEntriesQuery, GetJournalEntriesQueryVariables>;
+export function useGetJournalEntriesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetJournalEntriesQuery, GetJournalEntriesQueryVariables>): Apollo.UseSuspenseQueryResult<GetJournalEntriesQuery | undefined, GetJournalEntriesQueryVariables>;
+export function useGetJournalEntriesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetJournalEntriesQuery, GetJournalEntriesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetJournalEntriesQuery, GetJournalEntriesQueryVariables>(GetJournalEntriesDocument, options);
+        }
+export type GetJournalEntriesQueryHookResult = ReturnType<typeof useGetJournalEntriesQuery>;
+export type GetJournalEntriesLazyQueryHookResult = ReturnType<typeof useGetJournalEntriesLazyQuery>;
+export type GetJournalEntriesSuspenseQueryHookResult = ReturnType<typeof useGetJournalEntriesSuspenseQuery>;
+export type GetJournalEntriesQueryResult = Apollo.QueryResult<GetJournalEntriesQuery, GetJournalEntriesQueryVariables>;
+export const CompleteTreatmentDocument = gql`
+    mutation CompleteTreatment($input: TreatmentCompletionInput!) {
+  completeTreatment(input: $input) {
+    id
+    patientId
+    treatmentCompletionDate
+    completionType
+    ongoingTherapies
+    planContent
+    riskCategory
+    currentPhase
+    lastGeneratedAt
+    nextReviewDate
+    createdAt
+  }
+}
+    `;
+export type CompleteTreatmentMutationFn = Apollo.MutationFunction<CompleteTreatmentMutation, CompleteTreatmentMutationVariables>;
+
+/**
+ * __useCompleteTreatmentMutation__
+ *
+ * To run a mutation, you first call `useCompleteTreatmentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCompleteTreatmentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [completeTreatmentMutation, { data, loading, error }] = useCompleteTreatmentMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCompleteTreatmentMutation(baseOptions?: Apollo.MutationHookOptions<CompleteTreatmentMutation, CompleteTreatmentMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CompleteTreatmentMutation, CompleteTreatmentMutationVariables>(CompleteTreatmentDocument, options);
+      }
+export type CompleteTreatmentMutationHookResult = ReturnType<typeof useCompleteTreatmentMutation>;
+export type CompleteTreatmentMutationResult = Apollo.MutationResult<CompleteTreatmentMutation>;
+export type CompleteTreatmentMutationOptions = Apollo.BaseMutationOptions<CompleteTreatmentMutation, CompleteTreatmentMutationVariables>;
+export const RefreshScpDocument = gql`
+    mutation RefreshSCP {
+  refreshSCP {
+    id
+    patientId
+    treatmentCompletionDate
+    completionType
+    ongoingTherapies
+    planContent
+    riskCategory
+    currentPhase
+    lastGeneratedAt
+    nextReviewDate
+    createdAt
+  }
+}
+    `;
+export type RefreshScpMutationFn = Apollo.MutationFunction<RefreshScpMutation, RefreshScpMutationVariables>;
+
+/**
+ * __useRefreshScpMutation__
+ *
+ * To run a mutation, you first call `useRefreshScpMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRefreshScpMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [refreshScpMutation, { data, loading, error }] = useRefreshScpMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useRefreshScpMutation(baseOptions?: Apollo.MutationHookOptions<RefreshScpMutation, RefreshScpMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RefreshScpMutation, RefreshScpMutationVariables>(RefreshScpDocument, options);
+      }
+export type RefreshScpMutationHookResult = ReturnType<typeof useRefreshScpMutation>;
+export type RefreshScpMutationResult = Apollo.MutationResult<RefreshScpMutation>;
+export type RefreshScpMutationOptions = Apollo.BaseMutationOptions<RefreshScpMutation, RefreshScpMutationVariables>;
 export const GetTrialsDocument = gql`
     query GetTrials($cancerType: String, $phase: String, $limit: Int) {
   trials(cancerType: $cancerType, phase: $phase, limit: $limit) {

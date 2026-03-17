@@ -40,6 +40,7 @@ import { discoverEndpoints, buildAuthorizeUrl, decryptToken } from '@/lib/fhir/s
 import { FhirClient } from '@/lib/fhir/client';
 import { extractFhirResources } from '@/lib/fhir/extract-resources';
 import { isValidTransition } from '@/lib/manufacturing-orders';
+import { generateSCP as _generateSCP, refreshSCP as _refreshSCP } from '@/lib/scp-generator';
 import { refreshAccessToken, encryptToken } from '@/lib/fhir/smart-auth';
 import { mapFhirToPatientProfile } from '@/lib/fhir/mapper';
 import type { PatientProfile } from '@oncovax/shared';
@@ -785,6 +786,16 @@ async function resyncFhirConnectionAdapter(patientId: string, connectionId: stri
   };
 }
 
+// --- Survivorship ---
+
+async function generateSCPAdapter(patientId: string, input: any) {
+  return _generateSCP(patientId, input);
+}
+
+async function refreshSCPAdapter(patientId: string) {
+  return _refreshSCP(patientId);
+}
+
 // ============================================================================
 // Apollo Server setup
 // ============================================================================
@@ -875,6 +886,10 @@ const handler = startServerAndCreateNextHandler<NextRequest, GraphQLContext>(ser
 
         // Report (inline preview)
         generateReport: generateReportAdapter,
+
+        // Survivorship
+        generateSCP: generateSCPAdapter,
+        refreshSCP: refreshSCPAdapter,
       },
     };
   },

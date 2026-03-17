@@ -1,0 +1,82 @@
+query GetSurvivorshipPlan {
+  survivorshipPlan {
+    id
+    patientId
+    treatmentCompletionDate
+    completionType
+    ongoingTherapies
+    planContent
+    riskCategory
+    currentPhase
+    lastGeneratedAt
+    nextReviewDate
+    createdAt
+  }
+}
+
+query GetSurveillanceSchedule {
+  surveillanceSchedule {
+    id
+    patientId
+    planId
+    type
+    title
+    description
+    frequency
+    guidelineSource
+    dueDate
+    status
+    completedDate
+    resultSummary
+    nextDueDate
+    createdAt
+  }
+}
+
+query GetJournalEntries($limit: Int) {
+  journalEntries(limit: $limit) {
+    id
+    patientId
+    entryDate
+    energy
+    pain
+    mood
+    sleepQuality
+    hotFlashes
+    jointPain
+    notes
+    createdAt
+  }
+}
+
+mutation CompleteTreatment($input: TreatmentCompletionInput!) {
+  completeTreatment(input: $input) {
+    id
+    patientId
+    treatmentCompletionDate
+    completionType
+    ongoingTherapies
+    planContent
+    riskCategory
+    currentPhase
+    lastGeneratedAt
+    nextReviewDate
+    createdAt
+  }
+}
+
+mutation RefreshSCP {
+  refreshSCP {
+    id
+    patientId
+    treatmentCompletionDate
+    completionType
+    ongoingTherapies
+    planContent
+    riskCategory
+    currentPhase
+    lastGeneratedAt
+    nextReviewDate
+    createdAt
+  }
+}

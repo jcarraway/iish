@@ -9,6 +9,7 @@ import {
   useGetSequencingOrdersQuery,
   useGetPipelineJobsQuery,
   useGetManufacturingOrdersQuery,
+  useGetSurvivorshipPlanQuery,
 } from '../generated/graphql';
 
 interface CardProps {
@@ -56,8 +57,9 @@ export function DashboardScreen() {
   const { data: seqData, loading: sl } = useGetSequencingOrdersQuery({ errorPolicy: 'ignore' });
   const { data: pipeData, loading: pl } = useGetPipelineJobsQuery({ errorPolicy: 'ignore' });
   const { data: mfgData, loading: mfl } = useGetManufacturingOrdersQuery({ errorPolicy: 'ignore' });
+  const { data: surviveData, loading: svl } = useGetSurvivorshipPlanQuery({ errorPolicy: 'ignore' });
 
-  const loading = ml || fl || fhl || sl || pl || mfl;
+  const loading = ml || fl || fhl || sl || pl || mfl || svl;
 
   if (loading) {
     return (
@@ -83,6 +85,7 @@ export function DashboardScreen() {
   const orders = seqData?.sequencingOrders ?? [];
   const pipelineJobCount = pipeData?.pipelineJobs?.length ?? 0;
   const mfgOrderCount = mfgData?.manufacturingOrders?.length ?? 0;
+  const survivorshipPlan = surviveData?.survivorshipPlan;
 
   if (!hasProfile) {
     return (
@@ -233,6 +236,33 @@ export function DashboardScreen() {
                   From vaccine blueprint to production — find CDMOs and navigate regulatory pathways
                 </Text>
                 <Text sx={{ mt: '$1', fontSize: 12, color: 'blue600' }}>Explore →</Text>
+              </>
+            )}
+          </DashboardCard>
+
+          {/* Survivorship */}
+          <DashboardCard
+            href={survivorshipPlan ? '/survive' : '/survive/complete'}
+            icon="🌱" iconBg="#DCFCE7" iconColor="green600" title="Survivorship"
+          >
+            {survivorshipPlan ? (
+              <>
+                <Text sx={{ mt: '$3', fontSize: 14, color: '$foreground', fontWeight: '500' }}>
+                  Your survivorship plan
+                </Text>
+                <Text sx={{ fontSize: 12, color: '$mutedForeground' }}>
+                  {survivorshipPlan.nextReviewDate
+                    ? `Next review: ${new Date(survivorshipPlan.nextReviewDate).toLocaleDateString()}`
+                    : `Phase: ${survivorshipPlan.currentPhase}`}
+                </Text>
+                <Text sx={{ mt: '$1', fontSize: 12, color: 'blue600' }}>View dashboard →</Text>
+              </>
+            ) : (
+              <>
+                <Text sx={{ mt: '$3', fontSize: 14, color: '$mutedForeground' }}>
+                  Treatment complete? Start your survivorship journey
+                </Text>
+                <Text sx={{ mt: '$1', fontSize: 12, color: 'blue600' }}>Begin transition →</Text>
               </>
             )}
           </DashboardCard>

@@ -59,3 +59,9 @@ export { GenomicResultsScreen } from './GenomicResultsScreen';
 
 // D6 — Records
 export { FhirRecordsScreen } from './FhirRecordsScreen';
+
+// S1 — Survivorship
+export { SurviveDashboardScreen } from './SurviveDashboardScreen';
+export { TreatmentCompleteScreen } from './TreatmentCompleteScreen';
+export { SCPReadingScreen } from './SCPReadingScreen';
+export { SurviveStubScreen } from './SurviveStubScreen';

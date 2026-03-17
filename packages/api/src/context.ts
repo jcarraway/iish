@@ -91,6 +91,10 @@ export interface GraphQLContext {
 
     // Report (inline preview)
     generateReport: (pipelineJobId: string, reportType: string) => Promise<any>;
+
+    // Survivorship
+    generateSCP: (patientId: string, input: any) => Promise<any>;
+    refreshSCP: (patientId: string) => Promise<any>;
   };
 }
 

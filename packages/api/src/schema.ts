@@ -709,6 +709,55 @@ export const typeDefs = `#graphql
   }
 
   # ============================================================================
+  # Survivorship
+  # ============================================================================
+
+  type SurvivorshipPlan {
+    id: String!
+    patientId: String!
+    treatmentCompletionDate: String!
+    completionType: String!
+    ongoingTherapies: [String!]!
+    planContent: JSON!
+    riskCategory: String
+    currentPhase: String!
+    lastGeneratedAt: DateTime!
+    nextReviewDate: String
+    createdAt: DateTime!
+  }
+
+  type SurveillanceEvent {
+    id: String!
+    patientId: String!
+    planId: String!
+    type: String!
+    title: String!
+    description: String
+    frequency: String
+    guidelineSource: String
+    dueDate: String
+    status: String!
+    completedDate: String
+    resultSummary: String
+    nextDueDate: String
+    createdAt: DateTime!
+  }
+
+  type JournalEntry {
+    id: String!
+    patientId: String!
+    entryDate: String!
+    energy: Int
+    pain: Int
+    mood: Int
+    sleepQuality: Int
+    hotFlashes: Int
+    jointPain: Int
+    notes: String
+    createdAt: DateTime!
+  }
+
+  # ============================================================================
   # FHIR
   # ============================================================================
 
@@ -822,6 +871,11 @@ export const typeDefs = `#graphql
     monitoringReports(orderId: String!): [MonitoringReport!]!
     monitoringSchedule(orderId: String!): [MonitoringScheduleEntry!]!
 
+    # Survivorship
+    survivorshipPlan: SurvivorshipPlan
+    surveillanceSchedule: [SurveillanceEvent!]!
+    journalEntries(limit: Int): [JournalEntry!]!
+
     # FHIR
     healthSystems(search: String): [HealthSystem!]!
     fhirConnections: [FhirConnection!]!
@@ -907,6 +961,14 @@ export const typeDefs = `#graphql
     duration: String
     resolved: Boolean!
     treatment: String
+  }
+
+  input TreatmentCompletionInput {
+    completionDate: String!
+    completionType: String!
+    ongoingTherapies: [String!]!
+    newSymptoms: String
+    wantsReminders: Boolean!
   }
 
   input MonitoringReportInput {
@@ -999,6 +1061,10 @@ export const typeDefs = `#graphql
 
     # Monitoring
     submitMonitoringReport(input: MonitoringReportInput!): MonitoringReport!
+
+    # Survivorship
+    completeTreatment(input: TreatmentCompletionInput!): SurvivorshipPlan!
+    refreshSCP: SurvivorshipPlan!
 
     # Uploads
     requestGeneralUploadUrl(filename: String!, contentType: String!, bucket: String): UploadUrlResult!

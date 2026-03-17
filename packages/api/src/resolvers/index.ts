@@ -16,6 +16,7 @@ import { manufacturingResolvers } from './manufacturing';
 import { manufacturingExtendedResolvers } from './manufacturing-extended';
 import { monitoringResolvers } from './monitoring';
 import { fhirResolvers } from './fhir';
+import { survivorshipResolvers } from './survivorship';
 
 /**
  * Merge all resolver maps into a single object.
@@ -54,4 +55,5 @@ export const resolvers = mergeResolvers(
   manufacturingExtendedResolvers,
   monitoringResolvers,
   fhirResolvers,
+  survivorshipResolvers,
 );

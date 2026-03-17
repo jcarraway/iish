@@ -755,6 +755,86 @@ export interface AdverseEvent {
   treatment: string | null;
 }
 
+// ============================================================================
+// Survivorship
+// ============================================================================
+
+export interface SurvivorshipCarePlan {
+  generatedDate: string;
+  basedOn: {
+    diagnosis: string;
+    stage: string;
+    subtype: string;
+    treatmentsReceived: string[];
+    completionDate: string;
+  };
+  overview: {
+    plainLanguageSummary: string;
+    whatToExpect: string;
+    keyDates: { date: string; event: string; description: string }[];
+  };
+  surveillance: {
+    schedule: SurveillanceScheduleItem[];
+    whatWeWatch: string;
+    whenToCallDoctor: string[];
+  };
+  lateEffects: {
+    byTreatment: {
+      treatmentName: string;
+      possibleEffects: {
+        effect: string;
+        likelihood: 'common' | 'less_common' | 'rare';
+        typicalOnset: string;
+        duration: string;
+        management: string;
+        whenToWorry: string;
+      }[];
+    }[];
+  };
+  lifestyle: {
+    exercise: { headline: string; target: string; precautions: string[] };
+    nutrition: { headline: string; recommendations: string[] };
+    alcohol: { headline: string; detail: string };
+  };
+  ongoingTherapy: {
+    medications: {
+      name: string;
+      purpose: string;
+      duration: string;
+      commonSideEffects: string[];
+      management: string;
+    }[];
+  };
+  careTeam: {
+    whoToCallFor: { concern: string; contact: string; urgency: string }[];
+  };
+  additionalScreening: {
+    screening: string;
+    reason: string;
+    frequency: string;
+    startingWhen: string;
+  }[];
+  disclaimer: string;
+  nextReviewDate: string;
+}
+
+export interface SurveillanceScheduleItem {
+  type: string;
+  title: string;
+  description: string;
+  frequency: string;
+  nextDue: string;
+  guidelineSource: string;
+}
+
+export interface TreatmentCompletionInput {
+  completionDate: string;
+  completionType: 'curative_intent' | 'ongoing_maintenance' | 'palliative';
+  ongoingTherapies: string[];
+  newSymptoms?: string;
+  wantsReminders: boolean;
+}
+
 export interface PostAdministrationReportSummary {
   id: string;
   orderId: string;
