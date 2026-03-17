@@ -95,6 +95,10 @@ export interface GraphQLContext {
     // Survivorship
     generateSCP: (patientId: string, input: any) => Promise<any>;
     refreshSCP: (patientId: string) => Promise<any>;
+    markEventComplete: (eventId: string, completedDate: string, resultSummary?: string, resultDocumentId?: string) => Promise<any>;
+    skipEvent: (eventId: string, reason: string) => Promise<any>;
+    rescheduleEvent: (eventId: string, newDueDate: string) => Promise<any>;
+    uploadEventResult: (eventId: string, documentId: string) => Promise<any>;
   };
 }
 

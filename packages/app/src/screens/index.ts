@@ -65,3 +65,7 @@ export { SurviveDashboardScreen } from './SurviveDashboardScreen';
 export { TreatmentCompleteScreen } from './TreatmentCompleteScreen';
 export { SCPReadingScreen } from './SCPReadingScreen';
 export { SurviveStubScreen } from './SurviveStubScreen';
+
+// S2 — Surveillance
+export { SurveillanceCalendarScreen } from './SurveillanceCalendarScreen';
+export { SurveillanceEventDetailScreen } from './SurveillanceEventDetailScreen';

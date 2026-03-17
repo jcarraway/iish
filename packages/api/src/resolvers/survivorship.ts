@@ -67,5 +67,61 @@ export const survivorshipResolvers = {
         where: { patientId: patient.id },
       });
     },
+    markEventComplete: async (
+      _: unknown,
+      { input }: { input: { eventId: string; completedDate: string; resultSummary?: string; resultDocumentId?: string } },
+      ctx: ResolverContext,
+    ) => {
+      if (!ctx.session) throw new Error('UNAUTHORIZED');
+      const patient = await ctx.prisma.patient.findUnique({
+        where: { userId: ctx.session.userId },
+      });
+      if (!patient) throw new Error('Patient not found');
+      const event = await ctx.prisma.surveillanceEvent.findUnique({ where: { id: input.eventId } });
+      if (!event || event.patientId !== patient.id) throw new Error('Event not found');
+      return ctx.lib.markEventComplete(input.eventId, input.completedDate, input.resultSummary, input.resultDocumentId);
+    },
+    skipEvent: async (
+      _: unknown,
+      { input }: { input: { eventId: string; reason: string } },
+      ctx: ResolverContext,
+    ) => {
+      if (!ctx.session) throw new Error('UNAUTHORIZED');
+      const patient = await ctx.prisma.patient.findUnique({
+        where: { userId: ctx.session.userId },
+      });
+      if (!patient) throw new Error('Patient not found');
+      const event = await ctx.prisma.surveillanceEvent.findUnique({ where: { id: input.eventId } });
+      if (!event || event.patientId !== patient.id) throw new Error('Event not found');
+      return ctx.lib.skipEvent(input.eventId, input.reason);
+    },
+    rescheduleEvent: async (
+      _: unknown,
+      { input }: { input: { eventId: string; newDueDate: string } },
+      ctx: ResolverContext,
+    ) => {
+      if (!ctx.session) throw new Error('UNAUTHORIZED');
+      const patient = await ctx.prisma.patient.findUnique({
+        where: { userId: ctx.session.userId },
+      });
+      if (!patient) throw new Error('Patient not found');
+      const event = await ctx.prisma.surveillanceEvent.findUnique({ where: { id: input.eventId } });
+      if (!event || event.patientId !== patient.id) throw new Error('Event not found');
+      return ctx.lib.rescheduleEvent(input.eventId, input.newDueDate);
+    },
+    uploadEventResult: async (
+      _: unknown,
+      { input }: { input: { eventId: string; documentId: string } },
+      ctx: ResolverContext,
+    ) => {
+      if (!ctx.session) throw new Error('UNAUTHORIZED');
+      const patient = await ctx.prisma.patient.findUnique({
+        where: { userId: ctx.session.userId },
+      });
+      if (!patient) throw new Error('Patient not found');
+      const event = await ctx.prisma.surveillanceEvent.findUnique({ where: { id: input.eventId } });
+      if (!event || event.patientId !== patient.id) throw new Error('Event not found');
+      return ctx.lib.uploadEventResult(input.eventId, input.documentId);
+    },
   },
 };

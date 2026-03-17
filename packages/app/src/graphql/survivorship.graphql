@@ -80,3 +80,79 @@ mutation RefreshSCP {
     createdAt
   }
 }
+
+mutation MarkEventComplete($input: MarkEventCompleteInput!) {
+  markEventComplete(input: $input) {
+    id
+    patientId
+    planId
+    type
+    title
+    description
+    frequency
+    guidelineSource
+    dueDate
+    status
+    completedDate
+    resultSummary
+    nextDueDate
+    createdAt
+  }
+}
+
+mutation SkipEvent($input: SkipEventInput!) {
+  skipEvent(input: $input) {
+    id
+    patientId
+    planId
+    type
+    title
+    description
+    frequency
+    guidelineSource
+    dueDate
+    status
+    completedDate
+    resultSummary
+    nextDueDate
+    createdAt
+  }
+}
+
+mutation RescheduleEvent($input: RescheduleEventInput!) {
+  rescheduleEvent(input: $input) {
+    id
+    patientId
+    planId
+    type
+    title
+    description
+    frequency
+    guidelineSource
+    dueDate
+    status
+    completedDate
+    resultSummary
+    nextDueDate
+    createdAt
+  }
+}
+
+mutation UploadEventResult($input: UploadEventResultInput!) {
+  uploadEventResult(input: $input) {
+    id
+    patientId
+    planId
+    type
+    title
+    description
+    frequency
+    guidelineSource
+    dueDate
+    status
+    completedDate
+    resultSummary
+    nextDueDate
+    createdAt
+  }
+}

@@ -127,71 +127,77 @@ export function SurviveDashboardScreen() {
           </Link>
 
           {/* Next Appointment card */}
-          <View sx={{
-            borderRadius: 12,
-            borderWidth: 1,
-            borderColor: '$border',
-            p: '$5',
-          }}>
-            <View sx={{ flexDirection: 'row', alignItems: 'center', gap: '$2' }}>
-              <View sx={{
-                width: 32, height: 32, borderRadius: 8,
-                backgroundColor: '#DBEAFE', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <Text sx={{ fontSize: 14 }}>📅</Text>
-              </View>
-              <Text sx={{ fontWeight: '600', color: '$foreground' }}>Next Appointment</Text>
-            </View>
-            {nextEvent ? (
-              <>
-                <Text sx={{ mt: '$3', fontSize: 16, fontWeight: '600', color: '$foreground' }}>
-                  {nextEvent.title}
-                </Text>
-                <Text sx={{ mt: '$1', fontSize: 12, color: '$mutedForeground' }}>
-                  Due {new Date(nextEvent.dueDate!).toLocaleDateString()}
-                  {' · '}
-                  {daysUntilLabel(nextEvent.dueDate!)}
-                </Text>
-                {nextEvent.frequency && (
-                  <Text sx={{ mt: '$1', fontSize: 11, color: '$mutedForeground' }}>
-                    Frequency: {nextEvent.frequency}
-                  </Text>
-                )}
-              </>
-            ) : (
-              <Text sx={{ mt: '$3', fontSize: 14, color: '$mutedForeground' }}>
-                No upcoming appointments scheduled
-              </Text>
-            )}
-          </View>
-
-          {/* Overdue alert */}
-          {overdue.length > 0 && (
+          <Link href="/survive/monitoring">
             <View sx={{
               borderRadius: 12,
               borderWidth: 1,
-              borderColor: '#FCA5A5',
-              backgroundColor: '#FEF2F2',
+              borderColor: '$border',
               p: '$5',
             }}>
               <View sx={{ flexDirection: 'row', alignItems: 'center', gap: '$2' }}>
                 <View sx={{
                   width: 32, height: 32, borderRadius: 8,
-                  backgroundColor: '#FEE2E2', alignItems: 'center', justifyContent: 'center',
+                  backgroundColor: '#DBEAFE', alignItems: 'center', justifyContent: 'center',
                 }}>
-                  <Text sx={{ fontSize: 14 }}>⚠️</Text>
+                  <Text sx={{ fontSize: 14 }}>📅</Text>
                 </View>
-                <Text sx={{ fontWeight: '600', color: '#991B1B' }}>Overdue</Text>
+                <Text sx={{ fontWeight: '600', color: '$foreground' }}>Next Appointment</Text>
               </View>
-              <Text sx={{ mt: '$3', fontSize: 14, color: '#991B1B' }}>
-                {overdue.length} surveillance {overdue.length === 1 ? 'event is' : 'events are'} overdue
-              </Text>
-              {overdue.slice(0, 3).map(e => (
-                <Text key={e.id} sx={{ mt: '$1', fontSize: 12, color: '#B91C1C' }}>
-                  · {e.title} — was due {new Date(e.dueDate!).toLocaleDateString()}
+              {nextEvent ? (
+                <>
+                  <Text sx={{ mt: '$3', fontSize: 16, fontWeight: '600', color: '$foreground' }}>
+                    {nextEvent.title}
+                  </Text>
+                  <Text sx={{ mt: '$1', fontSize: 12, color: '$mutedForeground' }}>
+                    Due {new Date(nextEvent.dueDate!).toLocaleDateString()}
+                    {' · '}
+                    {daysUntilLabel(nextEvent.dueDate!)}
+                  </Text>
+                  {nextEvent.frequency && (
+                    <Text sx={{ mt: '$1', fontSize: 11, color: '$mutedForeground' }}>
+                      Frequency: {nextEvent.frequency}
+                    </Text>
+                  )}
+                </>
+              ) : (
+                <Text sx={{ mt: '$3', fontSize: 14, color: '$mutedForeground' }}>
+                  No upcoming appointments scheduled
                 </Text>
-              ))}
+              )}
+              <Text sx={{ mt: '$2', fontSize: 12, color: 'blue600' }}>View schedule →</Text>
             </View>
+          </Link>
+
+          {/* Overdue alert */}
+          {overdue.length > 0 && (
+            <Link href="/survive/monitoring">
+              <View sx={{
+                borderRadius: 12,
+                borderWidth: 1,
+                borderColor: '#FCA5A5',
+                backgroundColor: '#FEF2F2',
+                p: '$5',
+              }}>
+                <View sx={{ flexDirection: 'row', alignItems: 'center', gap: '$2' }}>
+                  <View sx={{
+                    width: 32, height: 32, borderRadius: 8,
+                    backgroundColor: '#FEE2E2', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <Text sx={{ fontSize: 14 }}>⚠️</Text>
+                  </View>
+                  <Text sx={{ fontWeight: '600', color: '#991B1B' }}>Overdue</Text>
+                </View>
+                <Text sx={{ mt: '$3', fontSize: 14, color: '#991B1B' }}>
+                  {overdue.length} surveillance {overdue.length === 1 ? 'event is' : 'events are'} overdue
+                </Text>
+                {overdue.slice(0, 3).map(e => (
+                  <Text key={e.id} sx={{ mt: '$1', fontSize: 12, color: '#B91C1C' }}>
+                    · {e.title} — was due {new Date(e.dueDate!).toLocaleDateString()}
+                  </Text>
+                ))}
+                <Text sx={{ mt: '$2', fontSize: 12, color: '#991B1B' }}>View & manage →</Text>
+              </View>
+            </Link>
           )}
 
           {/* Journal card */}

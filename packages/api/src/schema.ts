@@ -971,6 +971,28 @@ export const typeDefs = `#graphql
     wantsReminders: Boolean!
   }
 
+  input MarkEventCompleteInput {
+    eventId: String!
+    completedDate: String!
+    resultSummary: String
+    resultDocumentId: String
+  }
+
+  input SkipEventInput {
+    eventId: String!
+    reason: String!
+  }
+
+  input RescheduleEventInput {
+    eventId: String!
+    newDueDate: String!
+  }
+
+  input UploadEventResultInput {
+    eventId: String!
+    documentId: String!
+  }
+
   input MonitoringReportInput {
     orderId: String!
     reportType: String!
@@ -1065,6 +1087,10 @@ export const typeDefs = `#graphql
     # Survivorship
     completeTreatment(input: TreatmentCompletionInput!): SurvivorshipPlan!
     refreshSCP: SurvivorshipPlan!
+    markEventComplete(input: MarkEventCompleteInput!): SurveillanceEvent!
+    skipEvent(input: SkipEventInput!): SurveillanceEvent!
+    rescheduleEvent(input: RescheduleEventInput!): SurveillanceEvent!
+    uploadEventResult(input: UploadEventResultInput!): SurveillanceEvent!
 
     # Uploads
     requestGeneralUploadUrl(filename: String!, contentType: String!, bucket: String): UploadUrlResult!

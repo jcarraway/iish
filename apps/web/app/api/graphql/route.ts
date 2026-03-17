@@ -41,6 +41,12 @@ import { FhirClient } from '@/lib/fhir/client';
 import { extractFhirResources } from '@/lib/fhir/extract-resources';
 import { isValidTransition } from '@/lib/manufacturing-orders';
 import { generateSCP as _generateSCP, refreshSCP as _refreshSCP } from '@/lib/scp-generator';
+import {
+  markEventComplete as _markEventComplete,
+  skipEvent as _skipEvent,
+  rescheduleEvent as _rescheduleEvent,
+  uploadEventResult as _uploadEventResult,
+} from '@/lib/surveillance-manager';
 import { refreshAccessToken, encryptToken } from '@/lib/fhir/smart-auth';
 import { mapFhirToPatientProfile } from '@/lib/fhir/mapper';
 import type { PatientProfile } from '@oncovax/shared';
@@ -796,6 +802,24 @@ async function refreshSCPAdapter(patientId: string) {
   return _refreshSCP(patientId);
 }
 
+// --- Surveillance ---
+
+async function markEventCompleteAdapter(eventId: string, completedDate: string, resultSummary?: string, resultDocumentId?: string) {
+  return _markEventComplete(eventId, completedDate, resultSummary, resultDocumentId);
+}
+
+async function skipEventAdapter(eventId: string, reason: string) {
+  return _skipEvent(eventId, reason);
+}
+
+async function rescheduleEventAdapter(eventId: string, newDueDate: string) {
+  return _rescheduleEvent(eventId, newDueDate);
+}
+
+async function uploadEventResultAdapter(eventId: string, documentId: string) {
+  return _uploadEventResult(eventId, documentId);
+}
+
 // ============================================================================
 // Apollo Server setup
 // ============================================================================
@@ -890,6 +914,10 @@ const handler = startServerAndCreateNextHandler<NextRequest, GraphQLContext>(ser
         // Survivorship
         generateSCP: generateSCPAdapter,
         refreshSCP: refreshSCPAdapter,
+        markEventComplete: markEventCompleteAdapter,
+        skipEvent: skipEventAdapter,
+        rescheduleEvent: rescheduleEventAdapter,
+        uploadEventResult: uploadEventResultAdapter,
       },
     };
   },

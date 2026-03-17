@@ -384,6 +384,13 @@ export type ManufacturingPartner = {
   type: Scalars['String']['output'];
 };
 
+export type MarkEventCompleteInput = {
+  completedDate: Scalars['String']['input'];
+  eventId: Scalars['String']['input'];
+  resultDocumentId?: InputMaybe<Scalars['String']['input']>;
+  resultSummary?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type Match = {
   __typename?: 'Match';
   createdAt: Scalars['DateTime']['output'];
@@ -500,15 +507,18 @@ export type Mutation = {
   generateSequencingRecommendation: SequencingRecommendation;
   interpretGenomics: GenomicInterpretation;
   logout: Scalars['Boolean']['output'];
+  markEventComplete: SurveillanceEvent;
   matchFinancialPrograms: Array<FinancialMatch>;
   refreshSCP: SurvivorshipPlan;
   rematch: MatchDelta;
   requestGeneralUploadUrl: UploadUrlResult;
   requestMagicLink: Scalars['Boolean']['output'];
   requestUploadUrl: UploadUrl;
+  rescheduleEvent: SurveillanceEvent;
   resyncFhirConnection: Scalars['JSON']['output'];
   revokeFhirConnection: Scalars['Boolean']['output'];
   savePatientIntake: Patient;
+  skipEvent: SurveillanceEvent;
   submitMonitoringReport: MonitoringReport;
   submitPipelineJob: PipelineJob;
   subscribeFinancialProgram: Scalars['Boolean']['output'];
@@ -518,6 +528,7 @@ export type Mutation = {
   updatePatientProfile: Patient;
   updateRegulatoryDocumentStatus: RegulatoryDocument;
   updateSequencingOrderStatus: SequencingOrder;
+  uploadEventResult: SurveillanceEvent;
 };
 
 
@@ -626,6 +637,11 @@ export type MutationGenerateReportPdfArgs = {
 };
 
 
+export type MutationMarkEventCompleteArgs = {
+  input: MarkEventCompleteInput;
+};
+
+
 export type MutationMatchFinancialProgramsArgs = {
   input: FinancialProfileInput;
 };
@@ -650,6 +666,11 @@ export type MutationRequestUploadUrlArgs = {
 };
 
 
+export type MutationRescheduleEventArgs = {
+  input: RescheduleEventInput;
+};
+
+
 export type MutationResyncFhirConnectionArgs = {
   connectionId: Scalars['String']['input'];
 };
@@ -662,6 +683,11 @@ export type MutationRevokeFhirConnectionArgs = {
 
 export type MutationSavePatientIntakeArgs = {
   input: PatientIntakeInput;
+};
+
+
+export type MutationSkipEventArgs = {
+  input: SkipEventInput;
 };
 
 
@@ -717,6 +743,11 @@ export type MutationUpdateRegulatoryDocumentStatusArgs = {
 export type MutationUpdateSequencingOrderStatusArgs = {
   orderId: Scalars['String']['input'];
   status: Scalars['String']['input'];
+};
+
+
+export type MutationUploadEventResultArgs = {
+  input: UploadEventResultInput;
 };
 
 export type NeoantigenCandidate = {
@@ -1141,6 +1172,11 @@ export type ReportPdfResult = {
   url: Scalars['String']['output'];
 };
 
+export type RescheduleEventInput = {
+  eventId: Scalars['String']['input'];
+  newDueDate: Scalars['String']['input'];
+};
+
 export type SecondOpinionTrigger = {
   __typename?: 'SecondOpinionTrigger';
   level: Scalars['String']['output'];
@@ -1215,6 +1251,11 @@ export type SideEffect = {
   effect: Scalars['String']['output'];
   management: Scalars['String']['output'];
   timing: Scalars['String']['output'];
+};
+
+export type SkipEventInput = {
+  eventId: Scalars['String']['input'];
+  reason: Scalars['String']['input'];
 };
 
 export type SurveillanceEvent = {
@@ -1343,6 +1384,11 @@ export type Trial = {
   startDate?: Maybe<Scalars['String']['output']>;
   status?: Maybe<Scalars['String']['output']>;
   title: Scalars['String']['output'];
+};
+
+export type UploadEventResultInput = {
+  documentId: Scalars['String']['input'];
+  eventId: Scalars['String']['input'];
 };
 
 export type UploadUrl = {
@@ -1959,6 +2005,34 @@ export type RefreshScpMutationVariables = Exact<{ [key: string]: never; }>;
 
 
 export type RefreshScpMutation = { __typename?: 'Mutation', refreshSCP: { __typename?: 'SurvivorshipPlan', id: string, patientId: string, treatmentCompletionDate: string, completionType: string, ongoingTherapies: Array<string>, planContent: Record<string, unknown>, riskCategory?: string | null, currentPhase: string, lastGeneratedAt: string, nextReviewDate?: string | null, createdAt: string } };
+
+export type MarkEventCompleteMutationVariables = Exact<{
+  input: MarkEventCompleteInput;
+}>;
+
+
+export type MarkEventCompleteMutation = { __typename?: 'Mutation', markEventComplete: { __typename?: 'SurveillanceEvent', id: string, patientId: string, planId: string, type: string, title: string, description?: string | null, frequency?: string | null, guidelineSource?: string | null, dueDate?: string | null, status: string, completedDate?: string | null, resultSummary?: string | null, nextDueDate?: string | null, createdAt: string } };
+
+export type SkipEventMutationVariables = Exact<{
+  input: SkipEventInput;
+}>;
+
+
+export type SkipEventMutation = { __typename?: 'Mutation', skipEvent: { __typename?: 'SurveillanceEvent', id: string, patientId: string, planId: string, type: string, title: string, description?: string | null, frequency?: string | null, guidelineSource?: string | null, dueDate?: string | null, status: string, completedDate?: string | null, resultSummary?: string | null, nextDueDate?: string | null, createdAt: string } };
+
+export type RescheduleEventMutationVariables = Exact<{
+  input: RescheduleEventInput;
+}>;
+
+
+export type RescheduleEventMutation = { __typename?: 'Mutation', rescheduleEvent: { __typename?: 'SurveillanceEvent', id: string, patientId: string, planId: string, type: string, title: string, description?: string | null, frequency?: string | null, guidelineSource?: string | null, dueDate?: string | null, status: string, completedDate?: string | null, resultSummary?: string | null, nextDueDate?: string | null, createdAt: string } };
+
+export type UploadEventResultMutationVariables = Exact<{
+  input: UploadEventResultInput;
+}>;
+
+
+export type UploadEventResultMutation = { __typename?: 'Mutation', uploadEventResult: { __typename?: 'SurveillanceEvent', id: string, patientId: string, planId: string, type: string, title: string, description?: string | null, frequency?: string | null, guidelineSource?: string | null, dueDate?: string | null, status: string, completedDate?: string | null, resultSummary?: string | null, nextDueDate?: string | null, createdAt: string } };
 
 export type GetTrialsQueryVariables = Exact<{
   cancerType?: InputMaybe<Scalars['String']['input']>;
@@ -6260,6 +6334,190 @@ export function useRefreshScpMutation(baseOptions?: Apollo.MutationHookOptions<R
 export type RefreshScpMutationHookResult = ReturnType<typeof useRefreshScpMutation>;
 export type RefreshScpMutationResult = Apollo.MutationResult<RefreshScpMutation>;
 export type RefreshScpMutationOptions = Apollo.BaseMutationOptions<RefreshScpMutation, RefreshScpMutationVariables>;
+export const MarkEventCompleteDocument = gql`
+    mutation MarkEventComplete($input: MarkEventCompleteInput!) {
+  markEventComplete(input: $input) {
+    id
+    patientId
+    planId
+    type
+    title
+    description
+    frequency
+    guidelineSource
+    dueDate
+    status
+    completedDate
+    resultSummary
+    nextDueDate
+    createdAt
+  }
+}
+    `;
+export type MarkEventCompleteMutationFn = Apollo.MutationFunction<MarkEventCompleteMutation, MarkEventCompleteMutationVariables>;
+
+/**
+ * __useMarkEventCompleteMutation__
+ *
+ * To run a mutation, you first call `useMarkEventCompleteMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useMarkEventCompleteMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [markEventCompleteMutation, { data, loading, error }] = useMarkEventCompleteMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useMarkEventCompleteMutation(baseOptions?: Apollo.MutationHookOptions<MarkEventCompleteMutation, MarkEventCompleteMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<MarkEventCompleteMutation, MarkEventCompleteMutationVariables>(MarkEventCompleteDocument, options);
+      }
+export type MarkEventCompleteMutationHookResult = ReturnType<typeof useMarkEventCompleteMutation>;
+export type MarkEventCompleteMutationResult = Apollo.MutationResult<MarkEventCompleteMutation>;
+export type MarkEventCompleteMutationOptions = Apollo.BaseMutationOptions<MarkEventCompleteMutation, MarkEventCompleteMutationVariables>;
+export const SkipEventDocument = gql`
+    mutation SkipEvent($input: SkipEventInput!) {
+  skipEvent(input: $input) {
+    id
+    patientId
+    planId
+    type
+    title
+    description
+    frequency
+    guidelineSource
+    dueDate
+    status
+    completedDate
+    resultSummary
+    nextDueDate
+    createdAt
+  }
+}
+    `;
+export type SkipEventMutationFn = Apollo.MutationFunction<SkipEventMutation, SkipEventMutationVariables>;
+
+/**
+ * __useSkipEventMutation__
+ *
+ * To run a mutation, you first call `useSkipEventMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSkipEventMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [skipEventMutation, { data, loading, error }] = useSkipEventMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useSkipEventMutation(baseOptions?: Apollo.MutationHookOptions<SkipEventMutation, SkipEventMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SkipEventMutation, SkipEventMutationVariables>(SkipEventDocument, options);
+      }
+export type SkipEventMutationHookResult = ReturnType<typeof useSkipEventMutation>;
+export type SkipEventMutationResult = Apollo.MutationResult<SkipEventMutation>;
+export type SkipEventMutationOptions = Apollo.BaseMutationOptions<SkipEventMutation, SkipEventMutationVariables>;
+export const RescheduleEventDocument = gql`
+    mutation RescheduleEvent($input: RescheduleEventInput!) {
+  rescheduleEvent(input: $input) {
+    id
+    patientId
+    planId
+    type
+    title
+    description
+    frequency
+    guidelineSource
+    dueDate
+    status
+    completedDate
+    resultSummary
+    nextDueDate
+    createdAt
+  }
+}
+    `;
+export type RescheduleEventMutationFn = Apollo.MutationFunction<RescheduleEventMutation, RescheduleEventMutationVariables>;
+
+/**
+ * __useRescheduleEventMutation__
+ *
+ * To run a mutation, you first call `useRescheduleEventMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRescheduleEventMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [rescheduleEventMutation, { data, loading, error }] = useRescheduleEventMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useRescheduleEventMutation(baseOptions?: Apollo.MutationHookOptions<RescheduleEventMutation, RescheduleEventMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RescheduleEventMutation, RescheduleEventMutationVariables>(RescheduleEventDocument, options);
+      }
+export type RescheduleEventMutationHookResult = ReturnType<typeof useRescheduleEventMutation>;
+export type RescheduleEventMutationResult = Apollo.MutationResult<RescheduleEventMutation>;
+export type RescheduleEventMutationOptions = Apollo.BaseMutationOptions<RescheduleEventMutation, RescheduleEventMutationVariables>;
+export const UploadEventResultDocument = gql`
+    mutation UploadEventResult($input: UploadEventResultInput!) {
+  uploadEventResult(input: $input) {
+    id
+    patientId
+    planId
+    type
+    title
+    description
+    frequency
+    guidelineSource
+    dueDate
+    status
+    completedDate
+    resultSummary
+    nextDueDate
+    createdAt
+  }
+}
+    `;
+export type UploadEventResultMutationFn = Apollo.MutationFunction<UploadEventResultMutation, UploadEventResultMutationVariables>;
+
+/**
+ * __useUploadEventResultMutation__
+ *
+ * To run a mutation, you first call `useUploadEventResultMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUploadEventResultMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [uploadEventResultMutation, { data, loading, error }] = useUploadEventResultMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUploadEventResultMutation(baseOptions?: Apollo.MutationHookOptions<UploadEventResultMutation, UploadEventResultMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UploadEventResultMutation, UploadEventResultMutationVariables>(UploadEventResultDocument, options);
+      }
+export type UploadEventResultMutationHookResult = ReturnType<typeof useUploadEventResultMutation>;
+export type UploadEventResultMutationResult = Apollo.MutationResult<UploadEventResultMutation>;
+export type UploadEventResultMutationOptions = Apollo.BaseMutationOptions<UploadEventResultMutation, UploadEventResultMutationVariables>;
 export const GetTrialsDocument = gql`
     query GetTrials($cancerType: String, $phase: String, $limit: Int) {
   trials(cancerType: $cancerType, phase: $phase, limit: $limit) {
