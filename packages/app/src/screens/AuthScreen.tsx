@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { View, Text, TextInput, Pressable } from 'dripsy';
 import { useRouter } from 'solito/router';
-import { useMeQuery } from '../generated/graphql';
+import { useMeQuery, useRequestMagicLinkMutation } from '../generated/graphql';
 
 export function AuthScreen() {
   const router = useRouter();
@@ -9,6 +9,7 @@ export function AuthScreen() {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
+  const [requestMagicLink] = useRequestMagicLinkMutation();
 
   useEffect(() => {
     if (meData?.me) {
@@ -21,17 +22,7 @@ export function AuthScreen() {
     setErrorMessage('');
 
     try {
-      const res = await fetch('/api/auth/magic-link', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Failed to send magic link');
-      }
-
+      await requestMagicLink({ variables: { email } });
       setStatus('success');
     } catch (err) {
       setStatus('error');

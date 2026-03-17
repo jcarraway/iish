@@ -85,6 +85,12 @@ export interface GraphQLContext {
 
     // Sequencing Orders
     createSequencingOrder: (patientId: string, providerId: string, testType: string) => Promise<any>;
+
+    // Auth
+    sendMagicLink: (email: string, redirect?: string) => Promise<void>;
+
+    // Report (inline preview)
+    generateReport: (pipelineJobId: string, reportType: string) => Promise<any>;
   };
 }
 

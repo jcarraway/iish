@@ -41,6 +41,14 @@ export const pipelineExtendedResolvers = {
       if (!ctx.session) throw new Error('UNAUTHORIZED');
       return ctx.lib.generateReportPdf(pipelineJobId, reportType);
     },
+    generateReport: async (
+      _: unknown,
+      { pipelineJobId, reportType }: { pipelineJobId: string; reportType: string },
+      ctx: ResolverContext,
+    ) => {
+      if (!ctx.session) throw new Error('UNAUTHORIZED');
+      return ctx.lib.generateReport(pipelineJobId, reportType);
+    },
     neoantigenTrials: async (
       _: unknown,
       { pipelineJobId }: { pipelineJobId: string },

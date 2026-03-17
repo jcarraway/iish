@@ -144,3 +144,7 @@ mutation GenerateReportPdf($pipelineJobId: String!, $reportType: String!) {
     cached
   }
 }
+
+query GenerateReport($pipelineJobId: String!, $reportType: String!) {
+  generateReport(pipelineJobId: $pipelineJobId, reportType: $reportType)
+}

@@ -720,6 +720,7 @@ export const typeDefs = `#graphql
     city: String
     state: String
     ehrVendor: String!
+    isCancerCenter: Boolean!
   }
 
   type FhirConnection {
@@ -753,6 +754,9 @@ export const typeDefs = `#graphql
   type Query {
     # Auth
     me: SessionData
+
+    # Report (inline preview)
+    generateReport(pipelineJobId: String!, reportType: String!): JSON
 
     # Patient
     patient: Patient
@@ -921,6 +925,7 @@ export const typeDefs = `#graphql
   type Mutation {
     # Auth
     logout: Boolean!
+    requestMagicLink(email: String!, redirect: String): Boolean!
 
     # Patient
     updatePatientProfile(input: PatientProfileInput!): Patient!

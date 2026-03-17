@@ -11,8 +11,8 @@ oncovax/
 ├── apps/
 │   ├── web/                    # Next.js 15.0.0, React 19.0.0, Tailwind CSS 3.4
 │   │   ├── app/                # App Router — pages + 87 API route files
-│   │   ├── components/         # 24 React components (web-only, Tailwind)
-│   │   └── lib/                # 40 library files (see below)
+│   │   ├── components/         # 3 web-only components (DocumentUploader, AdministrationSiteCard, AdministrationSiteMap)
+│   │   └── lib/                # 39 library files (see below)
 │   └── mobile/                 # Expo SDK 54, React Native 0.76.9, Dripsy + Solito
 │       ├── app/                # Expo Router — 52 route files across 13 directories
 │       └── lib/                # apollo.ts (GraphQL client), auth.ts (SecureStore guard)
@@ -21,7 +21,7 @@ oncovax/
 │   ├── ui/                     # Thin RN + Solito re-exports (@oncovax/ui)
 │   ├── app/                    # 46 shared screens, 22 Dripsy components, theme, 76+ generated hooks (@oncovax/app)
 │   │   └── src/{screens[46],components[22],providers,theme,graphql,generated,utils,index}.ts
-│   ├── api/                    # Apollo Server schema (45+ types, 29Q, 29M) + 18 resolver files (@oncovax/api)
+│   ├── api/                    # Apollo Server schema (45+ types, 30Q, 30M) + 18 resolver files (@oncovax/api)
 │   │   └── src/{schema,resolvers[18 files],context,index}.ts
 │   ├── db/                     # Prisma 7 + PostgreSQL (23 models)
 │   │   ├── prisma/schema.prisma
@@ -81,11 +81,10 @@ export async function POST(req: NextRequest) {
 - **Mobile routes:** All 46 screens wired via Expo Router — 50 route files (30 direct re-exports, 17 param wrappers, 3 upload placeholders)
 - **Mobile tabs:** 5-tab layout (Home, Matches, Sequencing, Pipeline, More) with Ionicons
 - **Mobile auth:** `useProtectedRoute()` hook — SecureStore token check + redirect to `/auth` modal
-- **Web (legacy remnants):** 24 Tailwind components still in `apps/web/components/` (dead code except DocumentUploader + AdministrationSiteMap)
+- **Web-only components (3):** `DocumentUploader` (File API), `AdministrationSiteCard`, `AdministrationSiteMap` (Mapbox) — kept in `apps/web/components/`
 - Shared components use Dripsy `sx` prop with theme tokens, Solito `Link` for navigation
-- Web-only components (not shared): `DocumentUploader` (File API), `AdministrationSiteMap` (Mapbox)
 - Custom `Picker` component replaces `<select>` cross-platform (web: native select, native: Modal list)
-- Has `cn()` utility (clsx + tailwind-merge) in `apps/web/lib/utils.ts` (used by legacy web components only)
+- All shared code uses GraphQL hooks exclusively (zero `fetch('/api/...')` calls after D8)
 
 ### Prisma 7 (Critical Differences from Prisma 5/6)
 - No `url` in `datasource` block — use `prisma.config.ts` with `defineConfig`
@@ -118,7 +117,7 @@ export async function POST(req: NextRequest) {
 - *M1:* Manufacturing partner directory (15 CDMOs seeded across 3 tiers), regulatory pathway advisor (decision tree + 8 Claude-powered document templates), 3 Prisma models (ManufacturingPartner, RegulatoryPathwayAssessment, RegulatoryDocument), 10 API routes (4 manufacturing + 6 regulatory), 3 components, 8 pages under `/manufacture/`.
 - *M2:* Order workflow (9-stage lifecycle: inquiry → quote → production → QC → shipping → administration), provider network (12 administration sites seeded, proximity search with Haversine distance), post-administration monitoring (8-timepoint schedule, AE escalation checking), provider portal. 3 Prisma models (ManufacturingOrder, AdministrationSite, PostAdministrationReport), 11 API routes, 7 components, 12 pages, 3 lib files. Dashboard + nav integration.
 
-**Cross-Platform Migration (D0-D7, complete):**
+**Cross-Platform Migration (D0-D8, complete):**
 - *D0:* `packages/ui/` (RN + Solito re-exports), `packages/app/` (Dripsy theme, providers, Apollo cache config), `packages/api/` (Apollo Server schema + resolvers wrapping lib/). Web + mobile configured with Apollo Client, DripsyProvider, react-native-web.
 - *D1:* 22 of 24 components migrated from Tailwind to Dripsy in `packages/app/src/components/`. Custom cross-platform Picker. `ADVERSE_EVENT_OPTIONS` moved to shared constants. Web-only: DocumentUploader, AdministrationSiteMap.
 - *D2:* Complete GraphQL layer — schema expanded to 45+ types, 27 queries, 25 mutations. 7 new resolver files (18 total). 25 adapter functions in route handler. 13 `.graphql` operation documents (70 operations). Codegen produces 5082-line generated file with 70 typed React hooks.
@@ -126,6 +125,7 @@ export async function POST(req: NextRequest) {
 - *D4+D5:* 26 more screens (detail, manufacturing, monitoring, dashboard, intake, sequencing journey, translate). Schema expanded with intake/extract/order mutations. 26 web pages re-pointed.
 - *D6:* Final 12 screens (pipeline 7 + sequencing detail 4 + records 1). Schema expanded to 29 queries, 29 mutations. 4 new resolver operations, 2 complex FHIR adapters. 12 web pages re-pointed. **All 46 migratable screens now shared.**
 - *D7:* Mobile app routing — 52 route files wired to all 46 shared screens via Expo Router. Auth guard (`useProtectedRoute`), 5-tab layout (Home/Matches/Sequencing/Pipeline/More), MoreScreen navigation grid, 3 upload placeholders. **Mobile app functionally complete.**
+- *D8:* Dead code cleanup + REST→GraphQL migration. Deleted 21 dead Tailwind components + `utils.ts`. Added `requestMagicLink` mutation + `generateReport` query + `isCancerCenter` field. Migrated 5 shared files from `fetch('/api/...')` to GraphQL hooks. **All shared code now uses GraphQL exclusively — mobile-compatible.**
 
 ## What's NOT Built Yet
 
@@ -184,5 +184,4 @@ export async function POST(req: NextRequest) {
 - **No error monitoring** — no Sentry, no error boundaries
 - **Mobile auth flow incomplete** — `useProtectedRoute` checks token existence but magic link → token storage not wired end-to-end
 - **Mobile upload screens** — 3 placeholder pages ("requires web browser") for document/sequencing/pipeline upload
-- **Dead web components** — 22 Tailwind components in `apps/web/components/` are now superseded by Dripsy versions but not yet deleted
 - **No notification system** — only magic link email via Resend

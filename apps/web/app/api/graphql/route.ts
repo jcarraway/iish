@@ -6,6 +6,8 @@ import type { GraphQLContext } from '@oncovax/api';
 import { prisma } from '@/lib/db';
 import { redis } from '@/lib/redis';
 import { getSession } from '@/lib/session';
+import { createMagicLinkToken } from '@oncovax/shared';
+import { Resend } from 'resend';
 
 // Lib function imports — existing
 import { generateMatchesForPatient, computeMatchDelta as _computeMatchDelta } from '@/lib/matcher';
@@ -45,6 +47,25 @@ import type { PatientProfile } from '@oncovax/shared';
 // ============================================================================
 // Adapter functions — bridge resolver signatures to actual lib functions
 // ============================================================================
+
+// --- Auth ---
+
+const resend = new Resend(process.env.RESEND_API_KEY!);
+
+async function sendMagicLinkAdapter(email: string, redirect?: string) {
+  const normalizedEmail = email.toLowerCase().trim();
+  const token = await createMagicLinkToken(normalizedEmail);
+  let link = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/verify?token=${token}`;
+  if (redirect) {
+    link += `&redirect=${encodeURIComponent(redirect)}`;
+  }
+  await resend.emails.send({
+    from: process.env.RESEND_FROM_EMAIL!,
+    to: normalizedEmail,
+    subject: 'Your sign-in link',
+    html: `<p><a href="${link}">Click here to sign in</a></p><p>Expires in 15 minutes.</p>`,
+  });
+}
 
 // --- Matches ---
 
@@ -317,6 +338,15 @@ async function generateReportPdfAdapter(pipelineJobId: string, reportType: strin
 
 async function crossReferenceTrialsAdapter(pipelineJobId: string) {
   return _crossRefTrials(pipelineJobId);
+}
+
+async function generateReportAdapter(pipelineJobId: string, reportType: string) {
+  let result: any;
+  if (reportType === 'patient') result = await generatePatientReport(pipelineJobId);
+  else if (reportType === 'clinician') result = await generateClinicianReport(pipelineJobId);
+  else if (reportType === 'manufacturer') result = await generateManufacturerBlueprint(pipelineJobId);
+  else throw new Error(`Unknown report type: ${reportType}`);
+  return result?.report ?? result ?? {};
 }
 
 // --- Manufacturing ---
@@ -839,6 +869,12 @@ const handler = startServerAndCreateNextHandler<NextRequest, GraphQLContext>(ser
 
         // Sequencing Orders
         createSequencingOrder: createSequencingOrderAdapter,
+
+        // Auth (magic link)
+        sendMagicLink: sendMagicLinkAdapter,
+
+        // Report (inline preview)
+        generateReport: generateReportAdapter,
       },
     };
   },

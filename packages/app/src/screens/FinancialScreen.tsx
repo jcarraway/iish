@@ -3,7 +3,7 @@ import { View, Text, Pressable } from 'dripsy';
 import { ActivityIndicator, Alert } from 'react-native';
 import { useRouter } from 'solito/router';
 import { FinancialProgramCard } from '../components';
-import { useGetFinancialMatchesQuery } from '../generated/graphql';
+import { useGetFinancialMatchesQuery, useSubscribeFinancialProgramMutation } from '../generated/graphql';
 
 const CATEGORY_LABELS: Record<string, string> = {
   copay_treatment: 'Treatment Copay Help',
@@ -22,6 +22,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 export function FinancialScreen() {
   const router = useRouter();
   const { data, loading, error, refetch } = useGetFinancialMatchesQuery();
+  const [subscribeMutation] = useSubscribeFinancialProgramMutation();
 
   const matches = data?.financialMatches ?? [];
 
@@ -49,14 +50,8 @@ export function FinancialScreen() {
 
   const handleSubscribe = async (programId: string) => {
     try {
-      const res = await fetch('/api/financial/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ programId }),
-      });
-      if (res.ok) {
-        Alert.alert('Subscribed', 'You will be notified when this fund reopens.');
-      }
+      await subscribeMutation({ variables: { programId } });
+      Alert.alert('Subscribed', 'You will be notified when this fund reopens.');
     } catch {
       // Silently fail
     }

@@ -10,3 +10,7 @@ query Me {
 mutation Logout {
   logout
 }
+
+mutation RequestMagicLink($email: String!, $redirect: String) {
+  requestMagicLink(email: $email, redirect: $redirect)
+}

@@ -11,5 +11,13 @@ export const authResolvers = {
       if (!ctx.session) return false;
       return true;
     },
+    requestMagicLink: async (
+      _: unknown,
+      { email, redirect }: { email: string; redirect?: string },
+      ctx: ResolverContext,
+    ) => {
+      await ctx.lib.sendMagicLink(email, redirect);
+      return true;
+    },
   },
 };

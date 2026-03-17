@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { View, Text, Pressable, ActivityIndicator } from 'dripsy';
 import { Platform, Linking } from 'react-native';
+import { useGenerateReportLazyQuery, useGenerateReportPdfMutation } from '../generated/graphql';
 
 interface ReportCardProps {
   type: 'patient' | 'clinician' | 'manufacturer';
@@ -17,15 +18,18 @@ export function ReportCard({ type, title, description, icon, jobId, onPreview }:
   const [status, setStatus] = useState<Status>('idle');
   const [reportData, setReportData] = useState<Record<string, unknown> | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [fetchReport] = useGenerateReportLazyQuery();
+  const [generatePdf] = useGenerateReportPdfMutation();
 
   const handleGenerate = async () => {
     setStatus('generating');
     setError(null);
     try {
-      const res = await fetch(`/api/pipeline/jobs/${jobId}/reports?type=${type}`);
-      if (!res.ok) throw new Error('Failed to generate report');
-      const data = await res.json();
-      setReportData(data.report);
+      const { data } = await fetchReport({
+        variables: { pipelineJobId: jobId, reportType: type },
+      });
+      if (!data?.generateReport) throw new Error('Failed to generate report');
+      setReportData(data.generateReport as Record<string, unknown>);
       setStatus('ready');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
@@ -37,13 +41,14 @@ export function ReportCard({ type, title, description, icon, jobId, onPreview }:
     setStatus('downloading');
     setError(null);
     try {
-      const res = await fetch(`/api/pipeline/jobs/${jobId}/reports/pdf?type=${type}`);
-      if (!res.ok) throw new Error('Failed to generate PDF');
-      const data = await res.json();
+      const { data } = await generatePdf({
+        variables: { pipelineJobId: jobId, reportType: type },
+      });
+      if (!data?.generateReportPdf?.url) throw new Error('Failed to generate PDF');
       if (Platform.OS === 'web') {
-        window.open(data.url, '_blank');
+        window.open(data.generateReportPdf.url, '_blank');
       } else {
-        Linking.openURL(data.url);
+        Linking.openURL(data.generateReportPdf.url);
       }
       setStatus('ready');
     } catch (err) {

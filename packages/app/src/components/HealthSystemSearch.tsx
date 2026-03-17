@@ -1,48 +1,41 @@
 import { useState, useEffect, useRef } from 'react';
 import { View, Text, TextInput, Pressable, ScrollView, ActivityIndicator } from 'dripsy';
-import type { HealthSystemResult } from '@oncovax/shared';
+import { useGetHealthSystemsLazyQuery } from '../generated/graphql';
 
 interface Props {
-  onSelect: (system: HealthSystemResult) => void;
+  onSelect: (system: {
+    id: string;
+    name: string;
+    fhirBaseUrl: string;
+    brand?: string;
+    city?: string;
+    state?: string;
+    ehrVendor: string;
+    isCancerCenter: boolean;
+  }) => void;
 }
 
 export function HealthSystemSearch({ onSelect }: Props) {
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<HealthSystemResult[]>([]);
-  const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const [fetchSystems, { data, loading }] = useGetHealthSystemsLazyQuery();
+
+  const results = data?.healthSystems ?? [];
 
   useEffect(() => {
-    fetchSystems('');
+    fetchSystems({ variables: { search: undefined } }).then(() => setHasSearched(true));
   }, []);
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      fetchSystems(query);
+      fetchSystems({ variables: { search: query || undefined } }).then(() => setHasSearched(true));
     }, 300);
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, [query]);
-
-  const fetchSystems = async (q: string) => {
-    setLoading(true);
-    try {
-      const params = q ? `?q=${encodeURIComponent(q)}` : '';
-      const res = await fetch(`/api/fhir/health-systems${params}`);
-      if (res.ok) {
-        const data = await res.json();
-        setResults(data.healthSystems);
-      }
-    } catch {
-      // Ignore fetch errors
-    } finally {
-      setLoading(false);
-      setHasSearched(true);
-    }
-  };
 
   return (
     <View>
@@ -87,7 +80,12 @@ export function HealthSystemSearch({ onSelect }: Props) {
             {results.map((system) => (
               <Pressable
                 key={system.id}
-                onPress={() => onSelect(system)}
+                onPress={() => onSelect({
+                  ...system,
+                  brand: system.brand ?? undefined,
+                  city: system.city ?? undefined,
+                  state: system.state ?? undefined,
+                })}
                 sx={{
                   flexDirection: 'row',
                   alignItems: 'center',

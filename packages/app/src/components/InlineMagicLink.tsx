@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { View, Text, TextInput, Pressable } from 'dripsy';
+import { useRequestMagicLinkMutation, useMeQuery } from '../generated/graphql';
 
 interface Props {
   onAuthDetected: () => void;
@@ -11,24 +12,22 @@ export function InlineMagicLink({ onAuthDetected, redirectPath }: Props) {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
   const [sending, setSending] = useState(false);
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [requestMagicLink] = useRequestMagicLinkMutation();
+  const { data: meData } = useMeQuery({ pollInterval: sent ? 3000 : 0, skip: !sent });
+
+  useEffect(() => {
+    if (meData?.me) {
+      onAuthDetected();
+    }
+  }, [meData, onAuthDetected]);
 
   const handleSend = async () => {
     setError('');
     setSending(true);
     try {
-      const res = await fetch('/api/auth/magic-link', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email,
-          ...(redirectPath ? { redirect: redirectPath } : {}),
-        }),
+      await requestMagicLink({
+        variables: { email, redirect: redirectPath },
       });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Failed to send');
-      }
       setSent(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to send sign-in link');
@@ -36,27 +35,6 @@ export function InlineMagicLink({ onAuthDetected, redirectPath }: Props) {
       setSending(false);
     }
   };
-
-  useEffect(() => {
-    if (!sent) return;
-
-    pollRef.current = setInterval(async () => {
-      try {
-        const res = await fetch('/api/auth/session');
-        const data = await res.json();
-        if (data.authenticated) {
-          if (pollRef.current) clearInterval(pollRef.current);
-          onAuthDetected();
-        }
-      } catch {
-        // Ignore polling errors
-      }
-    }, 3000);
-
-    return () => {
-      if (pollRef.current) clearInterval(pollRef.current);
-    };
-  }, [sent, onAuthDetected]);
 
   if (sent) {
     return (

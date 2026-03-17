@@ -253,6 +253,7 @@ export type HealthSystem = {
   ehrVendor: Scalars['String']['output'];
   fhirBaseUrl: Scalars['String']['output'];
   id: Scalars['String']['output'];
+  isCancerCenter: Scalars['Boolean']['output'];
   name: Scalars['String']['output'];
   state?: Maybe<Scalars['String']['output']>;
 };
@@ -486,6 +487,7 @@ export type Mutation = {
   matchFinancialPrograms: Array<FinancialMatch>;
   rematch: MatchDelta;
   requestGeneralUploadUrl: UploadUrlResult;
+  requestMagicLink: Scalars['Boolean']['output'];
   requestUploadUrl: UploadUrl;
   resyncFhirConnection: Scalars['JSON']['output'];
   revokeFhirConnection: Scalars['Boolean']['output'];
@@ -611,6 +613,12 @@ export type MutationRequestGeneralUploadUrlArgs = {
   bucket?: InputMaybe<Scalars['String']['input']>;
   contentType: Scalars['String']['input'];
   filename: Scalars['String']['input'];
+};
+
+
+export type MutationRequestMagicLinkArgs = {
+  email: Scalars['String']['input'];
+  redirect?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -865,6 +873,7 @@ export type Query = {
   financialMatches: Array<FinancialMatch>;
   financialProgram?: Maybe<FinancialProgram>;
   financialPrograms: Array<FinancialProgram>;
+  generateReport?: Maybe<Scalars['JSON']['output']>;
   genomicResult?: Maybe<GenomicResult>;
   genomicResults: Array<GenomicResult>;
   healthSystems: Array<HealthSystem>;
@@ -919,6 +928,12 @@ export type QueryAdministrationSitesArgs = {
 
 export type QueryFinancialProgramArgs = {
   programId: Scalars['String']['input'];
+};
+
+
+export type QueryGenerateReportArgs = {
+  pipelineJobId: Scalars['String']['input'];
+  reportType: Scalars['String']['input'];
 };
 
 
@@ -1293,6 +1308,14 @@ export type LogoutMutationVariables = Exact<{ [key: string]: never; }>;
 
 export type LogoutMutation = { __typename?: 'Mutation', logout: boolean };
 
+export type RequestMagicLinkMutationVariables = Exact<{
+  email: Scalars['String']['input'];
+  redirect?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type RequestMagicLinkMutation = { __typename?: 'Mutation', requestMagicLink: boolean };
+
 export type GetDocumentsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -1318,7 +1341,7 @@ export type GetHealthSystemsQueryVariables = Exact<{
 }>;
 
 
-export type GetHealthSystemsQuery = { __typename?: 'Query', healthSystems: Array<{ __typename?: 'HealthSystem', id: string, name: string, fhirBaseUrl: string, brand?: string | null, city?: string | null, state?: string | null, ehrVendor: string }> };
+export type GetHealthSystemsQuery = { __typename?: 'Query', healthSystems: Array<{ __typename?: 'HealthSystem', id: string, name: string, fhirBaseUrl: string, brand?: string | null, city?: string | null, state?: string | null, ehrVendor: string, isCancerCenter: boolean }> };
 
 export type GetFhirConnectionsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1738,6 +1761,14 @@ export type GenerateReportPdfMutationVariables = Exact<{
 
 export type GenerateReportPdfMutation = { __typename?: 'Mutation', generateReportPdf: { __typename?: 'ReportPdfResult', url: string, cached: boolean } };
 
+export type GenerateReportQueryVariables = Exact<{
+  pipelineJobId: Scalars['String']['input'];
+  reportType: Scalars['String']['input'];
+}>;
+
+
+export type GenerateReportQuery = { __typename?: 'Query', generateReport?: Record<string, unknown> | null };
+
 export type GetProvidersQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -1930,6 +1961,38 @@ export function useLogoutMutation(baseOptions?: Apollo.MutationHookOptions<Logou
 export type LogoutMutationHookResult = ReturnType<typeof useLogoutMutation>;
 export type LogoutMutationResult = Apollo.MutationResult<LogoutMutation>;
 export type LogoutMutationOptions = Apollo.BaseMutationOptions<LogoutMutation, LogoutMutationVariables>;
+export const RequestMagicLinkDocument = gql`
+    mutation RequestMagicLink($email: String!, $redirect: String) {
+  requestMagicLink(email: $email, redirect: $redirect)
+}
+    `;
+export type RequestMagicLinkMutationFn = Apollo.MutationFunction<RequestMagicLinkMutation, RequestMagicLinkMutationVariables>;
+
+/**
+ * __useRequestMagicLinkMutation__
+ *
+ * To run a mutation, you first call `useRequestMagicLinkMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRequestMagicLinkMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [requestMagicLinkMutation, { data, loading, error }] = useRequestMagicLinkMutation({
+ *   variables: {
+ *      email: // value for 'email'
+ *      redirect: // value for 'redirect'
+ *   },
+ * });
+ */
+export function useRequestMagicLinkMutation(baseOptions?: Apollo.MutationHookOptions<RequestMagicLinkMutation, RequestMagicLinkMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RequestMagicLinkMutation, RequestMagicLinkMutationVariables>(RequestMagicLinkDocument, options);
+      }
+export type RequestMagicLinkMutationHookResult = ReturnType<typeof useRequestMagicLinkMutation>;
+export type RequestMagicLinkMutationResult = Apollo.MutationResult<RequestMagicLinkMutation>;
+export type RequestMagicLinkMutationOptions = Apollo.BaseMutationOptions<RequestMagicLinkMutation, RequestMagicLinkMutationVariables>;
 export const GetDocumentsDocument = gql`
     query GetDocuments {
   documents {
@@ -2059,6 +2122,7 @@ export const GetHealthSystemsDocument = gql`
     city
     state
     ehrVendor
+    isCancerCenter
   }
 }
     `;
@@ -5134,6 +5198,48 @@ export function useGenerateReportPdfMutation(baseOptions?: Apollo.MutationHookOp
 export type GenerateReportPdfMutationHookResult = ReturnType<typeof useGenerateReportPdfMutation>;
 export type GenerateReportPdfMutationResult = Apollo.MutationResult<GenerateReportPdfMutation>;
 export type GenerateReportPdfMutationOptions = Apollo.BaseMutationOptions<GenerateReportPdfMutation, GenerateReportPdfMutationVariables>;
+export const GenerateReportDocument = gql`
+    query GenerateReport($pipelineJobId: String!, $reportType: String!) {
+  generateReport(pipelineJobId: $pipelineJobId, reportType: $reportType)
+}
+    `;
+
+/**
+ * __useGenerateReportQuery__
+ *
+ * To run a query within a React component, call `useGenerateReportQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGenerateReportQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGenerateReportQuery({
+ *   variables: {
+ *      pipelineJobId: // value for 'pipelineJobId'
+ *      reportType: // value for 'reportType'
+ *   },
+ * });
+ */
+export function useGenerateReportQuery(baseOptions: Apollo.QueryHookOptions<GenerateReportQuery, GenerateReportQueryVariables> & ({ variables: GenerateReportQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GenerateReportQuery, GenerateReportQueryVariables>(GenerateReportDocument, options);
+      }
+export function useGenerateReportLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GenerateReportQuery, GenerateReportQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GenerateReportQuery, GenerateReportQueryVariables>(GenerateReportDocument, options);
+        }
+// @ts-ignore
+export function useGenerateReportSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GenerateReportQuery, GenerateReportQueryVariables>): Apollo.UseSuspenseQueryResult<GenerateReportQuery, GenerateReportQueryVariables>;
+export function useGenerateReportSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GenerateReportQuery, GenerateReportQueryVariables>): Apollo.UseSuspenseQueryResult<GenerateReportQuery | undefined, GenerateReportQueryVariables>;
+export function useGenerateReportSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GenerateReportQuery, GenerateReportQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GenerateReportQuery, GenerateReportQueryVariables>(GenerateReportDocument, options);
+        }
+export type GenerateReportQueryHookResult = ReturnType<typeof useGenerateReportQuery>;
+export type GenerateReportLazyQueryHookResult = ReturnType<typeof useGenerateReportLazyQuery>;
+export type GenerateReportSuspenseQueryHookResult = ReturnType<typeof useGenerateReportSuspenseQuery>;
+export type GenerateReportQueryResult = Apollo.QueryResult<GenerateReportQuery, GenerateReportQueryVariables>;
 export const GetProvidersDocument = gql`
     query GetProviders {
   sequencingProviders {
