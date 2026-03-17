@@ -291,6 +291,7 @@ export const typeDefs = `#graphql
   type SequencingProvider {
     id: String!
     name: String!
+    type: String!
     slug: String!
     website: String
     testNames: [String!]!

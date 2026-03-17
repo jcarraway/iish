@@ -375,7 +375,7 @@ import { useGetMatchesQuery, useTranslateTreatmentMutation } from '@oncovax/app'
 
 ## Sessions D3-D6: Screen Migration (56 pages → shared screens)
 
-### Pattern for each page:
+### Migration pattern for each page:
 
 **Before** (`apps/web/app/matches/page.tsx`):
 ```tsx
@@ -392,13 +392,13 @@ export default function MatchesPage() {
 **After — shared screen** (`packages/app/src/screens/matches.tsx`):
 ```tsx
 import { View, Text, ScrollView, ActivityIndicator } from 'dripsy';
-import { useMatchesQuery, useUpdateMatchStatusMutation } from '../generated/graphql';
+import { useGetMatchesQuery, useUpdateMatchStatusMutation } from '../generated/graphql';
 import { MatchCard } from '../components';
 
 export function MatchesScreen() {
-  const { data, loading, refetch } = useMatchesQuery();
+  const { data, loading, refetch } = useGetMatchesQuery();
   const [updateStatus] = useUpdateMatchStatusMutation();
-  // ... render with Dripsy
+  // ... render with Dripsy sx props
 }
 ```
 
@@ -408,45 +408,146 @@ export function MatchesScreen() {
 export { MatchesScreen as default } from '@oncovax/app';
 ```
 
-### D3: Simple + List screens (9 screens)
+### Conversion rules (supplement D1 component rules):
+1. `useState` + `useEffect` + `fetch('/api/...')` → `useXxxQuery()` / `useXxxMutation()` from generated hooks
+2. `loading && <Spinner>` → `if (loading) return <ActivityIndicator />`
+3. `error && <ErrorMessage>` → `if (error) return <Text sx={{ color: '$destructive' }}>...</Text>`
+4. `router.push('/path')` → `const router = useRouter()` from `solito/navigation`
+5. `useSearchParams()` from next/navigation → `useParams()` / `useSearchParams()` from `solito/navigation`
+6. `useParams()` from next/navigation → `useParams()` from `solito/navigation`
+7. Server Components (no hooks) → still become client-side shared screens (Dripsy needs React context)
+8. `localStorage.getItem/setItem` → `Platform.OS === 'web' ? localStorage : AsyncStorage` (or avoid)
+9. Page-specific sub-components (inline) → keep inline within the screen file
 
-| Page | Lines | Screen name |
-|---|---|---|
-| `app/page.tsx` | 29 | `HomeScreen` |
-| `app/auth/page.tsx` | 79 | `AuthScreen` |
-| `app/learn/page.tsx` | ~50 | `LearnScreen` |
-| `app/start/page.tsx` | 41 | `StartScreen` |
-| `app/start/confirm/page.tsx` | ~60 | `ConfirmProfileScreen` |
-| `app/matches/page.tsx` | 191 | `MatchesScreen` |
-| `app/financial/page.tsx` | ~150 | `FinancialScreen` |
-| `app/sequencing/page.tsx` | ~80 | `SequencingHubScreen` |
-| `app/sequencing/providers/page.tsx` | ~120 | `SequencingProvidersScreen` |
+### Auth pattern for screens:
+```tsx
+import { useMeQuery } from '../generated/graphql';
+import { useRouter } from 'solito/navigation';
 
-### D4: Detail + complex screens (10 screens)
+export function ProtectedScreen() {
+  const { data, loading } = useMeQuery();
+  const router = useRouter();
+  if (loading) return <ActivityIndicator />;
+  if (!data?.me) { router.replace('/auth'); return null; }
+  // ... render
+}
+```
 
-| Page | Screen name |
-|---|---|
-| `app/dashboard/page.tsx` | `DashboardScreen` |
-| `app/matches/[trialId]/page.tsx` | `TrialDetailScreen` |
-| `app/matches/[trialId]/contact/page.tsx` | `OncologistBriefScreen` |
-| `app/translate/page.tsx` | `TranslateScreen` |
-| `app/financial/[programId]/page.tsx` | `FinancialDetailScreen` |
-| `app/start/manual/page.tsx` | `ManualIntakeScreen` |
-| `app/start/mychart/page.tsx` | `MyChartScreen` |
-| `app/sequencing/guide/page.tsx` | `SequencingGuideScreen` |
-| `app/sequencing/insurance/page.tsx` | `InsuranceCoverageScreen` |
-| `app/sequencing/results/page.tsx` | `GenomicResultsScreen` |
+---
+
+### D3: Static + simple list screens (8 screens) ✅ COMPLETE
+
+Migrated 8 web pages from `useState`+`fetch()`+Tailwind to shared Dripsy screens with Apollo hooks. All screens work on both web and mobile.
+
+#### Prerequisite fix: SequencingProvider schema gap
+- **`packages/api/src/schema.ts`** — Added `type: String!` to `SequencingProvider` GraphQL type
+- **`packages/api/src/resolvers/sequencing.ts`** — Added `SequencingProvider` field resolvers to extract `slug`, `testNames`, `geneCount`, `sampleTypes`, `turnaroundDaysMin/Max`, `costRangeMin/Max`, `fdaApproved`, `orderingProcess`, `reportFormat`, `website` from the Prisma `details` JSON blob
+- **`packages/app/src/graphql/sequencing.graphql`** — Added `type` to `GetProviders` query fields
+- Regenerated codegen — `type` now appears in `GetProvidersQuery` generated type
+
+#### Screens created:
+
+| Page | Screen file | Apollo Hooks | Key patterns |
+|---|---|---|---|
+| `app/page.tsx` | `HomeScreen.tsx` | None | Solito `Link` buttons, centered layout |
+| `app/auth/page.tsx` | `AuthScreen.tsx` | `useMeQuery` | Auth redirect via `useEffect`, REST magic link stays, `TextInput` with `keyboardType="email-address"` |
+| `app/learn/page.tsx` | `LearnScreen.tsx` | None | Static text |
+| `app/start/page.tsx` | `StartScreen.tsx` | None | 3 Solito `Link` cards |
+| `app/matches/page.tsx` | `MatchesScreen.tsx` | `useGetMatchesQuery`, `useUpdateMatchStatusMutation`, `useGenerateMatchesMutation` | Segmented filter tabs (Pressable), `matchBreakdown` wrapped in `{ items }`, `ActivityIndicator` loading state |
+| `app/financial/page.tsx` | `FinancialScreen.tsx` | `useGetFinancialMatchesQuery` | Client-side `useMemo` grouping by category, `Alert.alert()` for subscribe, `programStatus: 'unknown'` (not in GraphQL) |
+| `app/sequencing/page.tsx` | `SequencingHubScreen.tsx` | `useGetSequencingOrdersQuery`, `useGetGenomicResultsQuery` | Emoji icons (📄🧪❓) replacing SVGs, `errorPolicy: 'ignore'`, responsive `flexDirection: ['column', 'row']` |
+| `app/sequencing/providers/page.tsx` | `ProvidersScreen.tsx` | `useGetProvidersQuery` | 3 `Picker` filters, View-based comparison table, flat GraphQL→nested `SequencingProviderDetails` reconstruction |
+
+All screens in `packages/app/src/screens/`, exported via barrel `index.ts`.
+
+#### Web pages re-pointed (each becomes 2-line re-export):
+- `apps/web/app/page.tsx` → `HomeScreen`
+- `apps/web/app/auth/page.tsx` → `AuthScreen`
+- `apps/web/app/learn/page.tsx` → `LearnScreen`
+- `apps/web/app/start/page.tsx` → `StartScreen`
+- `apps/web/app/matches/page.tsx` → `MatchesScreen`
+- `apps/web/app/financial/page.tsx` → `FinancialScreen`
+- `apps/web/app/sequencing/page.tsx` → `SequencingHubScreen`
+- `apps/web/app/sequencing/providers/page.tsx` → `ProvidersScreen`
+
+#### D3 type fixes:
+- `MatchBreakdownItem.status`: GraphQL returns `string`, shared type expects `'match' | 'unknown' | 'mismatch'` — cast via `as MatchBreakdownItem[]`
+- `estimatedBenefit`: GraphQL `string | null | undefined` → prop `string | null` — coalesced with `?? null`
+- `SequencingProviderDetails.clinicalUtility`: Required by shared type but not in GraphQL — passed as empty string
+
+#### Build verification ✅
+- `@oncovax/api` (tsc) — builds clean
+- `@oncovax/app` (tsc) — builds clean
+- `@oncovax/web` (Next.js) — builds clean (95 pages)
+- Only warnings: react-native-web 0.19 hydrate/unmountComponentAtNode (harmless)
+
+### D4: Detail + complex form screens (10 screens)
+
+Screens with route params, detail views, complex forms, and multi-step state.
+
+| Page | Lines | Screen name | Key hooks |
+|---|---|---|---|
+| `app/dashboard/page.tsx` | ~200 | `DashboardScreen` | `useGetPatientQuery`, `useGetMatchesQuery`, `useGetSequencingOrdersQuery`, `useGetPipelineJobsQuery`, `useGetManufacturingOrdersQuery` |
+| `app/matches/[trialId]/page.tsx` | ~250 | `TrialDetailScreen` | `useGetMatchQuery` (by id from params) |
+| `app/matches/[trialId]/contact/page.tsx` | ~120 | `OncologistBriefScreen` | `useGetOncologistBriefQuery` |
+| `app/translate/page.tsx` | ~280 | `TranslateScreen` | `useGetMatchesQuery`, `useTranslateTreatmentMutation` |
+| `app/financial/[programId]/page.tsx` | ~150 | `FinancialDetailScreen` | `useGetFinancialProgramQuery` |
+| `app/start/confirm/page.tsx` | 644 | `ConfirmProfileScreen` | `useGetPatientQuery`, `useUpdateProfileMutation`, `useGetDocumentsQuery`, `useExtractDocumentMutation` |
+| `app/start/manual/page.tsx` | ~200 | `ManualIntakeScreen` | `useCreatePatientManualMutation` |
+| `app/start/mychart/page.tsx` | ~250 | `MyChartScreen` | `useGetHealthSystemsQuery`, `useAuthorizeFhirMutation`, `useGetFhirConnectionsQuery` |
+| `app/sequencing/guide/page.tsx` | ~350 | `SequencingGuideScreen` | `useGetSequencingRecommendationQuery`, `useGetSequencingExplanationQuery`, `useGetTestRecommendationQuery`, `useGetConversationGuideQuery`, `useGetWaitingContentQuery` |
+| `app/sequencing/insurance/page.tsx` | ~180 | `InsuranceCoverageScreen` | `useCheckCoverageMutation`, `useGenerateLomnMutation` |
+
+**D4 special cases:**
+- `ConfirmProfileScreen` (644 lines) — most complex screen. Has localStorage persistence, inline editing, financial profile collection. Use `Platform.OS === 'web' ? localStorage : null` for persistence (mobile gets fresh data from server).
+- `SequencingGuideScreen` — 5 sequential sections, each with its own query. Use multiple `useLazyQuery` hooks, fetch sequentially as user progresses.
+- `ManualIntakeScreen` — wraps `ManualIntakeWizard` shared component (already migrated in D1). Screen is thin wrapper.
+- `MyChartScreen` — FHIR OAuth flow involves browser redirect. On mobile, use `Linking.openURL` for OAuth.
+- Route params: `[trialId]`, `[programId]` → `useParams<{ trialId: string }>()` from solito/navigation
 
 ### D5: Manufacturing + monitoring screens (15 screens)
 
-All pages under `app/manufacture/` and `app/provider/`.
+| Page | Screen name |
+|---|---|
+| `app/manufacture/page.tsx` | `ManufactureHubScreen` |
+| `app/manufacture/partners/page.tsx` | `ManufacturingPartnersScreen` |
+| `app/manufacture/partners/[partnerId]/page.tsx` | `ManufacturingPartnerDetailScreen` |
+| `app/manufacture/orders/page.tsx` | `ManufacturingOrdersScreen` |
+| `app/manufacture/orders/new/page.tsx` | `NewManufacturingOrderScreen` |
+| `app/manufacture/orders/[orderId]/page.tsx` | `ManufacturingOrderDetailScreen` |
+| `app/manufacture/orders/[orderId]/tracking/page.tsx` | `OrderTrackingScreen` |
+| `app/manufacture/regulatory/page.tsx` | `RegulatoryHubScreen` |
+| `app/manufacture/regulatory/assessment/page.tsx` | `RegulatoryAssessmentScreen` |
+| `app/manufacture/regulatory/recommendation/page.tsx` | `RegulatoryRecommendationScreen` |
+| `app/manufacture/regulatory/documents/page.tsx` | `RegulatoryDocumentsScreen` |
+| `app/manufacture/regulatory/documents/[id]/page.tsx` | `RegulatoryDocumentDetailScreen` |
+| `app/manufacture/monitoring/page.tsx` | `MonitoringDashboardScreen` |
+| `app/manufacture/monitoring/[orderId]/report/page.tsx` | `MonitoringReportScreen` |
+| `app/manufacture/monitoring/[orderId]/history/page.tsx` | `MonitoringHistoryScreen` |
+| `app/manufacture/providers/page.tsx` | `AdministrationSitesScreen` |
+| `app/manufacture/providers/[siteId]/page.tsx` | `AdministrationSiteDetailScreen` |
 
-### D6: Pipeline + sequencing + remaining screens (13 screens)
+### D6: Pipeline + sequencing detail + records (12 screens)
 
-All pages under `app/pipeline/`, remaining `app/sequencing/`, `app/dashboard/records/`, `app/admin/`.
+| Page | Screen name |
+|---|---|
+| `app/pipeline/page.tsx` | `PipelineHubScreen` |
+| `app/pipeline/upload/page.tsx` | `PipelineUploadScreen` (web-only: keeps DocumentUploader) |
+| `app/pipeline/jobs/page.tsx` | `PipelineJobsScreen` |
+| `app/pipeline/jobs/[jobId]/page.tsx` | `PipelineJobDetailScreen` |
+| `app/pipeline/jobs/[jobId]/neoantigens/page.tsx` | `NeoantigenListScreen` |
+| `app/pipeline/jobs/[jobId]/reports/page.tsx` | `PipelineReportsScreen` |
+| `app/pipeline/jobs/[jobId]/blueprint/page.tsx` | `VaccineBlueprintScreen` |
+| `app/pipeline/jobs/[jobId]/trials/page.tsx` | `NeoantigenTrialsScreen` |
+| `app/sequencing/orders/page.tsx` | `SequencingOrdersScreen` |
+| `app/sequencing/orders/[orderId]/page.tsx` | `SequencingOrderDetailScreen` |
+| `app/sequencing/confirm/page.tsx` | `GenomicConfirmScreen` |
+| `app/sequencing/results/page.tsx` | `GenomicResultsScreen` |
+| `app/dashboard/records/page.tsx` | `FhirRecordsScreen` |
 
 **Web-only pages** (NOT migrated, stay as Tailwind):
-- `app/start/upload/page.tsx` — wraps DocumentUploader (web file APIs)
+- `app/start/upload/page.tsx` — wraps DocumentUploader (File API / drag-drop / XMLHttpRequest)
+- `app/pipeline/upload/page.tsx` — wraps DocumentUploader for pipeline data upload
 - `app/admin/*` — admin tools, web-only
 - `app/provider/*` — provider portal, web-only for now
 
@@ -456,8 +557,13 @@ All screens exported from `packages/app/src/screens/index.ts`:
 ```tsx
 export { HomeScreen } from './home';
 export { AuthScreen } from './auth';
+export { LearnScreen } from './learn';
+export { StartScreen } from './start';
 export { MatchesScreen } from './matches';
-// ... etc
+export { FinancialScreen } from './financial';
+export { SequencingHubScreen } from './sequencing-hub';
+export { SequencingProvidersScreen } from './sequencing-providers';
+// ... D4-D6 screens added in later sessions
 ```
 
 ---

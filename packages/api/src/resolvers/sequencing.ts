@@ -1,6 +1,20 @@
 import type { ResolverContext } from '../context';
 
 export const sequencingResolvers = {
+  SequencingProvider: {
+    slug: (parent: Record<string, unknown>) => parent.slug ?? (parent.details as Record<string, unknown>)?.slug ?? '',
+    testNames: (parent: Record<string, unknown>) => (parent.details as Record<string, unknown>)?.testNames ?? [],
+    geneCount: (parent: Record<string, unknown>) => (parent.details as Record<string, unknown>)?.geneCount ?? 0,
+    sampleTypes: (parent: Record<string, unknown>) => (parent.details as Record<string, unknown>)?.sampleTypes ?? [],
+    turnaroundDaysMin: (parent: Record<string, unknown>) => ((parent.details as Record<string, unknown>)?.turnaroundDays as Record<string, unknown>)?.min ?? 0,
+    turnaroundDaysMax: (parent: Record<string, unknown>) => ((parent.details as Record<string, unknown>)?.turnaroundDays as Record<string, unknown>)?.max ?? 0,
+    costRangeMin: (parent: Record<string, unknown>) => ((parent.details as Record<string, unknown>)?.costRange as Record<string, unknown>)?.min ?? 0,
+    costRangeMax: (parent: Record<string, unknown>) => ((parent.details as Record<string, unknown>)?.costRange as Record<string, unknown>)?.max ?? 0,
+    fdaApproved: (parent: Record<string, unknown>) => (parent.details as Record<string, unknown>)?.fdaApproved ?? false,
+    orderingProcess: (parent: Record<string, unknown>) => (parent.details as Record<string, unknown>)?.orderingProcess ?? null,
+    reportFormat: (parent: Record<string, unknown>) => (parent.details as Record<string, unknown>)?.reportFormat ?? null,
+    website: (parent: Record<string, unknown>) => (parent.details as Record<string, unknown>)?.website ?? null,
+  },
   Query: {
     sequencingProviders: async (_: unknown, __: unknown, ctx: ResolverContext) => {
       return ctx.prisma.sequencingProvider.findMany({

@@ -990,6 +990,7 @@ export type SequencingProvider = {
   testNames: Array<Scalars['String']['output']>;
   turnaroundDaysMax: Scalars['Int']['output'];
   turnaroundDaysMin: Scalars['Int']['output'];
+  type: Scalars['String']['output'];
   website?: Maybe<Scalars['String']['output']>;
 };
 
@@ -1516,7 +1517,7 @@ export type GenerateReportPdfMutation = { __typename?: 'Mutation', generateRepor
 export type GetProvidersQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetProvidersQuery = { __typename?: 'Query', sequencingProviders: Array<{ __typename?: 'SequencingProvider', id: string, name: string, slug: string, website?: string | null, testNames: Array<string>, geneCount: number, sampleTypes: Array<string>, turnaroundDaysMin: number, turnaroundDaysMax: number, costRangeMin: number, costRangeMax: number, fdaApproved: boolean, orderingProcess?: string | null, reportFormat?: string | null }> };
+export type GetProvidersQuery = { __typename?: 'Query', sequencingProviders: Array<{ __typename?: 'SequencingProvider', id: string, name: string, type: string, slug: string, website?: string | null, testNames: Array<string>, geneCount: number, sampleTypes: Array<string>, turnaroundDaysMin: number, turnaroundDaysMax: number, costRangeMin: number, costRangeMax: number, fdaApproved: boolean, orderingProcess?: string | null, reportFormat?: string | null }> };
 
 export type GetSequencingOrdersQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -4391,6 +4392,7 @@ export const GetProvidersDocument = gql`
   sequencingProviders {
     id
     name
+    type
     slug
     website
     testNames

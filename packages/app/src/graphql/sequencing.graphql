@@ -2,6 +2,7 @@ query GetProviders {
   sequencingProviders {
     id
     name
+    type
     slug
     website
     testNames
