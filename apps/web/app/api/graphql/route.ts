@@ -52,6 +52,10 @@ import {
   deleteJournalEntry as _deleteJournalEntry,
   getJournalTrends as _getJournalTrends,
 } from '@/lib/journal-manager';
+import {
+  getLifestyleRecommendations as _getLifestyleRecs,
+  generateLifestyleRecommendations as _genLifestyleRecs,
+} from '@/lib/lifestyle-generator';
 import { refreshAccessToken, encryptToken } from '@/lib/fhir/smart-auth';
 import { mapFhirToPatientProfile } from '@/lib/fhir/mapper';
 import type { PatientProfile } from '@oncovax/shared';
@@ -839,6 +843,16 @@ async function getJournalTrendsAdapter(patientId: string, days: number) {
   return _getJournalTrends(patientId, days);
 }
 
+// --- Lifestyle ---
+
+async function getLifestyleRecommendationsAdapter(patientId: string) {
+  return _getLifestyleRecs(patientId);
+}
+
+async function generateLifestyleRecommendationsAdapter(patientId: string) {
+  return _genLifestyleRecs(patientId);
+}
+
 // ============================================================================
 // Apollo Server setup
 // ============================================================================
@@ -940,6 +954,8 @@ const handler = startServerAndCreateNextHandler<NextRequest, GraphQLContext>(ser
         submitJournalEntry: submitJournalEntryAdapter,
         deleteJournalEntry: deleteJournalEntryAdapter,
         getJournalTrends: getJournalTrendsAdapter,
+        getLifestyleRecommendations: getLifestyleRecommendationsAdapter,
+        generateLifestyleRecommendations: generateLifestyleRecommendationsAdapter,
       },
     };
   },

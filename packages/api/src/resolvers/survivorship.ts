@@ -51,6 +51,14 @@ export const survivorshipResolvers = {
       if (!patient) throw new Error('Patient not found');
       return ctx.lib.getJournalTrends(patient.id, days);
     },
+    lifestyleRecommendations: async (_: unknown, __: unknown, ctx: ResolverContext) => {
+      if (!ctx.session) throw new Error('UNAUTHORIZED');
+      const patient = await ctx.prisma.patient.findUnique({
+        where: { userId: ctx.session.userId },
+      });
+      if (!patient) return null;
+      return ctx.lib.getLifestyleRecommendations(patient.id);
+    },
   },
   Mutation: {
     completeTreatment: async (
@@ -159,6 +167,14 @@ export const survivorshipResolvers = {
       if (!patient) throw new Error('Patient not found');
       await ctx.lib.deleteJournalEntry(patient.id, entryId);
       return true;
+    },
+    generateLifestyleRecommendations: async (_: unknown, __: unknown, ctx: ResolverContext) => {
+      if (!ctx.session) throw new Error('UNAUTHORIZED');
+      const patient = await ctx.prisma.patient.findUnique({
+        where: { userId: ctx.session.userId },
+      });
+      if (!patient) throw new Error('Patient not found');
+      return ctx.lib.generateLifestyleRecommendations(patient.id);
     },
   },
 };

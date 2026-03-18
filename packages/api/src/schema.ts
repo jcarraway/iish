@@ -775,6 +775,100 @@ export const typeDefs = `#graphql
     entries: [JournalEntry!]!
   }
 
+  # --- Lifestyle ---
+
+  type LifestyleRecommendations {
+    exercise: ExerciseRecommendation!
+    nutrition: NutritionRecommendation!
+    alcohol: AlcoholRecommendation!
+    environment: EnvironmentalRecommendation!
+    generatedAt: String!
+  }
+
+  type ExerciseRecommendation {
+    headline: String!
+    effectSize: String!
+    weeklyTargetMinutes: Int!
+    intensity: String!
+    strengthDaysPerWeek: Int!
+    precautions: [ExercisePrecaution!]!
+    starterPlan: [ExerciseWeek!]!
+    symptomExercises: [SymptomExercise!]!
+  }
+
+  type ExercisePrecaution {
+    issue: String!
+    guidance: String!
+  }
+
+  type ExerciseWeek {
+    week: Int!
+    totalMinutes: Int!
+    sessions: [ExerciseSession!]!
+  }
+
+  type ExerciseSession {
+    day: String!
+    type: String!
+    duration: Int!
+    description: String!
+  }
+
+  type SymptomExercise {
+    symptom: String!
+    exerciseType: String!
+    evidence: String!
+  }
+
+  type NutritionRecommendation {
+    headline: String!
+    strongEvidence: [String!]!
+    medicationGuidance: [MedicationNutrition!]!
+    mythBusting: [NutritionMyth!]!
+  }
+
+  type MedicationNutrition {
+    medication: String!
+    considerations: [String!]!
+    emphasize: [String!]!
+    limit: [String!]!
+  }
+
+  type NutritionMyth {
+    myth: String!
+    reality: String!
+    nuance: String!
+  }
+
+  type AlcoholRecommendation {
+    headline: String!
+    quantifiedRisk: String!
+    subtypeContext: String!
+    recommendation: String!
+    evidenceStrength: String!
+    honestFraming: String!
+  }
+
+  type EnvironmentalRecommendation {
+    approach: String!
+    steps: [EnvironmentalStep!]!
+    overblownConcerns: [OverblownConcern!]!
+  }
+
+  type EnvironmentalStep {
+    category: String!
+    action: String!
+    why: String!
+    difficulty: String!
+    cost: String!
+    evidence: String!
+  }
+
+  type OverblownConcern {
+    claim: String!
+    reality: String!
+  }
+
   # ============================================================================
   # FHIR
   # ============================================================================
@@ -894,6 +988,7 @@ export const typeDefs = `#graphql
     surveillanceSchedule: [SurveillanceEvent!]!
     journalEntries(limit: Int): [JournalEntry!]!
     journalTrends(days: Int!): JournalTrends!
+    lifestyleRecommendations: LifestyleRecommendations
 
     # FHIR
     healthSystems(search: String): [HealthSystem!]!
@@ -1126,6 +1221,7 @@ export const typeDefs = `#graphql
     uploadEventResult(input: UploadEventResultInput!): SurveillanceEvent!
     submitJournalEntry(input: SubmitJournalEntryInput!): JournalEntry!
     deleteJournalEntry(entryId: String!): Boolean!
+    generateLifestyleRecommendations: LifestyleRecommendations!
 
     # Uploads
     requestGeneralUploadUrl(filename: String!, contentType: String!, bucket: String): UploadUrlResult!

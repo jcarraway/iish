@@ -74,3 +74,6 @@ export { SurveillanceEventDetailScreen } from './SurveillanceEventDetailScreen';
 export { JournalEntryScreen } from './JournalEntryScreen';
 export { JournalHistoryScreen } from './JournalHistoryScreen';
 export { LateEffectsScreen } from './LateEffectsScreen';
+
+// S4 — Lifestyle
+export { LifestyleScreen } from './LifestyleScreen';

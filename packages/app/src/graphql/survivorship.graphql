@@ -214,3 +214,81 @@ mutation UploadEventResult($input: UploadEventResultInput!) {
     createdAt
   }
 }
+
+query GetLifestyleRecommendations {
+  lifestyleRecommendations {
+    exercise {
+      headline
+      effectSize
+      weeklyTargetMinutes
+      intensity
+      strengthDaysPerWeek
+      precautions { issue guidance }
+      starterPlan {
+        week
+        totalMinutes
+        sessions { day type duration description }
+      }
+      symptomExercises { symptom exerciseType evidence }
+    }
+    nutrition {
+      headline
+      strongEvidence
+      medicationGuidance { medication considerations emphasize limit }
+      mythBusting { myth reality nuance }
+    }
+    alcohol {
+      headline
+      quantifiedRisk
+      subtypeContext
+      recommendation
+      evidenceStrength
+      honestFraming
+    }
+    environment {
+      approach
+      steps { category action why difficulty cost evidence }
+      overblownConcerns { claim reality }
+    }
+    generatedAt
+  }
+}
+
+mutation GenerateLifestyleRecommendations {
+  generateLifestyleRecommendations {
+    exercise {
+      headline
+      effectSize
+      weeklyTargetMinutes
+      intensity
+      strengthDaysPerWeek
+      precautions { issue guidance }
+      starterPlan {
+        week
+        totalMinutes
+        sessions { day type duration description }
+      }
+      symptomExercises { symptom exerciseType evidence }
+    }
+    nutrition {
+      headline
+      strongEvidence
+      medicationGuidance { medication considerations emphasize limit }
+      mythBusting { myth reality nuance }
+    }
+    alcohol {
+      headline
+      quantifiedRisk
+      subtypeContext
+      recommendation
+      evidenceStrength
+      honestFraming
+    }
+    environment {
+      approach
+      steps { category action why difficulty cost evidence }
+      overblownConcerns { claim reality }
+    }
+    generatedAt
+  }
+}

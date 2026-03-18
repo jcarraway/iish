@@ -65,6 +65,16 @@ export type AdverseEventInput = {
   treatment?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type AlcoholRecommendation = {
+  __typename?: 'AlcoholRecommendation';
+  evidenceStrength: Scalars['String']['output'];
+  headline: Scalars['String']['output'];
+  honestFraming: Scalars['String']['output'];
+  quantifiedRisk: Scalars['String']['output'];
+  recommendation: Scalars['String']['output'];
+  subtypeContext: Scalars['String']['output'];
+};
+
 export type CommonConcern = {
   __typename?: 'CommonConcern';
   answer: Scalars['String']['output'];
@@ -122,6 +132,56 @@ export type DrugCard = {
   seriousSideEffects: Array<Scalars['String']['output']>;
   tips: Array<Scalars['String']['output']>;
   whyThisDrug: Scalars['String']['output'];
+};
+
+export type EnvironmentalRecommendation = {
+  __typename?: 'EnvironmentalRecommendation';
+  approach: Scalars['String']['output'];
+  overblownConcerns: Array<OverblownConcern>;
+  steps: Array<EnvironmentalStep>;
+};
+
+export type EnvironmentalStep = {
+  __typename?: 'EnvironmentalStep';
+  action: Scalars['String']['output'];
+  category: Scalars['String']['output'];
+  cost: Scalars['String']['output'];
+  difficulty: Scalars['String']['output'];
+  evidence: Scalars['String']['output'];
+  why: Scalars['String']['output'];
+};
+
+export type ExercisePrecaution = {
+  __typename?: 'ExercisePrecaution';
+  guidance: Scalars['String']['output'];
+  issue: Scalars['String']['output'];
+};
+
+export type ExerciseRecommendation = {
+  __typename?: 'ExerciseRecommendation';
+  effectSize: Scalars['String']['output'];
+  headline: Scalars['String']['output'];
+  intensity: Scalars['String']['output'];
+  precautions: Array<ExercisePrecaution>;
+  starterPlan: Array<ExerciseWeek>;
+  strengthDaysPerWeek: Scalars['Int']['output'];
+  symptomExercises: Array<SymptomExercise>;
+  weeklyTargetMinutes: Scalars['Int']['output'];
+};
+
+export type ExerciseSession = {
+  __typename?: 'ExerciseSession';
+  day: Scalars['String']['output'];
+  description: Scalars['String']['output'];
+  duration: Scalars['Int']['output'];
+  type: Scalars['String']['output'];
+};
+
+export type ExerciseWeek = {
+  __typename?: 'ExerciseWeek';
+  sessions: Array<ExerciseSession>;
+  totalMinutes: Scalars['Int']['output'];
+  week: Scalars['Int']['output'];
 };
 
 export type ExtractionResult = {
@@ -329,6 +389,15 @@ export type Lomn = {
   testType: Scalars['String']['output'];
 };
 
+export type LifestyleRecommendations = {
+  __typename?: 'LifestyleRecommendations';
+  alcohol: AlcoholRecommendation;
+  environment: EnvironmentalRecommendation;
+  exercise: ExerciseRecommendation;
+  generatedAt: Scalars['String']['output'];
+  nutrition: NutritionRecommendation;
+};
+
 export type LohBiomarker = {
   __typename?: 'LohBiomarker';
   status: Scalars['String']['output'];
@@ -453,6 +522,14 @@ export type MatchDeltaEntry = {
   trialId: Scalars['String']['output'];
 };
 
+export type MedicationNutrition = {
+  __typename?: 'MedicationNutrition';
+  considerations: Array<Scalars['String']['output']>;
+  emphasize: Array<Scalars['String']['output']>;
+  limit: Array<Scalars['String']['output']>;
+  medication: Scalars['String']['output'];
+};
+
 export type MonitoringReport = {
   __typename?: 'MonitoringReport';
   adverseEvents?: Maybe<Array<AdverseEvent>>;
@@ -521,6 +598,7 @@ export type Mutation = {
   extractFhir: Scalars['JSON']['output'];
   extractGenomicReport: GenomicResult;
   generateLOMN: Lomn;
+  generateLifestyleRecommendations: LifestyleRecommendations;
   generateMatches: Array<Match>;
   generateRegulatoryDocument: RegulatoryDocument;
   generateReportPdf: ReportPdfResult;
@@ -818,11 +896,32 @@ export type NeoantigenTrialMatch = {
   trialId: Scalars['String']['output'];
 };
 
+export type NutritionMyth = {
+  __typename?: 'NutritionMyth';
+  myth: Scalars['String']['output'];
+  nuance: Scalars['String']['output'];
+  reality: Scalars['String']['output'];
+};
+
+export type NutritionRecommendation = {
+  __typename?: 'NutritionRecommendation';
+  headline: Scalars['String']['output'];
+  medicationGuidance: Array<MedicationNutrition>;
+  mythBusting: Array<NutritionMyth>;
+  strongEvidence: Array<Scalars['String']['output']>;
+};
+
 export type OncologistBrief = {
   __typename?: 'OncologistBrief';
   content: Scalars['String']['output'];
   generatedAt: Scalars['String']['output'];
   matchId: Scalars['String']['output'];
+};
+
+export type OverblownConcern = {
+  __typename?: 'OverblownConcern';
+  claim: Scalars['String']['output'];
+  reality: Scalars['String']['output'];
 };
 
 export type PartnerRecommendation = {
@@ -963,6 +1062,7 @@ export type Query = {
   healthSystems: Array<HealthSystem>;
   journalEntries: Array<JournalEntry>;
   journalTrends: JournalTrends;
+  lifestyleRecommendations?: Maybe<LifestyleRecommendations>;
   manufacturingOrder?: Maybe<ManufacturingOrder>;
   manufacturingOrders: Array<ManufacturingOrder>;
   manufacturingPartner?: Maybe<ManufacturingPartner>;
@@ -1340,6 +1440,13 @@ export type SurvivorshipPlan = {
   planContent: Scalars['JSON']['output'];
   riskCategory?: Maybe<Scalars['String']['output']>;
   treatmentCompletionDate: Scalars['String']['output'];
+};
+
+export type SymptomExercise = {
+  __typename?: 'SymptomExercise';
+  evidence: Scalars['String']['output'];
+  exerciseType: Scalars['String']['output'];
+  symptom: Scalars['String']['output'];
 };
 
 export type TalkingPoint = {
@@ -2105,6 +2212,16 @@ export type UploadEventResultMutationVariables = Exact<{
 
 
 export type UploadEventResultMutation = { __typename?: 'Mutation', uploadEventResult: { __typename?: 'SurveillanceEvent', id: string, patientId: string, planId: string, type: string, title: string, description?: string | null, frequency?: string | null, guidelineSource?: string | null, dueDate?: string | null, status: string, completedDate?: string | null, resultSummary?: string | null, nextDueDate?: string | null, createdAt: string } };
+
+export type GetLifestyleRecommendationsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetLifestyleRecommendationsQuery = { __typename?: 'Query', lifestyleRecommendations?: { __typename?: 'LifestyleRecommendations', generatedAt: string, exercise: { __typename?: 'ExerciseRecommendation', headline: string, effectSize: string, weeklyTargetMinutes: number, intensity: string, strengthDaysPerWeek: number, precautions: Array<{ __typename?: 'ExercisePrecaution', issue: string, guidance: string }>, starterPlan: Array<{ __typename?: 'ExerciseWeek', week: number, totalMinutes: number, sessions: Array<{ __typename?: 'ExerciseSession', day: string, type: string, duration: number, description: string }> }>, symptomExercises: Array<{ __typename?: 'SymptomExercise', symptom: string, exerciseType: string, evidence: string }> }, nutrition: { __typename?: 'NutritionRecommendation', headline: string, strongEvidence: Array<string>, medicationGuidance: Array<{ __typename?: 'MedicationNutrition', medication: string, considerations: Array<string>, emphasize: Array<string>, limit: Array<string> }>, mythBusting: Array<{ __typename?: 'NutritionMyth', myth: string, reality: string, nuance: string }> }, alcohol: { __typename?: 'AlcoholRecommendation', headline: string, quantifiedRisk: string, subtypeContext: string, recommendation: string, evidenceStrength: string, honestFraming: string }, environment: { __typename?: 'EnvironmentalRecommendation', approach: string, steps: Array<{ __typename?: 'EnvironmentalStep', category: string, action: string, why: string, difficulty: string, cost: string, evidence: string }>, overblownConcerns: Array<{ __typename?: 'OverblownConcern', claim: string, reality: string }> } } | null };
+
+export type GenerateLifestyleRecommendationsMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GenerateLifestyleRecommendationsMutation = { __typename?: 'Mutation', generateLifestyleRecommendations: { __typename?: 'LifestyleRecommendations', generatedAt: string, exercise: { __typename?: 'ExerciseRecommendation', headline: string, effectSize: string, weeklyTargetMinutes: number, intensity: string, strengthDaysPerWeek: number, precautions: Array<{ __typename?: 'ExercisePrecaution', issue: string, guidance: string }>, starterPlan: Array<{ __typename?: 'ExerciseWeek', week: number, totalMinutes: number, sessions: Array<{ __typename?: 'ExerciseSession', day: string, type: string, duration: number, description: string }> }>, symptomExercises: Array<{ __typename?: 'SymptomExercise', symptom: string, exerciseType: string, evidence: string }> }, nutrition: { __typename?: 'NutritionRecommendation', headline: string, strongEvidence: Array<string>, medicationGuidance: Array<{ __typename?: 'MedicationNutrition', medication: string, considerations: Array<string>, emphasize: Array<string>, limit: Array<string> }>, mythBusting: Array<{ __typename?: 'NutritionMyth', myth: string, reality: string, nuance: string }> }, alcohol: { __typename?: 'AlcoholRecommendation', headline: string, quantifiedRisk: string, subtypeContext: string, recommendation: string, evidenceStrength: string, honestFraming: string }, environment: { __typename?: 'EnvironmentalRecommendation', approach: string, steps: Array<{ __typename?: 'EnvironmentalStep', category: string, action: string, why: string, difficulty: string, cost: string, evidence: string }>, overblownConcerns: Array<{ __typename?: 'OverblownConcern', claim: string, reality: string }> } } };
 
 export type GetTrialsQueryVariables = Exact<{
   cancerType?: InputMaybe<Scalars['String']['input']>;
@@ -6739,6 +6856,208 @@ export function useUploadEventResultMutation(baseOptions?: Apollo.MutationHookOp
 export type UploadEventResultMutationHookResult = ReturnType<typeof useUploadEventResultMutation>;
 export type UploadEventResultMutationResult = Apollo.MutationResult<UploadEventResultMutation>;
 export type UploadEventResultMutationOptions = Apollo.BaseMutationOptions<UploadEventResultMutation, UploadEventResultMutationVariables>;
+export const GetLifestyleRecommendationsDocument = gql`
+    query GetLifestyleRecommendations {
+  lifestyleRecommendations {
+    exercise {
+      headline
+      effectSize
+      weeklyTargetMinutes
+      intensity
+      strengthDaysPerWeek
+      precautions {
+        issue
+        guidance
+      }
+      starterPlan {
+        week
+        totalMinutes
+        sessions {
+          day
+          type
+          duration
+          description
+        }
+      }
+      symptomExercises {
+        symptom
+        exerciseType
+        evidence
+      }
+    }
+    nutrition {
+      headline
+      strongEvidence
+      medicationGuidance {
+        medication
+        considerations
+        emphasize
+        limit
+      }
+      mythBusting {
+        myth
+        reality
+        nuance
+      }
+    }
+    alcohol {
+      headline
+      quantifiedRisk
+      subtypeContext
+      recommendation
+      evidenceStrength
+      honestFraming
+    }
+    environment {
+      approach
+      steps {
+        category
+        action
+        why
+        difficulty
+        cost
+        evidence
+      }
+      overblownConcerns {
+        claim
+        reality
+      }
+    }
+    generatedAt
+  }
+}
+    `;
+
+/**
+ * __useGetLifestyleRecommendationsQuery__
+ *
+ * To run a query within a React component, call `useGetLifestyleRecommendationsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetLifestyleRecommendationsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetLifestyleRecommendationsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetLifestyleRecommendationsQuery(baseOptions?: Apollo.QueryHookOptions<GetLifestyleRecommendationsQuery, GetLifestyleRecommendationsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetLifestyleRecommendationsQuery, GetLifestyleRecommendationsQueryVariables>(GetLifestyleRecommendationsDocument, options);
+      }
+export function useGetLifestyleRecommendationsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetLifestyleRecommendationsQuery, GetLifestyleRecommendationsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetLifestyleRecommendationsQuery, GetLifestyleRecommendationsQueryVariables>(GetLifestyleRecommendationsDocument, options);
+        }
+// @ts-ignore
+export function useGetLifestyleRecommendationsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetLifestyleRecommendationsQuery, GetLifestyleRecommendationsQueryVariables>): Apollo.UseSuspenseQueryResult<GetLifestyleRecommendationsQuery, GetLifestyleRecommendationsQueryVariables>;
+export function useGetLifestyleRecommendationsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetLifestyleRecommendationsQuery, GetLifestyleRecommendationsQueryVariables>): Apollo.UseSuspenseQueryResult<GetLifestyleRecommendationsQuery | undefined, GetLifestyleRecommendationsQueryVariables>;
+export function useGetLifestyleRecommendationsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetLifestyleRecommendationsQuery, GetLifestyleRecommendationsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetLifestyleRecommendationsQuery, GetLifestyleRecommendationsQueryVariables>(GetLifestyleRecommendationsDocument, options);
+        }
+export type GetLifestyleRecommendationsQueryHookResult = ReturnType<typeof useGetLifestyleRecommendationsQuery>;
+export type GetLifestyleRecommendationsLazyQueryHookResult = ReturnType<typeof useGetLifestyleRecommendationsLazyQuery>;
+export type GetLifestyleRecommendationsSuspenseQueryHookResult = ReturnType<typeof useGetLifestyleRecommendationsSuspenseQuery>;
+export type GetLifestyleRecommendationsQueryResult = Apollo.QueryResult<GetLifestyleRecommendationsQuery, GetLifestyleRecommendationsQueryVariables>;
+export const GenerateLifestyleRecommendationsDocument = gql`
+    mutation GenerateLifestyleRecommendations {
+  generateLifestyleRecommendations {
+    exercise {
+      headline
+      effectSize
+      weeklyTargetMinutes
+      intensity
+      strengthDaysPerWeek
+      precautions {
+        issue
+        guidance
+      }
+      starterPlan {
+        week
+        totalMinutes
+        sessions {
+          day
+          type
+          duration
+          description
+        }
+      }
+      symptomExercises {
+        symptom
+        exerciseType
+        evidence
+      }
+    }
+    nutrition {
+      headline
+      strongEvidence
+      medicationGuidance {
+        medication
+        considerations
+        emphasize
+        limit
+      }
+      mythBusting {
+        myth
+        reality
+        nuance
+      }
+    }
+    alcohol {
+      headline
+      quantifiedRisk
+      subtypeContext
+      recommendation
+      evidenceStrength
+      honestFraming
+    }
+    environment {
+      approach
+      steps {
+        category
+        action
+        why
+        difficulty
+        cost
+        evidence
+      }
+      overblownConcerns {
+        claim
+        reality
+      }
+    }
+    generatedAt
+  }
+}
+    `;
+export type GenerateLifestyleRecommendationsMutationFn = Apollo.MutationFunction<GenerateLifestyleRecommendationsMutation, GenerateLifestyleRecommendationsMutationVariables>;
+
+/**
+ * __useGenerateLifestyleRecommendationsMutation__
+ *
+ * To run a mutation, you first call `useGenerateLifestyleRecommendationsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useGenerateLifestyleRecommendationsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [generateLifestyleRecommendationsMutation, { data, loading, error }] = useGenerateLifestyleRecommendationsMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGenerateLifestyleRecommendationsMutation(baseOptions?: Apollo.MutationHookOptions<GenerateLifestyleRecommendationsMutation, GenerateLifestyleRecommendationsMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<GenerateLifestyleRecommendationsMutation, GenerateLifestyleRecommendationsMutationVariables>(GenerateLifestyleRecommendationsDocument, options);
+      }
+export type GenerateLifestyleRecommendationsMutationHookResult = ReturnType<typeof useGenerateLifestyleRecommendationsMutation>;
+export type GenerateLifestyleRecommendationsMutationResult = Apollo.MutationResult<GenerateLifestyleRecommendationsMutation>;
+export type GenerateLifestyleRecommendationsMutationOptions = Apollo.BaseMutationOptions<GenerateLifestyleRecommendationsMutation, GenerateLifestyleRecommendationsMutationVariables>;
 export const GetTrialsDocument = gql`
     query GetTrials($cancerType: String, $phase: String, $limit: Int) {
   trials(cancerType: $cancerType, phase: $phase, limit: $limit) {

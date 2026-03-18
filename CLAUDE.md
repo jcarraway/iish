@@ -12,16 +12,16 @@ oncovax/
 │   ├── web/                    # Next.js 15.0.0, React 19.0.0, Tailwind CSS 3.4
 │   │   ├── app/                # App Router — pages + 87 API route files
 │   │   ├── components/         # 3 web-only components (DocumentUploader, AdministrationSiteCard, AdministrationSiteMap)
-│   │   └── lib/                # 41 library files (see below)
+│   │   └── lib/                # 42 library files (see below)
 │   └── mobile/                 # Expo SDK 54, React Native 0.76.9, Dripsy + Solito
 │       ├── app/                # Expo Router — 53 route files across 14 directories
 │       └── lib/                # apollo.ts (GraphQL client), auth.ts (SecureStore guard)
 ├── docker-compose.yml          # Local dev: postgres:15-alpine + redis:7-alpine
 ├── packages/
 │   ├── ui/                     # Thin RN + Solito re-exports (@oncovax/ui)
-│   ├── app/                    # 55 shared screens, 22 Dripsy components, theme, 90+ generated hooks (@oncovax/app)
-│   │   └── src/{screens[55],components[22],providers,theme,graphql,generated,utils,index}.ts
-│   ├── api/                    # Apollo Server schema (50+ types, 34Q, 38M) + 19 resolver files (@oncovax/api)
+│   ├── app/                    # 56 shared screens, 22 Dripsy components, theme, 90+ generated hooks (@oncovax/app)
+│   │   └── src/{screens[56],components[22],providers,theme,graphql,generated,utils,index}.ts
+│   ├── api/                    # Apollo Server schema (65+ types, 35Q, 39M) + 19 resolver files (@oncovax/api)
 │   │   └── src/{schema,resolvers[19 files],context,index}.ts
 │   ├── db/                     # Prisma 7 + PostgreSQL (26 models)
 │   │   ├── prisma/schema.prisma
@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
 
 ### UI: Dripsy + Solito (Cross-Platform, Screen Migration Complete)
 - **Shared components:** 22 Dripsy components in `packages/app/src/components/` — cross-platform ready
-- **Shared screens:** 55 screens in `packages/app/src/screens/` — all migratable screens done (D3-D6) + 4 survivorship (S1) + 2 surveillance (S2) + 3 journal/effects (S3)
+- **Shared screens:** 56 screens in `packages/app/src/screens/` — all migratable screens done (D3-D6) + 4 survivorship (S1) + 2 surveillance (S2) + 3 journal/effects (S3) + 1 lifestyle (S4)
 - **Web pages:** All migratable pages are thin re-exports: `'use client'; export { XxxScreen as default } from '@oncovax/app';`
 - **Mobile routes:** All 46 screens wired via Expo Router — 50 route files (30 direct re-exports, 17 param wrappers, 3 upload placeholders)
 - **Mobile tabs:** 5-tab layout (Home, Matches, Sequencing, Pipeline, More) with Ionicons
@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
 ### AI: Anthropic Claude
 - Model: `claude-opus-4-20250514` (hardcoded in `apps/web/lib/ai.ts`)
 - Package: `@anthropic-ai/sdk@0.39.0`
-- Used for: document extraction, eligibility parsing, trial matching, treatment translation, genomic interpretation, report generation, regulatory document drafting, SCP generation, surveillance result extraction
+- Used for: document extraction, eligibility parsing, trial matching, treatment translation, genomic interpretation, report generation, regulatory document drafting, SCP generation, surveillance result extraction, lifestyle recommendation generation
 
 ## What's Built (Phases 1-4)
 
@@ -127,14 +127,15 @@ export async function POST(req: NextRequest) {
 - *D7:* Mobile app routing — 52 route files wired to all 46 shared screens via Expo Router. Auth guard (`useProtectedRoute`), 5-tab layout (Home/Matches/Sequencing/Pipeline/More), MoreScreen navigation grid, 3 upload placeholders. **Mobile app functionally complete.**
 - *D8:* Dead code cleanup + REST→GraphQL migration. Deleted 21 dead Tailwind components + `utils.ts`. Added `requestMagicLink` mutation + `generateReport` query + `isCancerCenter` field. Migrated 5 shared files from `fetch('/api/...')` to GraphQL hooks. **All shared code now uses GraphQL exclusively — mobile-compatible.**
 
-**Phase 5 — SURVIVE (S1-S3, in progress):**
+**Phase 5 — SURVIVE (S1-S4, in progress):**
 - *S1:* Survivorship foundation + care plan generation. 3 Prisma models (SurvivorshipPlan, SurveillanceEvent, JournalEntry), 2-step Claude pipeline SCP generator (clinical grounding → patient-facing translation), GraphQL layer (3 queries, 2 mutations, 1 input, 1 resolver file), 4 shared Dripsy screens (SurviveDashboard, TreatmentComplete, SCPReading, SurviveStub), 9 web pages under `/survive/`, 9 mobile routes, MoreScreen + Dashboard integration. **Treatment completion → SCP generation → reading experience → survivorship dashboard.**
 - *S2:* Surveillance schedule engine. 1 new lib file (surveillance-manager.ts: 4 event lifecycle functions with auto-generate next occurrence + frequency parsing + Claude result extraction), 4 GraphQL mutations (markEventComplete, skipEvent, rescheduleEvent, uploadEventResult) with 4 inputs, 2 shared Dripsy screens (SurveillanceCalendar with filter pills + inline action forms, SurveillanceEventDetail), web + mobile routing for `/survive/monitoring` + `/survive/monitoring/[eventId]`. **Full event lifecycle: complete → auto-generate next, skip, reschedule, result upload with Claude extraction.**
 - *S3:* Symptom journal + late effects tracker. 1 new lib file (journal-manager.ts: submitJournalEntry with daily upsert, deleteJournalEntry, getJournalTrends with averages/deltas/streak), GraphQL updates (4 new JournalEntry fields, JournalTrends type, SubmitJournalEntryInput, 2 mutations, 1 query), 3 shared Dripsy screens (JournalEntry with tappable number buttons + optional expansion, JournalHistory with trend cards + streak + colored chips, LateEffects rendering from SCP planContent), web + mobile routing for `/survive/journal`, `/survive/journal/entry`, `/survive/effects`. **60-second journal entry → trends dashboard → late effects from SCP.**
+- *S4:* Evidence-based lifestyle engine. 1 new lib file (lifestyle-generator.ts: single Claude call producing structured exercise/nutrition/alcohol/environment recommendations, Redis caching 7-day TTL, stored on SurvivorshipPlan.planContent.lifestyle_extended), 15 new GraphQL types (LifestyleRecommendations, ExerciseRecommendation, ExerciseWeek, NutritionMyth, AlcoholRecommendation, EnvironmentalStep, etc.), 1 query (lifestyleRecommendations) + 1 mutation (generateLifestyleRecommendations), 1 shared Dripsy screen (LifestyleScreen with 4 collapsible sections: exercise with starter plan + precautions + symptom exercises, nutrition with medication guidance + myth-busting, alcohol with subtype risk quantification + honest framing, environment with actionable steps + overblown concerns), web + mobile routing updated from stubs. **Personalized evidence-based lifestyle guidance — subtype-specific, treatment-aware, evidence-cited.**
 
 ## What's NOT Built Yet
 
-**Phase 5 — SURVIVE** (Sessions S4-S8): Lifestyle engine, psychosocial support, ctDNA monitoring, notifications/polish, recurrence cascade.
+**Phase 5 — SURVIVE** (Sessions S5-S8): Psychosocial support, ctDNA monitoring, notifications/polish, recurrence cascade.
 
 **Cross-cutting:** INTEL (research intelligence), LEARN (educational content/SEO), VISUAL (30 visualizations), CARE (care commerce), COOL (cold capping), ENGINE (opportunity detection).
 

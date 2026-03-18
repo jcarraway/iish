@@ -102,6 +102,8 @@ export interface GraphQLContext {
     submitJournalEntry: (patientId: string, input: any) => Promise<any>;
     deleteJournalEntry: (patientId: string, entryId: string) => Promise<void>;
     getJournalTrends: (patientId: string, days: number) => Promise<any>;
+    getLifestyleRecommendations: (patientId: string) => Promise<any>;
+    generateLifestyleRecommendations: (patientId: string) => Promise<any>;
   };
 }
 
