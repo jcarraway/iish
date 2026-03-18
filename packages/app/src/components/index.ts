@@ -33,3 +33,6 @@ export { HealthSystemSearch } from './HealthSystemSearch';
 export { MonitoringReportForm } from './MonitoringReportForm';
 export type { ReportFormData } from './MonitoringReportForm';
 export { ManualIntakeWizard } from './ManualIntakeWizard';
+
+// S7 — Feedback
+export { FeedbackPrompt } from './FeedbackPrompt';

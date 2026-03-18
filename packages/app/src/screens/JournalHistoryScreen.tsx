@@ -4,6 +4,7 @@ import { Link } from 'solito/link';
 import {
   useGetJournalTrendsQuery,
 } from '../generated/graphql';
+import { FeedbackPrompt } from '../components/FeedbackPrompt';
 
 export function JournalHistoryScreen() {
   const { data, loading } = useGetJournalTrendsQuery({
@@ -125,6 +126,18 @@ export function JournalHistoryScreen() {
                 <Text sx={{ fontSize: 14, fontWeight: '600', color: 'white' }}>Log your first entry</Text>
               </View>
             </Link>
+          </View>
+        )}
+
+        {/* Feedback prompt after 90+ entries */}
+        {trends && trends.totalEntries >= 90 && (
+          <View sx={{ mt: '$6' }}>
+            <FeedbackPrompt
+              feedbackType="journal_3month"
+              title="You've logged 90+ entries!"
+              description="How has the symptom journal been working for you?"
+              context={{ totalEntries: trends.totalEntries }}
+            />
           </View>
         )}
 

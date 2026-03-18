@@ -100,6 +100,9 @@ model Patient {
   journalEntries        JournalEntry[]
   careTeamMembers       CareTeamMember[]
   ctdnaResults          CtdnaResult[]
+  notificationLogs        NotificationLog[]
+  notificationPreference  NotificationPreference?
+  survivorshipFeedback    SurvivorshipFeedback[]
 
   @@map("patients")
 }
@@ -680,6 +683,7 @@ model SurvivorshipPlan {
   ongoingTherapies        String[]  @default([]) @map("ongoing_therapies")
   treatmentSummary        Json      @map("treatment_summary")
   planContent             Json      @map("plan_content")
+  archivedPlans           Json?     @map("archived_plans")
   riskCategory            String?   @map("risk_category") @db.VarChar(30)
   currentPhase            String    @default("early") @map("current_phase") @db.VarChar(20)
   lastGeneratedAt         DateTime  @default(now()) @map("last_generated_at")
@@ -777,4 +781,59 @@ model CtdnaResult {
 
   @@index([patientId, testDate(sort: Desc)])
   @@map("ctdna_results")
+}
+
+model NotificationLog {
+  id            String   @id @default(uuid()) @db.Uuid
+  patientId     String   @map("patient_id") @db.Uuid
+  category      String   @db.VarChar(50)
+  channel       String   @default("email") @db.VarChar(20)
+  subject       String?
+  referenceId   String?  @map("reference_id") @db.Uuid
+  referenceType String?  @map("reference_type") @db.VarChar(50)
+  dedupeKey     String?  @map("dedupe_key")
+  sentAt        DateTime @default(now()) @map("sent_at")
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId, category, sentAt(sort: Desc)])
+  @@index([dedupeKey])
+  @@map("notification_logs")
+}
+
+model NotificationPreference {
+  id                      String   @id @default(uuid()) @db.Uuid
+  patientId               String   @unique @map("patient_id") @db.Uuid
+  surveillanceReminders   Boolean  @default(true) @map("surveillance_reminders")
+  journalReminders        Boolean  @default(true) @map("journal_reminders")
+  weeklySummary           Boolean  @default(true) @map("weekly_summary")
+  appointmentPrep         Boolean  @default(true) @map("appointment_prep")
+  ctdnaResults            Boolean  @default(true) @map("ctdna_results")
+  scpAnnualReview         Boolean  @default(true) @map("scp_annual_review")
+  lifestyleCheckIn        Boolean  @default(true) @map("lifestyle_check_in")
+  phaseTransitions        Boolean  @default(true) @map("phase_transitions")
+  quietHoursStart         String?  @map("quiet_hours_start") @db.VarChar(5)
+  quietHoursEnd           String?  @map("quiet_hours_end") @db.VarChar(5)
+  timezone                String   @default("America/New_York") @db.VarChar(50)
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@map("notification_preferences")
+}
+
+model SurvivorshipFeedback {
+  id           String   @id @default(uuid()) @db.Uuid
+  patientId    String   @map("patient_id") @db.Uuid
+  feedbackType String   @map("feedback_type") @db.VarChar(50)
+  rating       Int?
+  comment      String?
+  context      Json?
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId, feedbackType])
+  @@map("survivorship_feedback")
 }

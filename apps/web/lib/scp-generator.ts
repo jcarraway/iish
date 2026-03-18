@@ -105,7 +105,18 @@ export async function generateSCP(
   const profile = patient.profile as PatientProfile | null;
   const patientName = (patient as any).user?.name || 'Patient';
 
+  // Load existing plan for phase context
+  const existingPlan = await prisma.survivorshipPlan.findUnique({
+    where: { patientId },
+    select: { currentPhase: true },
+  });
+
   // Build treatment summary from profile
+  const completionDate = new Date(input.completionDate);
+  const yearsSinceCompletion = Math.max(0,
+    (Date.now() - completionDate.getTime()) / (1000 * 60 * 60 * 24 * 365.25),
+  );
+
   const treatmentSummary = {
     diagnosis: profile?.cancerType || 'cancer',
     stage: profile?.stage || 'unknown',
@@ -114,6 +125,8 @@ export async function generateSCP(
     completionDate: input.completionDate,
     completionType: input.completionType,
     ongoingTherapies: input.ongoingTherapies,
+    yearsSinceCompletion: Math.round(yearsSinceCompletion * 10) / 10,
+    currentPhase: existingPlan?.currentPhase || 'early',
   };
 
   // Step 1: Clinical grounding
@@ -128,6 +141,10 @@ ${JSON.stringify(profile, null, 2)}
 
 Treatment completion info:
 ${JSON.stringify(treatmentSummary, null, 2)}
+
+Years since treatment completion: ${treatmentSummary.yearsSinceCompletion}
+Current survivorship phase: ${treatmentSummary.currentPhase}
+Adjust surveillance frequency and risk assessment based on time elapsed.
 
 Provide clinical survivorship grounding JSON with this schema:
 {
@@ -181,7 +198,6 @@ Provide clinical survivorship grounding JSON with this schema:
   );
 
   // Step 2: Patient-facing SCP
-  const completionDate = new Date(input.completionDate);
   const nextReviewDate = new Date(completionDate);
   nextReviewDate.setFullYear(nextReviewDate.getFullYear() + 1);
 

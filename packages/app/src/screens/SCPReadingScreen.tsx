@@ -7,6 +7,7 @@ import {
   useGetSurvivorshipPlanQuery,
   useRefreshScpMutation,
 } from '../generated/graphql';
+import { FeedbackPrompt } from '../components/FeedbackPrompt';
 
 const SECTIONS = [
   { key: 'overview', label: 'Overview' },
@@ -379,6 +380,15 @@ export function SCPReadingScreen() {
           <Text sx={{ fontSize: 11, color: '$mutedForeground', lineHeight: 18 }}>
             {scp.disclaimer}
           </Text>
+        </View>
+
+        {/* Feedback */}
+        <View sx={{ mt: '$6' }}>
+          <FeedbackPrompt
+            feedbackType="scp_reading"
+            title="Was this care plan helpful?"
+            description="Your feedback helps us improve"
+          />
         </View>
 
         {/* Refresh button */}

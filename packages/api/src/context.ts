@@ -113,6 +113,14 @@ export interface GraphQLContext {
     getAppointmentPrep: (patientId: string, eventId: string) => Promise<any>;
     getCtdnaHistory: (patientId: string) => Promise<any>;
     addCtdnaResult: (patientId: string, input: any) => Promise<any>;
+
+    // Notifications + Feedback
+    getNotificationPreferences: (patientId: string) => Promise<any>;
+    updateNotificationPreferences: (patientId: string, updates: any) => Promise<any>;
+    getNotificationHistory: (patientId: string, limit?: number) => Promise<any[]>;
+    submitFeedback: (patientId: string, input: any) => Promise<any>;
+    getFeedback: (patientId: string) => Promise<any[]>;
+    annualRefreshSCP: (patientId: string) => Promise<any>;
   };
 }
 

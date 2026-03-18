@@ -68,6 +68,14 @@ import {
   getCtdnaHistory as _getCtdnaHistory,
   addCtdnaResult as _addCtdnaResult,
 } from '@/lib/ctdna-manager';
+import {
+  getNotificationPreferences as _getNotifPrefs,
+  updateNotificationPreferences as _updateNotifPrefs,
+  getNotificationHistory as _getNotifHistory,
+  submitFeedback as _submitFeedback,
+  getFeedback as _getFeedback,
+  annualRefreshSCP as _annualRefreshSCP,
+} from '@/lib/notification-manager';
 import { refreshAccessToken, encryptToken } from '@/lib/fhir/smart-auth';
 import { mapFhirToPatientProfile } from '@/lib/fhir/mapper';
 import type { PatientProfile } from '@oncovax/shared';
@@ -901,6 +909,32 @@ async function addCtdnaResultAdapter(patientId: string, input: any) {
   return _addCtdnaResult(patientId, input);
 }
 
+// --- Notifications + Feedback ---
+
+async function getNotificationPreferencesAdapter(patientId: string) {
+  return _getNotifPrefs(patientId);
+}
+
+async function updateNotificationPreferencesAdapter(patientId: string, updates: any) {
+  return _updateNotifPrefs(patientId, updates);
+}
+
+async function getNotificationHistoryAdapter(patientId: string, limit?: number) {
+  return _getNotifHistory(patientId, limit);
+}
+
+async function submitFeedbackAdapter(patientId: string, input: any) {
+  return _submitFeedback(patientId, input);
+}
+
+async function getFeedbackAdapter(patientId: string) {
+  return _getFeedback(patientId);
+}
+
+async function annualRefreshSCPAdapter(patientId: string) {
+  return _annualRefreshSCP(patientId);
+}
+
 // ============================================================================
 // Apollo Server setup
 // ============================================================================
@@ -1013,6 +1047,14 @@ const handler = startServerAndCreateNextHandler<NextRequest, GraphQLContext>(ser
         getAppointmentPrep: generateAppointmentPrepAdapter,
         getCtdnaHistory: getCtdnaHistoryAdapter,
         addCtdnaResult: addCtdnaResultAdapter,
+
+        // Notifications + Feedback
+        getNotificationPreferences: getNotificationPreferencesAdapter,
+        updateNotificationPreferences: updateNotificationPreferencesAdapter,
+        getNotificationHistory: getNotificationHistoryAdapter,
+        submitFeedback: submitFeedbackAdapter,
+        getFeedback: getFeedbackAdapter,
+        annualRefreshSCP: annualRefreshSCPAdapter,
       },
     };
   },

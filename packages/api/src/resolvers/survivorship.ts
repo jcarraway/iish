@@ -100,6 +100,34 @@ export const survivorshipResolvers = {
       if (!patient) return [];
       return ctx.lib.getCtdnaHistory(patient.id);
     },
+    notificationPreferences: async (_: unknown, __: unknown, ctx: ResolverContext) => {
+      if (!ctx.session) throw new Error('UNAUTHORIZED');
+      const patient = await ctx.prisma.patient.findUnique({
+        where: { userId: ctx.session.userId },
+      });
+      if (!patient) return null;
+      return ctx.lib.getNotificationPreferences(patient.id);
+    },
+    notificationHistory: async (
+      _: unknown,
+      { limit }: { limit?: number },
+      ctx: ResolverContext,
+    ) => {
+      if (!ctx.session) throw new Error('UNAUTHORIZED');
+      const patient = await ctx.prisma.patient.findUnique({
+        where: { userId: ctx.session.userId },
+      });
+      if (!patient) return [];
+      return ctx.lib.getNotificationHistory(patient.id, limit);
+    },
+    survivorshipFeedback: async (_: unknown, __: unknown, ctx: ResolverContext) => {
+      if (!ctx.session) throw new Error('UNAUTHORIZED');
+      const patient = await ctx.prisma.patient.findUnique({
+        where: { userId: ctx.session.userId },
+      });
+      if (!patient) return [];
+      return ctx.lib.getFeedback(patient.id);
+    },
   },
   Mutation: {
     completeTreatment: async (
@@ -278,6 +306,42 @@ export const survivorshipResolvers = {
       });
       if (!patient) throw new Error('Patient not found');
       return ctx.lib.addCtdnaResult(patient.id, input);
+    },
+    updateNotificationPreferences: async (
+      _: unknown,
+      { input }: { input: Record<string, unknown> },
+      ctx: ResolverContext,
+    ) => {
+      if (!ctx.session) throw new Error('UNAUTHORIZED');
+      const patient = await ctx.prisma.patient.findUnique({
+        where: { userId: ctx.session.userId },
+      });
+      if (!patient) throw new Error('Patient not found');
+      return ctx.lib.updateNotificationPreferences(patient.id, input);
+    },
+    submitFeedback: async (
+      _: unknown,
+      { input }: { input: { feedbackType: string; rating?: number; comment?: string; context?: any } },
+      ctx: ResolverContext,
+    ) => {
+      if (!ctx.session) throw new Error('UNAUTHORIZED');
+      const patient = await ctx.prisma.patient.findUnique({
+        where: { userId: ctx.session.userId },
+      });
+      if (!patient) throw new Error('Patient not found');
+      return ctx.lib.submitFeedback(patient.id, input);
+    },
+    annualRefreshSCP: async (_: unknown, __: unknown, ctx: ResolverContext) => {
+      if (!ctx.session) throw new Error('UNAUTHORIZED');
+      const patient = await ctx.prisma.patient.findUnique({
+        where: { userId: ctx.session.userId },
+      });
+      if (!patient) throw new Error('Patient not found');
+      const result = await ctx.lib.annualRefreshSCP(patient.id);
+      const plan = await ctx.prisma.survivorshipPlan.findUnique({
+        where: { patientId: patient.id },
+      });
+      return { newPlan: plan, diff: result.diff };
     },
   },
 };

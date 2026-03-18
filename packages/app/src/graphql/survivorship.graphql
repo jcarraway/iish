@@ -385,6 +385,100 @@ mutation AddCtdnaResult($input: AddCtdnaResultInput!) {
   }
 }
 
+query GetNotificationPreferences {
+  notificationPreferences {
+    id
+    patientId
+    surveillanceReminders
+    journalReminders
+    weeklySummary
+    appointmentPrep
+    ctdnaResults
+    scpAnnualReview
+    lifestyleCheckIn
+    phaseTransitions
+    quietHoursStart
+    quietHoursEnd
+    timezone
+  }
+}
+
+query GetNotificationHistory($limit: Int) {
+  notificationHistory(limit: $limit) {
+    id
+    patientId
+    category
+    channel
+    subject
+    referenceId
+    referenceType
+    sentAt
+  }
+}
+
+mutation UpdateNotificationPreferences($input: UpdateNotificationPreferenceInput!) {
+  updateNotificationPreferences(input: $input) {
+    id
+    patientId
+    surveillanceReminders
+    journalReminders
+    weeklySummary
+    appointmentPrep
+    ctdnaResults
+    scpAnnualReview
+    lifestyleCheckIn
+    phaseTransitions
+    quietHoursStart
+    quietHoursEnd
+    timezone
+  }
+}
+
+mutation SubmitFeedback($input: SubmitFeedbackInput!) {
+  submitFeedback(input: $input) {
+    id
+    feedbackType
+    rating
+    comment
+    createdAt
+  }
+}
+
+query GetSurvivorshipFeedback {
+  survivorshipFeedback {
+    id
+    feedbackType
+    rating
+    comment
+    context
+    createdAt
+  }
+}
+
+mutation AnnualRefreshSCP {
+  annualRefreshSCP {
+    newPlan {
+      id
+      patientId
+      treatmentCompletionDate
+      completionType
+      ongoingTherapies
+      planContent
+      riskCategory
+      currentPhase
+      lastGeneratedAt
+      nextReviewDate
+      createdAt
+    }
+    diff {
+      changedSections
+      addedItems
+      removedItems
+      summary
+    }
+  }
+}
+
 mutation GenerateLifestyleRecommendations {
   generateLifestyleRecommendations {
     exercise {

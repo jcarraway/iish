@@ -10,20 +10,20 @@ Personalized cancer vaccine intelligence platform. Monorepo covering the full pa
 oncovax/
 ├── apps/
 │   ├── web/                    # Next.js 15.0.0, React 19.0.0, Tailwind CSS 3.4
-│   │   ├── app/                # App Router — pages + 87 API route files
+│   │   ├── app/                # App Router — pages + 88 API route files + cron endpoint
 │   │   ├── components/         # 3 web-only components (DocumentUploader, AdministrationSiteCard, AdministrationSiteMap)
-│   │   └── lib/                # 44 library files (see below)
+│   │   └── lib/                # 45 library files (see below)
 │   └── mobile/                 # Expo SDK 54, React Native 0.76.9, Dripsy + Solito
 │       ├── app/                # Expo Router — 55 route files across 15 directories
 │       └── lib/                # apollo.ts (GraphQL client), auth.ts (SecureStore guard)
 ├── docker-compose.yml          # Local dev: postgres:15-alpine + redis:7-alpine
 ├── packages/
 │   ├── ui/                     # Thin RN + Solito re-exports (@oncovax/ui)
-│   ├── app/                    # 60 shared screens, 22 Dripsy components, theme, 90+ generated hooks (@oncovax/app)
-│   │   └── src/{screens[60],components[22],providers,theme,graphql,generated,utils,index}.ts
-│   ├── api/                    # Apollo Server schema (72+ types, 39Q, 44M) + 19 resolver files (@oncovax/api)
+│   ├── app/                    # 61 shared screens, 23 Dripsy components, theme, 93+ generated hooks (@oncovax/app)
+│   │   └── src/{screens[61],components[23],providers,theme,graphql,generated,utils,index}.ts
+│   ├── api/                    # Apollo Server schema (77+ types, 42Q, 47M) + 19 resolver files (@oncovax/api)
 │   │   └── src/{schema,resolvers[19 files],context,index}.ts
-│   ├── db/                     # Prisma 7 + PostgreSQL (28 models)
+│   ├── db/                     # Prisma 7 + PostgreSQL (31 models)
 │   │   ├── prisma/schema.prisma
 │   │   └── prisma.config.ts    # defineConfig — url goes HERE, not in schema
 │   ├── shared/                 # Types (720+ lines), Zod schemas, constants, auth
@@ -134,10 +134,11 @@ export async function POST(req: NextRequest) {
 - *S4:* Evidence-based lifestyle engine. 1 new lib file (lifestyle-generator.ts: single Claude call producing structured exercise/nutrition/alcohol/environment recommendations, Redis caching 7-day TTL, stored on SurvivorshipPlan.planContent.lifestyle_extended), 15 new GraphQL types (LifestyleRecommendations, ExerciseRecommendation, ExerciseWeek, NutritionMyth, AlcoholRecommendation, EnvironmentalStep, etc.), 1 query (lifestyleRecommendations) + 1 mutation (generateLifestyleRecommendations), 1 shared Dripsy screen (LifestyleScreen with 4 collapsible sections: exercise with starter plan + precautions + symptom exercises, nutrition with medication guidance + myth-busting, alcohol with subtype risk quantification + honest framing, environment with actionable steps + overblown concerns), web + mobile routing updated from stubs. **Personalized evidence-based lifestyle guidance — subtype-specific, treatment-aware, evidence-cited.**
 - *S5:* Psychosocial support + care coordination. 1 Prisma model (CareTeamMember), 1 new lib file (care-team-manager.ts: 4 CRUD functions + Claude-powered symptom routing with emergency safety override + appointment prep aggregating journal/surveillance/SCP data), 5 new GraphQL types (CareTeamMember, SymptomRouting, AppointmentPrep, SymptomTrendItem, PrepQuestion) + 2 inputs + 3 queries + 4 mutations, 7 resolver operations, 2 shared Dripsy screens (MentalHealthScreen with FCR normalization + evidence-based strategies + 15 support resources + crisis resources + scanxiety tips, CareTeamScreen with provider CRUD + symptom routing + SCP care plan display + appointment prep generation), web + mobile routing updated from stubs. **Mental health resource hub + care team directory + intelligent symptom routing + appointment prep.**
 - *S6:* ctDNA monitoring + recurrence detection loop. 1 Prisma model (CtdnaResult), 1 new lib file (ctdna-manager.ts: addCtdnaResult with Claude interpretation + trial re-match trigger on detected + auto-complete surveillance event, getCtdnaHistory, getCtdnaInterpretation, private generateInterpretation with Redis 30-day cache), 2 new GraphQL types (CtdnaResult, CtdnaInterpretation) + 1 input (AddCtdnaResultInput) + 1 query (ctdnaHistory) + 1 mutation (addCtdnaResult), 2 resolver operations, 2 shared Dripsy screens (CtdnaGuideScreen with provider comparison + evidence + result meanings, CtdnaDashboardScreen with result form + timeline + detected alert banner + next scheduled test), SurviveDashboard updated with ctDNA card + quick link, web + mobile routing for `/survive/monitoring/ctdna` + `/survive/monitoring/ctdna/guide`. **ctDNA result tracking + Claude interpretation + trial re-match trigger + educational guide. Platform NEVER announces recurrence.**
+- *S7:* Notifications + polish + phase transitions. 3 Prisma models (NotificationLog, NotificationPreference, SurvivorshipFeedback) + archivedPlans field on SurvivorshipPlan. 1 new lib file (notification-manager.ts: 8 notification processors — surveillance reminders/overdue, journal reminders phase-adjusted, weekly summary, appointment prep, SCP annual review, lifestyle monthly, phase transitions — plus feedback CRUD, SCP annual refresh with diff, computePhase). scp-generator.ts updated with temporal context. Cron endpoint (apps/web/app/api/cron/survivorship/route.ts). 5 new GraphQL types + 2 inputs + 3 queries + 3 mutations, 6 resolvers, 6 route handler adapters. 1 shared component (FeedbackPrompt: 5-star rating + comment), 1 shared screen (NotificationSettingsScreen: 8 category toggles + quiet hours + timezone + history). Existing screens updated: SurviveDashboard (Notifications quick link), SCPReadingScreen (FeedbackPrompt), JournalHistoryScreen (conditional FeedbackPrompt ≥90 entries). **Proactive notification system + annual SCP refresh + phase transitions + user feedback collection.**
 
 ## What's NOT Built Yet
 
-**Phase 5 — SURVIVE** (Sessions S7-S8): notifications/polish, recurrence cascade.
+**Phase 5 — SURVIVE** (Session S8): recurrence cascade.
 
 **Cross-cutting:** INTEL (research intelligence), LEARN (educational content/SEO), VISUAL (30 visualizations), CARE (care commerce), COOL (cold capping), ENGINE (opportunity detection).
 
@@ -192,4 +193,4 @@ export async function POST(req: NextRequest) {
 - **No error monitoring** — no Sentry, no error boundaries
 - **Mobile auth flow incomplete** — `useProtectedRoute` checks token existence but magic link → token storage not wired end-to-end
 - **Mobile upload screens** — 3 placeholder pages ("requires web browser") for document/sequencing/pipeline upload
-- **No notification system** — only magic link email via Resend
+- **No push notifications** — email notifications built (S7), but no mobile push (no expo-notifications)

@@ -975,6 +975,59 @@ export const typeDefs = `#graphql
   }
 
   # ============================================================================
+  # Notifications + Feedback
+  # ============================================================================
+
+  type NotificationPreference {
+    id: String!
+    patientId: String!
+    surveillanceReminders: Boolean!
+    journalReminders: Boolean!
+    weeklySummary: Boolean!
+    appointmentPrep: Boolean!
+    ctdnaResults: Boolean!
+    scpAnnualReview: Boolean!
+    lifestyleCheckIn: Boolean!
+    phaseTransitions: Boolean!
+    quietHoursStart: String
+    quietHoursEnd: String
+    timezone: String!
+  }
+
+  type NotificationLogEntry {
+    id: String!
+    patientId: String!
+    category: String!
+    channel: String!
+    subject: String
+    referenceId: String
+    referenceType: String
+    sentAt: DateTime!
+  }
+
+  type SurvivorshipFeedback {
+    id: String!
+    patientId: String!
+    feedbackType: String!
+    rating: Int
+    comment: String
+    context: JSON
+    createdAt: DateTime!
+  }
+
+  type SCPDiff {
+    changedSections: [String!]!
+    addedItems: [String!]!
+    removedItems: [String!]!
+    summary: String!
+  }
+
+  type AnnualRefreshResult {
+    newPlan: SurvivorshipPlan!
+    diff: SCPDiff!
+  }
+
+  # ============================================================================
   # Queries
   # ============================================================================
 
@@ -1059,6 +1112,11 @@ export const typeDefs = `#graphql
     routeSymptom(symptom: String!): SymptomRouting!
     appointmentPrep(eventId: String!): AppointmentPrep
     ctdnaHistory: [CtdnaResult!]!
+
+    # Notifications + Feedback
+    notificationPreferences: NotificationPreference
+    notificationHistory(limit: Int): [NotificationLogEntry!]!
+    survivorshipFeedback: [SurvivorshipFeedback!]!
 
     # FHIR
     healthSystems(search: String): [HealthSystem!]!
@@ -1216,6 +1274,27 @@ export const typeDefs = `#graphql
     contactFor: [String!]
   }
 
+  input UpdateNotificationPreferenceInput {
+    surveillanceReminders: Boolean
+    journalReminders: Boolean
+    weeklySummary: Boolean
+    appointmentPrep: Boolean
+    ctdnaResults: Boolean
+    scpAnnualReview: Boolean
+    lifestyleCheckIn: Boolean
+    phaseTransitions: Boolean
+    quietHoursStart: String
+    quietHoursEnd: String
+    timezone: String
+  }
+
+  input SubmitFeedbackInput {
+    feedbackType: String!
+    rating: Int
+    comment: String
+    context: JSON
+  }
+
   input MonitoringReportInput {
     orderId: String!
     reportType: String!
@@ -1322,6 +1401,11 @@ export const typeDefs = `#graphql
     removeCareTeamMember(memberId: String!): Boolean!
     generateAppointmentPrep(eventId: String!): AppointmentPrep!
     addCtdnaResult(input: AddCtdnaResultInput!): CtdnaResult!
+
+    # Notifications + Feedback
+    updateNotificationPreferences(input: UpdateNotificationPreferenceInput!): NotificationPreference!
+    submitFeedback(input: SubmitFeedbackInput!): SurvivorshipFeedback!
+    annualRefreshSCP: AnnualRefreshResult!
 
     # Uploads
     requestGeneralUploadUrl(filename: String!, contentType: String!, bucket: String): UploadUrlResult!

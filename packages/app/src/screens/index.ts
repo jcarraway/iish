@@ -85,3 +85,6 @@ export { CareTeamScreen } from './CareTeamScreen';
 // S6 — ctDNA Monitoring
 export { CtdnaDashboardScreen } from './CtdnaDashboardScreen';
 export { CtdnaGuideScreen } from './CtdnaGuideScreen';
+
+// S7 — Notifications + Feedback
+export { NotificationSettingsScreen } from './NotificationSettingsScreen';
