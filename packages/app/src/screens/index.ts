@@ -81,3 +81,7 @@ export { LifestyleScreen } from './LifestyleScreen';
 // S5 — Psychosocial + Care Team
 export { MentalHealthScreen } from './MentalHealthScreen';
 export { CareTeamScreen } from './CareTeamScreen';
+
+// S6 — ctDNA Monitoring
+export { CtdnaDashboardScreen } from './CtdnaDashboardScreen';
+export { CtdnaGuideScreen } from './CtdnaGuideScreen';

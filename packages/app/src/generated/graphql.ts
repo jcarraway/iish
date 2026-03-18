@@ -27,6 +27,14 @@ export type AddCareTeamMemberInput = {
   role: Scalars['String']['input'];
 };
 
+export type AddCtdnaResultInput = {
+  ctdnaLevel?: InputMaybe<Scalars['Float']['input']>;
+  documentId?: InputMaybe<Scalars['String']['input']>;
+  provider: Scalars['String']['input'];
+  result: Scalars['String']['input'];
+  testDate: Scalars['String']['input'];
+};
+
 export type AdministrationSite = {
   __typename?: 'AdministrationSite';
   address?: Maybe<Scalars['String']['output']>;
@@ -128,6 +136,27 @@ export type ConversationGuide = {
   orderingInstructions: Scalars['String']['output'];
   questionsToAsk: Array<DoctorQuestion>;
   talkingPoints: Array<TalkingPoint>;
+};
+
+export type CtdnaInterpretation = {
+  __typename?: 'CtdnaInterpretation';
+  nextSteps: Scalars['String']['output'];
+  summary: Scalars['String']['output'];
+  trendContext?: Maybe<Scalars['String']['output']>;
+  whatThisMeans: Scalars['String']['output'];
+};
+
+export type CtdnaResult = {
+  __typename?: 'CtdnaResult';
+  createdAt: Scalars['String']['output'];
+  ctdnaLevel?: Maybe<Scalars['Float']['output']>;
+  documentUploadId?: Maybe<Scalars['String']['output']>;
+  id: Scalars['String']['output'];
+  interpretation?: Maybe<CtdnaInterpretation>;
+  provider?: Maybe<Scalars['String']['output']>;
+  result: Scalars['String']['output'];
+  testDate: Scalars['String']['output'];
+  triggeredTrialRematch: Scalars['Boolean']['output'];
 };
 
 export type DoctorQuestion = {
@@ -614,6 +643,7 @@ export type Mutation = {
   __typename?: 'Mutation';
   acceptQuote: ManufacturingOrder;
   addCareTeamMember: CareTeamMember;
+  addCtdnaResult: CtdnaResult;
   addOrderNote: ManufacturingOrder;
   assessRegulatoryPathway: RegulatoryPathwayAssessment;
   authorizeFhir: FhirAuthorizeResult;
@@ -674,6 +704,11 @@ export type MutationAcceptQuoteArgs = {
 
 export type MutationAddCareTeamMemberArgs = {
   input: AddCareTeamMemberInput;
+};
+
+
+export type MutationAddCtdnaResultArgs = {
+  input: AddCtdnaResultInput;
 };
 
 
@@ -1115,6 +1150,7 @@ export type Query = {
   appointmentPrep?: Maybe<AppointmentPrep>;
   careTeam: Array<CareTeamMember>;
   conversationGuide: ConversationGuide;
+  ctdnaHistory: Array<CtdnaResult>;
   documents: Array<Document>;
   fhirConnections: Array<FhirConnection>;
   financialMatches: Array<FinancialMatch>;
@@ -2366,6 +2402,18 @@ export type GenerateAppointmentPrepMutationVariables = Exact<{
 
 
 export type GenerateAppointmentPrepMutation = { __typename?: 'Mutation', generateAppointmentPrep: { __typename?: 'AppointmentPrep', eventId: string, appointmentType: string, appointmentDate?: string | null, completedSince: Array<string>, upcomingTests: Array<string>, overdueItems: Array<string>, medicationNotes: Array<string>, generatedAt: string, symptomSummary: Array<{ __typename?: 'SymptomTrendItem', dimension: string, average?: number | null, trend: string, notableChanges?: string | null }>, questionsToAsk: Array<{ __typename?: 'PrepQuestion', question: string, context: string }> } };
+
+export type GetCtdnaHistoryQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetCtdnaHistoryQuery = { __typename?: 'Query', ctdnaHistory: Array<{ __typename?: 'CtdnaResult', id: string, testDate: string, provider?: string | null, result: string, ctdnaLevel?: number | null, documentUploadId?: string | null, triggeredTrialRematch: boolean, createdAt: string, interpretation?: { __typename?: 'CtdnaInterpretation', summary: string, whatThisMeans: string, nextSteps: string, trendContext?: string | null } | null }> };
+
+export type AddCtdnaResultMutationVariables = Exact<{
+  input: AddCtdnaResultInput;
+}>;
+
+
+export type AddCtdnaResultMutation = { __typename?: 'Mutation', addCtdnaResult: { __typename?: 'CtdnaResult', id: string, testDate: string, provider?: string | null, result: string, ctdnaLevel?: number | null, triggeredTrialRematch: boolean, createdAt: string, interpretation?: { __typename?: 'CtdnaInterpretation', summary: string, whatThisMeans: string, nextSteps: string, trendContext?: string | null } | null } };
 
 export type GenerateLifestyleRecommendationsMutationVariables = Exact<{ [key: string]: never; }>;
 
@@ -7423,6 +7471,106 @@ export function useGenerateAppointmentPrepMutation(baseOptions?: Apollo.Mutation
 export type GenerateAppointmentPrepMutationHookResult = ReturnType<typeof useGenerateAppointmentPrepMutation>;
 export type GenerateAppointmentPrepMutationResult = Apollo.MutationResult<GenerateAppointmentPrepMutation>;
 export type GenerateAppointmentPrepMutationOptions = Apollo.BaseMutationOptions<GenerateAppointmentPrepMutation, GenerateAppointmentPrepMutationVariables>;
+export const GetCtdnaHistoryDocument = gql`
+    query GetCtdnaHistory {
+  ctdnaHistory {
+    id
+    testDate
+    provider
+    result
+    ctdnaLevel
+    interpretation {
+      summary
+      whatThisMeans
+      nextSteps
+      trendContext
+    }
+    documentUploadId
+    triggeredTrialRematch
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useGetCtdnaHistoryQuery__
+ *
+ * To run a query within a React component, call `useGetCtdnaHistoryQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCtdnaHistoryQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCtdnaHistoryQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetCtdnaHistoryQuery(baseOptions?: Apollo.QueryHookOptions<GetCtdnaHistoryQuery, GetCtdnaHistoryQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetCtdnaHistoryQuery, GetCtdnaHistoryQueryVariables>(GetCtdnaHistoryDocument, options);
+      }
+export function useGetCtdnaHistoryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCtdnaHistoryQuery, GetCtdnaHistoryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetCtdnaHistoryQuery, GetCtdnaHistoryQueryVariables>(GetCtdnaHistoryDocument, options);
+        }
+// @ts-ignore
+export function useGetCtdnaHistorySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetCtdnaHistoryQuery, GetCtdnaHistoryQueryVariables>): Apollo.UseSuspenseQueryResult<GetCtdnaHistoryQuery, GetCtdnaHistoryQueryVariables>;
+export function useGetCtdnaHistorySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetCtdnaHistoryQuery, GetCtdnaHistoryQueryVariables>): Apollo.UseSuspenseQueryResult<GetCtdnaHistoryQuery | undefined, GetCtdnaHistoryQueryVariables>;
+export function useGetCtdnaHistorySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetCtdnaHistoryQuery, GetCtdnaHistoryQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetCtdnaHistoryQuery, GetCtdnaHistoryQueryVariables>(GetCtdnaHistoryDocument, options);
+        }
+export type GetCtdnaHistoryQueryHookResult = ReturnType<typeof useGetCtdnaHistoryQuery>;
+export type GetCtdnaHistoryLazyQueryHookResult = ReturnType<typeof useGetCtdnaHistoryLazyQuery>;
+export type GetCtdnaHistorySuspenseQueryHookResult = ReturnType<typeof useGetCtdnaHistorySuspenseQuery>;
+export type GetCtdnaHistoryQueryResult = Apollo.QueryResult<GetCtdnaHistoryQuery, GetCtdnaHistoryQueryVariables>;
+export const AddCtdnaResultDocument = gql`
+    mutation AddCtdnaResult($input: AddCtdnaResultInput!) {
+  addCtdnaResult(input: $input) {
+    id
+    testDate
+    provider
+    result
+    ctdnaLevel
+    interpretation {
+      summary
+      whatThisMeans
+      nextSteps
+      trendContext
+    }
+    triggeredTrialRematch
+    createdAt
+  }
+}
+    `;
+export type AddCtdnaResultMutationFn = Apollo.MutationFunction<AddCtdnaResultMutation, AddCtdnaResultMutationVariables>;
+
+/**
+ * __useAddCtdnaResultMutation__
+ *
+ * To run a mutation, you first call `useAddCtdnaResultMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useAddCtdnaResultMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [addCtdnaResultMutation, { data, loading, error }] = useAddCtdnaResultMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useAddCtdnaResultMutation(baseOptions?: Apollo.MutationHookOptions<AddCtdnaResultMutation, AddCtdnaResultMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<AddCtdnaResultMutation, AddCtdnaResultMutationVariables>(AddCtdnaResultDocument, options);
+      }
+export type AddCtdnaResultMutationHookResult = ReturnType<typeof useAddCtdnaResultMutation>;
+export type AddCtdnaResultMutationResult = Apollo.MutationResult<AddCtdnaResultMutation>;
+export type AddCtdnaResultMutationOptions = Apollo.BaseMutationOptions<AddCtdnaResultMutation, AddCtdnaResultMutationVariables>;
 export const GenerateLifestyleRecommendationsDocument = gql`
     mutation GenerateLifestyleRecommendations {
   generateLifestyleRecommendations {

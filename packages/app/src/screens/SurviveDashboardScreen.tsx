@@ -5,6 +5,7 @@ import {
   useGetSurvivorshipPlanQuery,
   useGetSurveillanceScheduleQuery,
   useGetJournalEntriesQuery,
+  useGetCtdnaHistoryQuery,
 } from '../generated/graphql';
 
 export function SurviveDashboardScreen() {
@@ -14,8 +15,9 @@ export function SurviveDashboardScreen() {
     variables: { limit: 7 },
     errorPolicy: 'ignore',
   });
+  const { data: ctdnaData, loading: ctdnaLoading } = useGetCtdnaHistoryQuery({ errorPolicy: 'ignore' });
 
-  const loading = planLoading || schedLoading || journalLoading;
+  const loading = planLoading || schedLoading || journalLoading || ctdnaLoading;
   const plan = planData?.survivorshipPlan;
   const events = scheduleData?.surveillanceSchedule ?? [];
   const entries = journalData?.journalEntries ?? [];
@@ -87,6 +89,11 @@ export function SurviveDashboardScreen() {
 
   // Journal streak
   const journalStreak = computeStreak(entries.map(e => e.entryDate));
+
+  // ctDNA
+  const ctdnaResults = ctdnaData?.ctdnaHistory ?? [];
+  const latestCtdna = ctdnaResults[0];
+  const hasDetectedCtdna = ctdnaResults.some(r => r.result === 'detected');
 
   return (
     <ScrollView sx={{ flex: 1 }}>
@@ -165,6 +172,56 @@ export function SurviveDashboardScreen() {
                 </Text>
               )}
               <Text sx={{ mt: '$2', fontSize: 12, color: 'blue600' }}>View schedule →</Text>
+            </View>
+          </Link>
+
+          {/* ctDNA card */}
+          <Link href="/survive/monitoring/ctdna">
+            <View sx={{
+              borderRadius: 12,
+              borderWidth: 1,
+              borderColor: hasDetectedCtdna ? '#F59E0B' : '$border',
+              backgroundColor: hasDetectedCtdna ? '#FFFBEB' : undefined,
+              p: '$5',
+            }}>
+              <View sx={{ flexDirection: 'row', alignItems: 'center', gap: '$2' }}>
+                <View sx={{
+                  width: 32, height: 32, borderRadius: 8,
+                  backgroundColor: '#FEF3C7', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <Text sx={{ fontSize: 14 }}>{'🧬'}</Text>
+                </View>
+                <Text sx={{ fontWeight: '600', color: '$foreground' }}>ctDNA Monitoring</Text>
+              </View>
+              {latestCtdna ? (
+                <>
+                  <View sx={{ mt: '$3', flexDirection: 'row', alignItems: 'center', gap: '$2' }}>
+                    <View sx={{
+                      width: 10, height: 10, borderRadius: 5,
+                      backgroundColor: latestCtdna.result === 'not_detected' ? '#22C55E'
+                        : latestCtdna.result === 'detected' ? '#F59E0B' : '#9CA3AF',
+                    }} />
+                    <Text sx={{ fontSize: 14, fontWeight: '600', color: '$foreground' }}>
+                      {latestCtdna.result === 'not_detected' ? 'Not Detected'
+                        : latestCtdna.result === 'detected' ? 'Detected' : 'Indeterminate'}
+                    </Text>
+                  </View>
+                  <Text sx={{ mt: '$1', fontSize: 12, color: '$mutedForeground' }}>
+                    Last test: {new Date(latestCtdna.testDate).toLocaleDateString()}
+                    {latestCtdna.provider ? ` \u00B7 ${latestCtdna.provider}` : ''}
+                  </Text>
+                  {hasDetectedCtdna && (
+                    <Text sx={{ mt: '$2', fontSize: 12, color: '#92400E', fontWeight: '500' }}>
+                      Discuss with your oncologist. Updated trial matches available.
+                    </Text>
+                  )}
+                </>
+              ) : (
+                <Text sx={{ mt: '$3', fontSize: 13, color: '$mutedForeground' }}>
+                  No ctDNA results yet. Learn about liquid biopsy monitoring.
+                </Text>
+              )}
+              <Text sx={{ mt: '$2', fontSize: 12, color: 'blue600' }}>View ctDNA dashboard {'\u2192'}</Text>
             </View>
           </Link>
 
@@ -260,6 +317,7 @@ export function SurviveDashboardScreen() {
               { label: 'Mental Health', href: '/survive/mental-health', icon: '🧠' },
               { label: 'Care Team', href: '/survive/care-team', icon: '👩‍⚕️' },
               { label: 'Monitoring', href: '/survive/monitoring', icon: '📊' },
+              { label: 'ctDNA', href: '/survive/monitoring/ctdna', icon: '🧬' },
             ].map(item => (
               <Link key={item.href} href={item.href}>
                 <View sx={{

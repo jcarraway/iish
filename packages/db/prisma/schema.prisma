@@ -99,6 +99,7 @@ model Patient {
   surveillanceEvents    SurveillanceEvent[]
   journalEntries        JournalEntry[]
   careTeamMembers       CareTeamMember[]
+  ctdnaResults          CtdnaResult[]
 
   @@map("patients")
 }
@@ -758,4 +759,22 @@ model CareTeamMember {
 
   @@index([patientId])
   @@map("care_team_members")
+}
+
+model CtdnaResult {
+  id                    String    @id @default(uuid()) @db.Uuid
+  patientId             String    @map("patient_id") @db.Uuid
+  testDate              DateTime  @map("test_date") @db.Date
+  provider              String?
+  result                String    @db.VarChar(30)
+  ctdnaLevel            Float?    @map("ctdna_level")
+  interpretation        Json?
+  documentUploadId      String?   @map("document_upload_id") @db.Uuid
+  triggeredTrialRematch Boolean   @default(false) @map("triggered_trial_rematch")
+  createdAt             DateTime  @default(now()) @map("created_at")
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId, testDate(sort: Desc)])
+  @@map("ctdna_results")
 }

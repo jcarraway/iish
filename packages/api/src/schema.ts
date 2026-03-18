@@ -775,6 +775,27 @@ export const typeDefs = `#graphql
     entries: [JournalEntry!]!
   }
 
+  # --- ctDNA ---
+
+  type CtdnaResult {
+    id: String!
+    testDate: String!
+    provider: String
+    result: String!
+    ctdnaLevel: Float
+    interpretation: CtdnaInterpretation
+    documentUploadId: String
+    triggeredTrialRematch: Boolean!
+    createdAt: String!
+  }
+
+  type CtdnaInterpretation {
+    summary: String!
+    whatThisMeans: String!
+    nextSteps: String!
+    trendContext: String
+  }
+
   # --- Care Team ---
 
   type CareTeamMember {
@@ -1037,6 +1058,7 @@ export const typeDefs = `#graphql
     careTeam: [CareTeamMember!]!
     routeSymptom(symptom: String!): SymptomRouting!
     appointmentPrep(eventId: String!): AppointmentPrep
+    ctdnaHistory: [CtdnaResult!]!
 
     # FHIR
     healthSystems(search: String): [HealthSystem!]!
@@ -1169,6 +1191,14 @@ export const typeDefs = `#graphql
     notes: String
   }
 
+  input AddCtdnaResultInput {
+    testDate: String!
+    provider: String!
+    result: String!
+    ctdnaLevel: Float
+    documentId: String
+  }
+
   input AddCareTeamMemberInput {
     name: String!
     role: String!
@@ -1291,6 +1321,7 @@ export const typeDefs = `#graphql
     updateCareTeamMember(input: UpdateCareTeamMemberInput!): CareTeamMember!
     removeCareTeamMember(memberId: String!): Boolean!
     generateAppointmentPrep(eventId: String!): AppointmentPrep!
+    addCtdnaResult(input: AddCtdnaResultInput!): CtdnaResult!
 
     # Uploads
     requestGeneralUploadUrl(filename: String!, contentType: String!, bucket: String): UploadUrlResult!

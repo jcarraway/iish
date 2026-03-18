@@ -92,6 +92,14 @@ export const survivorshipResolvers = {
       // Check cache/stored — generateAppointmentPrep doubles as a getter (it caches)
       return ctx.lib.getAppointmentPrep(patient.id, eventId);
     },
+    ctdnaHistory: async (_: unknown, __: unknown, ctx: ResolverContext) => {
+      if (!ctx.session) throw new Error('UNAUTHORIZED');
+      const patient = await ctx.prisma.patient.findUnique({
+        where: { userId: ctx.session.userId },
+      });
+      if (!patient) return [];
+      return ctx.lib.getCtdnaHistory(patient.id);
+    },
   },
   Mutation: {
     completeTreatment: async (
@@ -258,6 +266,18 @@ export const survivorshipResolvers = {
       });
       if (!patient) throw new Error('Patient not found');
       return ctx.lib.generateAppointmentPrep(patient.id, eventId);
+    },
+    addCtdnaResult: async (
+      _: unknown,
+      { input }: { input: { testDate: string; provider: string; result: string; ctdnaLevel?: number; documentId?: string } },
+      ctx: ResolverContext,
+    ) => {
+      if (!ctx.session) throw new Error('UNAUTHORIZED');
+      const patient = await ctx.prisma.patient.findUnique({
+        where: { userId: ctx.session.userId },
+      });
+      if (!patient) throw new Error('Patient not found');
+      return ctx.lib.addCtdnaResult(patient.id, input);
     },
   },
 };

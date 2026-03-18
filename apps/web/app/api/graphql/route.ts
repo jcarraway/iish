@@ -64,6 +64,10 @@ import {
   routeSymptom as _routeSymptom,
   generateAppointmentPrep as _generateAppointmentPrep,
 } from '@/lib/care-team-manager';
+import {
+  getCtdnaHistory as _getCtdnaHistory,
+  addCtdnaResult as _addCtdnaResult,
+} from '@/lib/ctdna-manager';
 import { refreshAccessToken, encryptToken } from '@/lib/fhir/smart-auth';
 import { mapFhirToPatientProfile } from '@/lib/fhir/mapper';
 import type { PatientProfile } from '@oncovax/shared';
@@ -887,6 +891,16 @@ async function generateAppointmentPrepAdapter(patientId: string, eventId: string
   return _generateAppointmentPrep(patientId, eventId);
 }
 
+// --- ctDNA ---
+
+async function getCtdnaHistoryAdapter(patientId: string) {
+  return _getCtdnaHistory(patientId);
+}
+
+async function addCtdnaResultAdapter(patientId: string, input: any) {
+  return _addCtdnaResult(patientId, input);
+}
+
 // ============================================================================
 // Apollo Server setup
 // ============================================================================
@@ -997,6 +1011,8 @@ const handler = startServerAndCreateNextHandler<NextRequest, GraphQLContext>(ser
         routeSymptom: routeSymptomAdapter,
         generateAppointmentPrep: generateAppointmentPrepAdapter,
         getAppointmentPrep: generateAppointmentPrepAdapter,
+        getCtdnaHistory: getCtdnaHistoryAdapter,
+        addCtdnaResult: addCtdnaResultAdapter,
       },
     };
   },

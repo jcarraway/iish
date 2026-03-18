@@ -348,6 +348,43 @@ mutation GenerateAppointmentPrep($eventId: String!) {
   }
 }
 
+query GetCtdnaHistory {
+  ctdnaHistory {
+    id
+    testDate
+    provider
+    result
+    ctdnaLevel
+    interpretation {
+      summary
+      whatThisMeans
+      nextSteps
+      trendContext
+    }
+    documentUploadId
+    triggeredTrialRematch
+    createdAt
+  }
+}
+
+mutation AddCtdnaResult($input: AddCtdnaResultInput!) {
+  addCtdnaResult(input: $input) {
+    id
+    testDate
+    provider
+    result
+    ctdnaLevel
+    interpretation {
+      summary
+      whatThisMeans
+      nextSteps
+      trendContext
+    }
+    triggeredTrialRematch
+    createdAt
+  }
+}
+
 mutation GenerateLifestyleRecommendations {
   generateLifestyleRecommendations {
     exercise {

@@ -111,6 +111,8 @@ export interface GraphQLContext {
     routeSymptom: (patientId: string, symptom: string) => Promise<any>;
     generateAppointmentPrep: (patientId: string, eventId: string) => Promise<any>;
     getAppointmentPrep: (patientId: string, eventId: string) => Promise<any>;
+    getCtdnaHistory: (patientId: string) => Promise<any>;
+    addCtdnaResult: (patientId: string, input: any) => Promise<any>;
   };
 }
 
