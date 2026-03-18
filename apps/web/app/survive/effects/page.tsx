@@ -1,5 +1,2 @@
 'use client';
-import { SurviveStubScreen } from '@oncovax/app';
-export default function Page() {
-  return <SurviveStubScreen title="Late Effects" />;
-}
+export { LateEffectsScreen as default } from '@oncovax/app';

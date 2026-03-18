@@ -69,3 +69,8 @@ export { SurviveStubScreen } from './SurviveStubScreen';
 // S2 — Surveillance
 export { SurveillanceCalendarScreen } from './SurveillanceCalendarScreen';
 export { SurveillanceEventDetailScreen } from './SurveillanceEventDetailScreen';
+
+// S3 — Journal + Late Effects
+export { JournalEntryScreen } from './JournalEntryScreen';
+export { JournalHistoryScreen } from './JournalHistoryScreen';
+export { LateEffectsScreen } from './LateEffectsScreen';

@@ -39,6 +39,18 @@ export const survivorshipResolvers = {
         ...(limit ? { take: limit } : {}),
       });
     },
+    journalTrends: async (
+      _: unknown,
+      { days }: { days: number },
+      ctx: ResolverContext,
+    ) => {
+      if (!ctx.session) throw new Error('UNAUTHORIZED');
+      const patient = await ctx.prisma.patient.findUnique({
+        where: { userId: ctx.session.userId },
+      });
+      if (!patient) throw new Error('Patient not found');
+      return ctx.lib.getJournalTrends(patient.id, days);
+    },
   },
   Mutation: {
     completeTreatment: async (
@@ -122,6 +134,31 @@ export const survivorshipResolvers = {
       const event = await ctx.prisma.surveillanceEvent.findUnique({ where: { id: input.eventId } });
       if (!event || event.patientId !== patient.id) throw new Error('Event not found');
       return ctx.lib.uploadEventResult(input.eventId, input.documentId);
+    },
+    submitJournalEntry: async (
+      _: unknown,
+      { input }: { input: Record<string, unknown> },
+      ctx: ResolverContext,
+    ) => {
+      if (!ctx.session) throw new Error('UNAUTHORIZED');
+      const patient = await ctx.prisma.patient.findUnique({
+        where: { userId: ctx.session.userId },
+      });
+      if (!patient) throw new Error('Patient not found');
+      return ctx.lib.submitJournalEntry(patient.id, input);
+    },
+    deleteJournalEntry: async (
+      _: unknown,
+      { entryId }: { entryId: string },
+      ctx: ResolverContext,
+    ) => {
+      if (!ctx.session) throw new Error('UNAUTHORIZED');
+      const patient = await ctx.prisma.patient.findUnique({
+        where: { userId: ctx.session.userId },
+      });
+      if (!patient) throw new Error('Patient not found');
+      await ctx.lib.deleteJournalEntry(patient.id, entryId);
+      return true;
     },
   },
 };

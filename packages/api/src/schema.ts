@@ -753,8 +753,26 @@ export const typeDefs = `#graphql
     sleepQuality: Int
     hotFlashes: Int
     jointPain: Int
+    newSymptoms: [String!]
+    exerciseType: String
+    exerciseMinutes: Int
+    medicationsTaken: JSON
     notes: String
     createdAt: DateTime!
+  }
+
+  type JournalTrends {
+    averageEnergy: Float
+    averagePain: Float
+    averageMood: Float
+    averageSleep: Float
+    energyDelta: Float
+    painDelta: Float
+    moodDelta: Float
+    sleepDelta: Float
+    streak: Int!
+    totalEntries: Int!
+    entries: [JournalEntry!]!
   }
 
   # ============================================================================
@@ -875,6 +893,7 @@ export const typeDefs = `#graphql
     survivorshipPlan: SurvivorshipPlan
     surveillanceSchedule: [SurveillanceEvent!]!
     journalEntries(limit: Int): [JournalEntry!]!
+    journalTrends(days: Int!): JournalTrends!
 
     # FHIR
     healthSystems(search: String): [HealthSystem!]!
@@ -993,6 +1012,20 @@ export const typeDefs = `#graphql
     documentId: String!
   }
 
+  input SubmitJournalEntryInput {
+    entryDate: String!
+    energy: Int!
+    pain: Int!
+    mood: Int!
+    sleepQuality: Int!
+    hotFlashes: Int
+    jointPain: Int
+    newSymptoms: [String!]
+    exerciseType: String
+    exerciseMinutes: Int
+    notes: String
+  }
+
   input MonitoringReportInput {
     orderId: String!
     reportType: String!
@@ -1091,6 +1124,8 @@ export const typeDefs = `#graphql
     skipEvent(input: SkipEventInput!): SurveillanceEvent!
     rescheduleEvent(input: RescheduleEventInput!): SurveillanceEvent!
     uploadEventResult(input: UploadEventResultInput!): SurveillanceEvent!
+    submitJournalEntry(input: SubmitJournalEntryInput!): JournalEntry!
+    deleteJournalEntry(entryId: String!): Boolean!
 
     # Uploads
     requestGeneralUploadUrl(filename: String!, contentType: String!, bucket: String): UploadUrlResult!

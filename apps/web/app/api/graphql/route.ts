@@ -47,6 +47,11 @@ import {
   rescheduleEvent as _rescheduleEvent,
   uploadEventResult as _uploadEventResult,
 } from '@/lib/surveillance-manager';
+import {
+  submitJournalEntry as _submitJournalEntry,
+  deleteJournalEntry as _deleteJournalEntry,
+  getJournalTrends as _getJournalTrends,
+} from '@/lib/journal-manager';
 import { refreshAccessToken, encryptToken } from '@/lib/fhir/smart-auth';
 import { mapFhirToPatientProfile } from '@/lib/fhir/mapper';
 import type { PatientProfile } from '@oncovax/shared';
@@ -820,6 +825,20 @@ async function uploadEventResultAdapter(eventId: string, documentId: string) {
   return _uploadEventResult(eventId, documentId);
 }
 
+// --- Journal ---
+
+async function submitJournalEntryAdapter(patientId: string, input: any) {
+  return _submitJournalEntry(patientId, input);
+}
+
+async function deleteJournalEntryAdapter(patientId: string, entryId: string) {
+  return _deleteJournalEntry(patientId, entryId);
+}
+
+async function getJournalTrendsAdapter(patientId: string, days: number) {
+  return _getJournalTrends(patientId, days);
+}
+
 // ============================================================================
 // Apollo Server setup
 // ============================================================================
@@ -918,6 +937,9 @@ const handler = startServerAndCreateNextHandler<NextRequest, GraphQLContext>(ser
         skipEvent: skipEventAdapter,
         rescheduleEvent: rescheduleEventAdapter,
         uploadEventResult: uploadEventResultAdapter,
+        submitJournalEntry: submitJournalEntryAdapter,
+        deleteJournalEntry: deleteJournalEntryAdapter,
+        getJournalTrends: getJournalTrendsAdapter,
       },
     };
   },

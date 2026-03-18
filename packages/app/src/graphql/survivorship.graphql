@@ -44,9 +44,67 @@ query GetJournalEntries($limit: Int) {
     sleepQuality
     hotFlashes
     jointPain
+    newSymptoms
+    exerciseType
+    exerciseMinutes
+    medicationsTaken
     notes
     createdAt
   }
+}
+
+query GetJournalTrends($days: Int!) {
+  journalTrends(days: $days) {
+    averageEnergy
+    averagePain
+    averageMood
+    averageSleep
+    energyDelta
+    painDelta
+    moodDelta
+    sleepDelta
+    streak
+    totalEntries
+    entries {
+      id
+      patientId
+      entryDate
+      energy
+      pain
+      mood
+      sleepQuality
+      hotFlashes
+      jointPain
+      newSymptoms
+      exerciseType
+      exerciseMinutes
+      notes
+      createdAt
+    }
+  }
+}
+
+mutation SubmitJournalEntry($input: SubmitJournalEntryInput!) {
+  submitJournalEntry(input: $input) {
+    id
+    patientId
+    entryDate
+    energy
+    pain
+    mood
+    sleepQuality
+    hotFlashes
+    jointPain
+    newSymptoms
+    exerciseType
+    exerciseMinutes
+    notes
+    createdAt
+  }
+}
+
+mutation DeleteJournalEntry($entryId: String!) {
+  deleteJournalEntry(entryId: $entryId)
 }
 
 mutation CompleteTreatment($input: TreatmentCompletionInput!) {

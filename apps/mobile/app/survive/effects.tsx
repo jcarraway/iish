@@ -1,4 +1,4 @@
-import { SurviveStubScreen } from '@oncovax/app';
+import { LateEffectsScreen } from '@oncovax/app';
 export default function EffectsRoute() {
-  return <SurviveStubScreen title="Late Effects" />;
+  return <LateEffectsScreen />;
 }

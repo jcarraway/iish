@@ -200,7 +200,31 @@ export function SurviveDashboardScreen() {
             </Link>
           )}
 
-          {/* Journal card */}
+          {/* Quick journal card */}
+          <Link href="/survive/journal/entry">
+            <View sx={{
+              borderRadius: 12,
+              borderWidth: 1,
+              borderColor: '#C4B5FD',
+              backgroundColor: '#FAF5FF',
+              p: '$5',
+            }}>
+              <View sx={{ flexDirection: 'row', alignItems: 'center', gap: '$2' }}>
+                <View sx={{
+                  width: 32, height: 32, borderRadius: 8,
+                  backgroundColor: '#F3E8FF', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <Text sx={{ fontSize: 14 }}>{'✏️'}</Text>
+                </View>
+                <Text sx={{ fontWeight: '600', color: '$foreground' }}>How are you today?</Text>
+              </View>
+              <Text sx={{ mt: '$2', fontSize: 13, color: '$mutedForeground' }}>
+                Quick 60-second check-in
+              </Text>
+            </View>
+          </Link>
+
+          {/* Journal streak card */}
           <Link href="/survive/journal">
             <View sx={{
               borderRadius: 12,
@@ -213,7 +237,7 @@ export function SurviveDashboardScreen() {
                   width: 32, height: 32, borderRadius: 8,
                   backgroundColor: '#F3E8FF', alignItems: 'center', justifyContent: 'center',
                 }}>
-                  <Text sx={{ fontSize: 14 }}>📓</Text>
+                  <Text sx={{ fontSize: 14 }}>{'📓'}</Text>
                 </View>
                 <Text sx={{ fontWeight: '600', color: '$foreground' }}>Symptom Journal</Text>
               </View>
@@ -224,7 +248,7 @@ export function SurviveDashboardScreen() {
                 day streak
                 {entries.length > 0 && ` · last entry ${new Date(entries[0].entryDate).toLocaleDateString()}`}
               </Text>
-              <Text sx={{ mt: '$2', fontSize: 12, color: 'blue600' }}>Log today →</Text>
+              <Text sx={{ mt: '$2', fontSize: 12, color: 'blue600' }}>View history {'→'}</Text>
             </View>
           </Link>
 

@@ -99,6 +99,9 @@ export interface GraphQLContext {
     skipEvent: (eventId: string, reason: string) => Promise<any>;
     rescheduleEvent: (eventId: string, newDueDate: string) => Promise<any>;
     uploadEventResult: (eventId: string, documentId: string) => Promise<any>;
+    submitJournalEntry: (patientId: string, input: any) => Promise<any>;
+    deleteJournalEntry: (patientId: string, entryId: string) => Promise<void>;
+    getJournalTrends: (patientId: string, days: number) => Promise<any>;
   };
 }
 
