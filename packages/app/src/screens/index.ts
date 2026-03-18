@@ -77,3 +77,7 @@ export { LateEffectsScreen } from './LateEffectsScreen';
 
 // S4 — Lifestyle
 export { LifestyleScreen } from './LifestyleScreen';
+
+// S5 — Psychosocial + Care Team
+export { MentalHealthScreen } from './MentalHealthScreen';
+export { CareTeamScreen } from './CareTeamScreen';

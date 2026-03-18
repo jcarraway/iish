@@ -59,6 +59,39 @@ export const survivorshipResolvers = {
       if (!patient) return null;
       return ctx.lib.getLifestyleRecommendations(patient.id);
     },
+    careTeam: async (_: unknown, __: unknown, ctx: ResolverContext) => {
+      if (!ctx.session) throw new Error('UNAUTHORIZED');
+      const patient = await ctx.prisma.patient.findUnique({
+        where: { userId: ctx.session.userId },
+      });
+      if (!patient) return [];
+      return ctx.lib.getCareTeam(patient.id);
+    },
+    routeSymptom: async (
+      _: unknown,
+      { symptom }: { symptom: string },
+      ctx: ResolverContext,
+    ) => {
+      if (!ctx.session) throw new Error('UNAUTHORIZED');
+      const patient = await ctx.prisma.patient.findUnique({
+        where: { userId: ctx.session.userId },
+      });
+      if (!patient) throw new Error('Patient not found');
+      return ctx.lib.routeSymptom(patient.id, symptom);
+    },
+    appointmentPrep: async (
+      _: unknown,
+      { eventId }: { eventId: string },
+      ctx: ResolverContext,
+    ) => {
+      if (!ctx.session) throw new Error('UNAUTHORIZED');
+      const patient = await ctx.prisma.patient.findUnique({
+        where: { userId: ctx.session.userId },
+      });
+      if (!patient) return null;
+      // Check cache/stored — generateAppointmentPrep doubles as a getter (it caches)
+      return ctx.lib.getAppointmentPrep(patient.id, eventId);
+    },
   },
   Mutation: {
     completeTreatment: async (
@@ -175,6 +208,56 @@ export const survivorshipResolvers = {
       });
       if (!patient) throw new Error('Patient not found');
       return ctx.lib.generateLifestyleRecommendations(patient.id);
+    },
+    addCareTeamMember: async (
+      _: unknown,
+      { input }: { input: { name: string; role: string; practice?: string; phone?: string; contactFor?: string[] } },
+      ctx: ResolverContext,
+    ) => {
+      if (!ctx.session) throw new Error('UNAUTHORIZED');
+      const patient = await ctx.prisma.patient.findUnique({
+        where: { userId: ctx.session.userId },
+      });
+      if (!patient) throw new Error('Patient not found');
+      return ctx.lib.addCareTeamMember(patient.id, input);
+    },
+    updateCareTeamMember: async (
+      _: unknown,
+      { input }: { input: { memberId: string; name?: string; role?: string; practice?: string; phone?: string; contactFor?: string[] } },
+      ctx: ResolverContext,
+    ) => {
+      if (!ctx.session) throw new Error('UNAUTHORIZED');
+      const patient = await ctx.prisma.patient.findUnique({
+        where: { userId: ctx.session.userId },
+      });
+      if (!patient) throw new Error('Patient not found');
+      const { memberId, ...updates } = input;
+      return ctx.lib.updateCareTeamMember(patient.id, memberId, updates);
+    },
+    removeCareTeamMember: async (
+      _: unknown,
+      { memberId }: { memberId: string },
+      ctx: ResolverContext,
+    ) => {
+      if (!ctx.session) throw new Error('UNAUTHORIZED');
+      const patient = await ctx.prisma.patient.findUnique({
+        where: { userId: ctx.session.userId },
+      });
+      if (!patient) throw new Error('Patient not found');
+      await ctx.lib.removeCareTeamMember(patient.id, memberId);
+      return true;
+    },
+    generateAppointmentPrep: async (
+      _: unknown,
+      { eventId }: { eventId: string },
+      ctx: ResolverContext,
+    ) => {
+      if (!ctx.session) throw new Error('UNAUTHORIZED');
+      const patient = await ctx.prisma.patient.findUnique({
+        where: { userId: ctx.session.userId },
+      });
+      if (!patient) throw new Error('Patient not found');
+      return ctx.lib.generateAppointmentPrep(patient.id, eventId);
     },
   },
 };

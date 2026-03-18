@@ -56,6 +56,14 @@ import {
   getLifestyleRecommendations as _getLifestyleRecs,
   generateLifestyleRecommendations as _genLifestyleRecs,
 } from '@/lib/lifestyle-generator';
+import {
+  getCareTeam as _getCareTeam,
+  addCareTeamMember as _addCareTeamMember,
+  updateCareTeamMember as _updateCareTeamMember,
+  removeCareTeamMember as _removeCareTeamMember,
+  routeSymptom as _routeSymptom,
+  generateAppointmentPrep as _generateAppointmentPrep,
+} from '@/lib/care-team-manager';
 import { refreshAccessToken, encryptToken } from '@/lib/fhir/smart-auth';
 import { mapFhirToPatientProfile } from '@/lib/fhir/mapper';
 import type { PatientProfile } from '@oncovax/shared';
@@ -853,6 +861,32 @@ async function generateLifestyleRecommendationsAdapter(patientId: string) {
   return _genLifestyleRecs(patientId);
 }
 
+// --- Care Team ---
+
+async function getCareTeamAdapter(patientId: string) {
+  return _getCareTeam(patientId);
+}
+
+async function addCareTeamMemberAdapter(patientId: string, input: any) {
+  return _addCareTeamMember(patientId, input);
+}
+
+async function updateCareTeamMemberAdapter(patientId: string, memberId: string, input: any) {
+  return _updateCareTeamMember(patientId, memberId, input);
+}
+
+async function removeCareTeamMemberAdapter(patientId: string, memberId: string) {
+  return _removeCareTeamMember(patientId, memberId);
+}
+
+async function routeSymptomAdapter(patientId: string, symptom: string) {
+  return _routeSymptom(patientId, symptom);
+}
+
+async function generateAppointmentPrepAdapter(patientId: string, eventId: string) {
+  return _generateAppointmentPrep(patientId, eventId);
+}
+
 // ============================================================================
 // Apollo Server setup
 // ============================================================================
@@ -956,6 +990,13 @@ const handler = startServerAndCreateNextHandler<NextRequest, GraphQLContext>(ser
         getJournalTrends: getJournalTrendsAdapter,
         getLifestyleRecommendations: getLifestyleRecommendationsAdapter,
         generateLifestyleRecommendations: generateLifestyleRecommendationsAdapter,
+        getCareTeam: getCareTeamAdapter,
+        addCareTeamMember: addCareTeamMemberAdapter,
+        updateCareTeamMember: updateCareTeamMemberAdapter,
+        removeCareTeamMember: removeCareTeamMemberAdapter,
+        routeSymptom: routeSymptomAdapter,
+        generateAppointmentPrep: generateAppointmentPrepAdapter,
+        getAppointmentPrep: generateAppointmentPrepAdapter,
       },
     };
   },

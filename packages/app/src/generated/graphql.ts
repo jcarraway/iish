@@ -19,6 +19,14 @@ export type Scalars = {
   JSON: { input: Record<string, unknown>; output: Record<string, unknown>; }
 };
 
+export type AddCareTeamMemberInput = {
+  contactFor?: InputMaybe<Array<Scalars['String']['input']>>;
+  name: Scalars['String']['input'];
+  phone?: InputMaybe<Scalars['String']['input']>;
+  practice?: InputMaybe<Scalars['String']['input']>;
+  role: Scalars['String']['input'];
+};
+
 export type AdministrationSite = {
   __typename?: 'AdministrationSite';
   address?: Maybe<Scalars['String']['output']>;
@@ -73,6 +81,30 @@ export type AlcoholRecommendation = {
   quantifiedRisk: Scalars['String']['output'];
   recommendation: Scalars['String']['output'];
   subtypeContext: Scalars['String']['output'];
+};
+
+export type AppointmentPrep = {
+  __typename?: 'AppointmentPrep';
+  appointmentDate?: Maybe<Scalars['String']['output']>;
+  appointmentType: Scalars['String']['output'];
+  completedSince: Array<Scalars['String']['output']>;
+  eventId: Scalars['String']['output'];
+  generatedAt: Scalars['String']['output'];
+  medicationNotes: Array<Scalars['String']['output']>;
+  overdueItems: Array<Scalars['String']['output']>;
+  questionsToAsk: Array<PrepQuestion>;
+  symptomSummary: Array<SymptomTrendItem>;
+  upcomingTests: Array<Scalars['String']['output']>;
+};
+
+export type CareTeamMember = {
+  __typename?: 'CareTeamMember';
+  contactFor: Array<Scalars['String']['output']>;
+  id: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  phone?: Maybe<Scalars['String']['output']>;
+  practice?: Maybe<Scalars['String']['output']>;
+  role: Scalars['String']['output'];
 };
 
 export type CommonConcern = {
@@ -581,6 +613,7 @@ export type MsiBiomarker = {
 export type Mutation = {
   __typename?: 'Mutation';
   acceptQuote: ManufacturingOrder;
+  addCareTeamMember: CareTeamMember;
   addOrderNote: ManufacturingOrder;
   assessRegulatoryPathway: RegulatoryPathwayAssessment;
   authorizeFhir: FhirAuthorizeResult;
@@ -597,6 +630,7 @@ export type Mutation = {
   extractDocuments: ExtractionResult;
   extractFhir: Scalars['JSON']['output'];
   extractGenomicReport: GenomicResult;
+  generateAppointmentPrep: AppointmentPrep;
   generateLOMN: Lomn;
   generateLifestyleRecommendations: LifestyleRecommendations;
   generateMatches: Array<Match>;
@@ -609,6 +643,7 @@ export type Mutation = {
   matchFinancialPrograms: Array<FinancialMatch>;
   refreshSCP: SurvivorshipPlan;
   rematch: MatchDelta;
+  removeCareTeamMember: Scalars['Boolean']['output'];
   requestGeneralUploadUrl: UploadUrlResult;
   requestMagicLink: Scalars['Boolean']['output'];
   requestUploadUrl: UploadUrl;
@@ -622,6 +657,7 @@ export type Mutation = {
   submitPipelineJob: PipelineJob;
   subscribeFinancialProgram: Scalars['Boolean']['output'];
   translateTreatment: TreatmentTranslation;
+  updateCareTeamMember: CareTeamMember;
   updateManufacturingOrderStatus: ManufacturingOrder;
   updateMatchStatus: Match;
   updatePatientProfile: Patient;
@@ -633,6 +669,11 @@ export type Mutation = {
 
 export type MutationAcceptQuoteArgs = {
   orderId: Scalars['String']['input'];
+};
+
+
+export type MutationAddCareTeamMemberArgs = {
+  input: AddCareTeamMemberInput;
 };
 
 
@@ -723,6 +764,11 @@ export type MutationExtractGenomicReportArgs = {
 };
 
 
+export type MutationGenerateAppointmentPrepArgs = {
+  eventId: Scalars['String']['input'];
+};
+
+
 export type MutationGenerateLomnArgs = {
   insurer?: InputMaybe<Scalars['String']['input']>;
   testType: Scalars['String']['input'];
@@ -748,6 +794,11 @@ export type MutationMarkEventCompleteArgs = {
 
 export type MutationMatchFinancialProgramsArgs = {
   input: FinancialProfileInput;
+};
+
+
+export type MutationRemoveCareTeamMemberArgs = {
+  memberId: Scalars['String']['input'];
 };
 
 
@@ -821,6 +872,11 @@ export type MutationSubscribeFinancialProgramArgs = {
 
 export type MutationTranslateTreatmentArgs = {
   matchId: Scalars['String']['input'];
+};
+
+
+export type MutationUpdateCareTeamMemberArgs = {
+  input: UpdateCareTeamMemberInput;
 };
 
 
@@ -1037,6 +1093,12 @@ export type PipelineResultDownloads = {
   vaccineBlueprint?: Maybe<Scalars['String']['output']>;
 };
 
+export type PrepQuestion = {
+  __typename?: 'PrepQuestion';
+  context: Scalars['String']['output'];
+  question: Scalars['String']['output'];
+};
+
 export type PriorTreatment = {
   __typename?: 'PriorTreatment';
   endDate?: Maybe<Scalars['String']['output']>;
@@ -1050,6 +1112,8 @@ export type Query = {
   __typename?: 'Query';
   administrationSite?: Maybe<AdministrationSite>;
   administrationSites: Array<AdministrationSite>;
+  appointmentPrep?: Maybe<AppointmentPrep>;
+  careTeam: Array<CareTeamMember>;
   conversationGuide: ConversationGuide;
   documents: Array<Document>;
   fhirConnections: Array<FhirConnection>;
@@ -1087,6 +1151,7 @@ export type Query = {
   regulatoryDocument?: Maybe<RegulatoryDocument>;
   regulatoryDocuments: Array<RegulatoryDocument>;
   reportPdf: ReportPdfResult;
+  routeSymptom: SymptomRouting;
   sequencingBrief: Scalars['String']['output'];
   sequencingExplanation: SequencingExplanation;
   sequencingOrder?: Maybe<SequencingOrder>;
@@ -1111,6 +1176,11 @@ export type QueryAdministrationSitesArgs = {
   lat?: InputMaybe<Scalars['Float']['input']>;
   lng?: InputMaybe<Scalars['Float']['input']>;
   radiusMiles?: InputMaybe<Scalars['Float']['input']>;
+};
+
+
+export type QueryAppointmentPrepArgs = {
+  eventId: Scalars['String']['input'];
 };
 
 
@@ -1230,6 +1300,11 @@ export type QueryRegulatoryDocumentsArgs = {
 export type QueryReportPdfArgs = {
   pipelineJobId: Scalars['String']['input'];
   reportType: Scalars['String']['input'];
+};
+
+
+export type QueryRouteSymptomArgs = {
+  symptom: Scalars['String']['input'];
 };
 
 
@@ -1449,6 +1524,24 @@ export type SymptomExercise = {
   symptom: Scalars['String']['output'];
 };
 
+export type SymptomRouting = {
+  __typename?: 'SymptomRouting';
+  immediateAction?: Maybe<Scalars['String']['output']>;
+  providerName?: Maybe<Scalars['String']['output']>;
+  providerPhone?: Maybe<Scalars['String']['output']>;
+  providerRole?: Maybe<Scalars['String']['output']>;
+  reasoning: Scalars['String']['output'];
+  urgency: Scalars['String']['output'];
+};
+
+export type SymptomTrendItem = {
+  __typename?: 'SymptomTrendItem';
+  average?: Maybe<Scalars['Float']['output']>;
+  dimension: Scalars['String']['output'];
+  notableChanges?: Maybe<Scalars['String']['output']>;
+  trend: Scalars['String']['output'];
+};
+
 export type TalkingPoint = {
   __typename?: 'TalkingPoint';
   detail: Scalars['String']['output'];
@@ -1542,6 +1635,15 @@ export type Trial = {
   startDate?: Maybe<Scalars['String']['output']>;
   status?: Maybe<Scalars['String']['output']>;
   title: Scalars['String']['output'];
+};
+
+export type UpdateCareTeamMemberInput = {
+  contactFor?: InputMaybe<Array<Scalars['String']['input']>>;
+  memberId: Scalars['String']['input'];
+  name?: InputMaybe<Scalars['String']['input']>;
+  phone?: InputMaybe<Scalars['String']['input']>;
+  practice?: InputMaybe<Scalars['String']['input']>;
+  role?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UploadEventResultInput = {
@@ -2217,6 +2319,53 @@ export type GetLifestyleRecommendationsQueryVariables = Exact<{ [key: string]: n
 
 
 export type GetLifestyleRecommendationsQuery = { __typename?: 'Query', lifestyleRecommendations?: { __typename?: 'LifestyleRecommendations', generatedAt: string, exercise: { __typename?: 'ExerciseRecommendation', headline: string, effectSize: string, weeklyTargetMinutes: number, intensity: string, strengthDaysPerWeek: number, precautions: Array<{ __typename?: 'ExercisePrecaution', issue: string, guidance: string }>, starterPlan: Array<{ __typename?: 'ExerciseWeek', week: number, totalMinutes: number, sessions: Array<{ __typename?: 'ExerciseSession', day: string, type: string, duration: number, description: string }> }>, symptomExercises: Array<{ __typename?: 'SymptomExercise', symptom: string, exerciseType: string, evidence: string }> }, nutrition: { __typename?: 'NutritionRecommendation', headline: string, strongEvidence: Array<string>, medicationGuidance: Array<{ __typename?: 'MedicationNutrition', medication: string, considerations: Array<string>, emphasize: Array<string>, limit: Array<string> }>, mythBusting: Array<{ __typename?: 'NutritionMyth', myth: string, reality: string, nuance: string }> }, alcohol: { __typename?: 'AlcoholRecommendation', headline: string, quantifiedRisk: string, subtypeContext: string, recommendation: string, evidenceStrength: string, honestFraming: string }, environment: { __typename?: 'EnvironmentalRecommendation', approach: string, steps: Array<{ __typename?: 'EnvironmentalStep', category: string, action: string, why: string, difficulty: string, cost: string, evidence: string }>, overblownConcerns: Array<{ __typename?: 'OverblownConcern', claim: string, reality: string }> } } | null };
+
+export type GetCareTeamQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetCareTeamQuery = { __typename?: 'Query', careTeam: Array<{ __typename?: 'CareTeamMember', id: string, name: string, role: string, practice?: string | null, phone?: string | null, contactFor: Array<string> }> };
+
+export type RouteSymptomQueryVariables = Exact<{
+  symptom: Scalars['String']['input'];
+}>;
+
+
+export type RouteSymptomQuery = { __typename?: 'Query', routeSymptom: { __typename?: 'SymptomRouting', urgency: string, providerName?: string | null, providerRole?: string | null, providerPhone?: string | null, reasoning: string, immediateAction?: string | null } };
+
+export type GetAppointmentPrepQueryVariables = Exact<{
+  eventId: Scalars['String']['input'];
+}>;
+
+
+export type GetAppointmentPrepQuery = { __typename?: 'Query', appointmentPrep?: { __typename?: 'AppointmentPrep', eventId: string, appointmentType: string, appointmentDate?: string | null, completedSince: Array<string>, upcomingTests: Array<string>, overdueItems: Array<string>, medicationNotes: Array<string>, generatedAt: string, symptomSummary: Array<{ __typename?: 'SymptomTrendItem', dimension: string, average?: number | null, trend: string, notableChanges?: string | null }>, questionsToAsk: Array<{ __typename?: 'PrepQuestion', question: string, context: string }> } | null };
+
+export type AddCareTeamMemberMutationVariables = Exact<{
+  input: AddCareTeamMemberInput;
+}>;
+
+
+export type AddCareTeamMemberMutation = { __typename?: 'Mutation', addCareTeamMember: { __typename?: 'CareTeamMember', id: string, name: string, role: string, practice?: string | null, phone?: string | null, contactFor: Array<string> } };
+
+export type UpdateCareTeamMemberMutationVariables = Exact<{
+  input: UpdateCareTeamMemberInput;
+}>;
+
+
+export type UpdateCareTeamMemberMutation = { __typename?: 'Mutation', updateCareTeamMember: { __typename?: 'CareTeamMember', id: string, name: string, role: string, practice?: string | null, phone?: string | null, contactFor: Array<string> } };
+
+export type RemoveCareTeamMemberMutationVariables = Exact<{
+  memberId: Scalars['String']['input'];
+}>;
+
+
+export type RemoveCareTeamMemberMutation = { __typename?: 'Mutation', removeCareTeamMember: boolean };
+
+export type GenerateAppointmentPrepMutationVariables = Exact<{
+  eventId: Scalars['String']['input'];
+}>;
+
+
+export type GenerateAppointmentPrepMutation = { __typename?: 'Mutation', generateAppointmentPrep: { __typename?: 'AppointmentPrep', eventId: string, appointmentType: string, appointmentDate?: string | null, completedSince: Array<string>, upcomingTests: Array<string>, overdueItems: Array<string>, medicationNotes: Array<string>, generatedAt: string, symptomSummary: Array<{ __typename?: 'SymptomTrendItem', dimension: string, average?: number | null, trend: string, notableChanges?: string | null }>, questionsToAsk: Array<{ __typename?: 'PrepQuestion', question: string, context: string }> } };
 
 export type GenerateLifestyleRecommendationsMutationVariables = Exact<{ [key: string]: never; }>;
 
@@ -6962,6 +7111,318 @@ export type GetLifestyleRecommendationsQueryHookResult = ReturnType<typeof useGe
 export type GetLifestyleRecommendationsLazyQueryHookResult = ReturnType<typeof useGetLifestyleRecommendationsLazyQuery>;
 export type GetLifestyleRecommendationsSuspenseQueryHookResult = ReturnType<typeof useGetLifestyleRecommendationsSuspenseQuery>;
 export type GetLifestyleRecommendationsQueryResult = Apollo.QueryResult<GetLifestyleRecommendationsQuery, GetLifestyleRecommendationsQueryVariables>;
+export const GetCareTeamDocument = gql`
+    query GetCareTeam {
+  careTeam {
+    id
+    name
+    role
+    practice
+    phone
+    contactFor
+  }
+}
+    `;
+
+/**
+ * __useGetCareTeamQuery__
+ *
+ * To run a query within a React component, call `useGetCareTeamQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCareTeamQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCareTeamQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetCareTeamQuery(baseOptions?: Apollo.QueryHookOptions<GetCareTeamQuery, GetCareTeamQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetCareTeamQuery, GetCareTeamQueryVariables>(GetCareTeamDocument, options);
+      }
+export function useGetCareTeamLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCareTeamQuery, GetCareTeamQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetCareTeamQuery, GetCareTeamQueryVariables>(GetCareTeamDocument, options);
+        }
+// @ts-ignore
+export function useGetCareTeamSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetCareTeamQuery, GetCareTeamQueryVariables>): Apollo.UseSuspenseQueryResult<GetCareTeamQuery, GetCareTeamQueryVariables>;
+export function useGetCareTeamSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetCareTeamQuery, GetCareTeamQueryVariables>): Apollo.UseSuspenseQueryResult<GetCareTeamQuery | undefined, GetCareTeamQueryVariables>;
+export function useGetCareTeamSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetCareTeamQuery, GetCareTeamQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetCareTeamQuery, GetCareTeamQueryVariables>(GetCareTeamDocument, options);
+        }
+export type GetCareTeamQueryHookResult = ReturnType<typeof useGetCareTeamQuery>;
+export type GetCareTeamLazyQueryHookResult = ReturnType<typeof useGetCareTeamLazyQuery>;
+export type GetCareTeamSuspenseQueryHookResult = ReturnType<typeof useGetCareTeamSuspenseQuery>;
+export type GetCareTeamQueryResult = Apollo.QueryResult<GetCareTeamQuery, GetCareTeamQueryVariables>;
+export const RouteSymptomDocument = gql`
+    query RouteSymptom($symptom: String!) {
+  routeSymptom(symptom: $symptom) {
+    urgency
+    providerName
+    providerRole
+    providerPhone
+    reasoning
+    immediateAction
+  }
+}
+    `;
+
+/**
+ * __useRouteSymptomQuery__
+ *
+ * To run a query within a React component, call `useRouteSymptomQuery` and pass it any options that fit your needs.
+ * When your component renders, `useRouteSymptomQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useRouteSymptomQuery({
+ *   variables: {
+ *      symptom: // value for 'symptom'
+ *   },
+ * });
+ */
+export function useRouteSymptomQuery(baseOptions: Apollo.QueryHookOptions<RouteSymptomQuery, RouteSymptomQueryVariables> & ({ variables: RouteSymptomQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<RouteSymptomQuery, RouteSymptomQueryVariables>(RouteSymptomDocument, options);
+      }
+export function useRouteSymptomLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<RouteSymptomQuery, RouteSymptomQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<RouteSymptomQuery, RouteSymptomQueryVariables>(RouteSymptomDocument, options);
+        }
+// @ts-ignore
+export function useRouteSymptomSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<RouteSymptomQuery, RouteSymptomQueryVariables>): Apollo.UseSuspenseQueryResult<RouteSymptomQuery, RouteSymptomQueryVariables>;
+export function useRouteSymptomSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<RouteSymptomQuery, RouteSymptomQueryVariables>): Apollo.UseSuspenseQueryResult<RouteSymptomQuery | undefined, RouteSymptomQueryVariables>;
+export function useRouteSymptomSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<RouteSymptomQuery, RouteSymptomQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<RouteSymptomQuery, RouteSymptomQueryVariables>(RouteSymptomDocument, options);
+        }
+export type RouteSymptomQueryHookResult = ReturnType<typeof useRouteSymptomQuery>;
+export type RouteSymptomLazyQueryHookResult = ReturnType<typeof useRouteSymptomLazyQuery>;
+export type RouteSymptomSuspenseQueryHookResult = ReturnType<typeof useRouteSymptomSuspenseQuery>;
+export type RouteSymptomQueryResult = Apollo.QueryResult<RouteSymptomQuery, RouteSymptomQueryVariables>;
+export const GetAppointmentPrepDocument = gql`
+    query GetAppointmentPrep($eventId: String!) {
+  appointmentPrep(eventId: $eventId) {
+    eventId
+    appointmentType
+    appointmentDate
+    symptomSummary {
+      dimension
+      average
+      trend
+      notableChanges
+    }
+    completedSince
+    upcomingTests
+    overdueItems
+    questionsToAsk {
+      question
+      context
+    }
+    medicationNotes
+    generatedAt
+  }
+}
+    `;
+
+/**
+ * __useGetAppointmentPrepQuery__
+ *
+ * To run a query within a React component, call `useGetAppointmentPrepQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAppointmentPrepQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAppointmentPrepQuery({
+ *   variables: {
+ *      eventId: // value for 'eventId'
+ *   },
+ * });
+ */
+export function useGetAppointmentPrepQuery(baseOptions: Apollo.QueryHookOptions<GetAppointmentPrepQuery, GetAppointmentPrepQueryVariables> & ({ variables: GetAppointmentPrepQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetAppointmentPrepQuery, GetAppointmentPrepQueryVariables>(GetAppointmentPrepDocument, options);
+      }
+export function useGetAppointmentPrepLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAppointmentPrepQuery, GetAppointmentPrepQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetAppointmentPrepQuery, GetAppointmentPrepQueryVariables>(GetAppointmentPrepDocument, options);
+        }
+// @ts-ignore
+export function useGetAppointmentPrepSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetAppointmentPrepQuery, GetAppointmentPrepQueryVariables>): Apollo.UseSuspenseQueryResult<GetAppointmentPrepQuery, GetAppointmentPrepQueryVariables>;
+export function useGetAppointmentPrepSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetAppointmentPrepQuery, GetAppointmentPrepQueryVariables>): Apollo.UseSuspenseQueryResult<GetAppointmentPrepQuery | undefined, GetAppointmentPrepQueryVariables>;
+export function useGetAppointmentPrepSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetAppointmentPrepQuery, GetAppointmentPrepQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetAppointmentPrepQuery, GetAppointmentPrepQueryVariables>(GetAppointmentPrepDocument, options);
+        }
+export type GetAppointmentPrepQueryHookResult = ReturnType<typeof useGetAppointmentPrepQuery>;
+export type GetAppointmentPrepLazyQueryHookResult = ReturnType<typeof useGetAppointmentPrepLazyQuery>;
+export type GetAppointmentPrepSuspenseQueryHookResult = ReturnType<typeof useGetAppointmentPrepSuspenseQuery>;
+export type GetAppointmentPrepQueryResult = Apollo.QueryResult<GetAppointmentPrepQuery, GetAppointmentPrepQueryVariables>;
+export const AddCareTeamMemberDocument = gql`
+    mutation AddCareTeamMember($input: AddCareTeamMemberInput!) {
+  addCareTeamMember(input: $input) {
+    id
+    name
+    role
+    practice
+    phone
+    contactFor
+  }
+}
+    `;
+export type AddCareTeamMemberMutationFn = Apollo.MutationFunction<AddCareTeamMemberMutation, AddCareTeamMemberMutationVariables>;
+
+/**
+ * __useAddCareTeamMemberMutation__
+ *
+ * To run a mutation, you first call `useAddCareTeamMemberMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useAddCareTeamMemberMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [addCareTeamMemberMutation, { data, loading, error }] = useAddCareTeamMemberMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useAddCareTeamMemberMutation(baseOptions?: Apollo.MutationHookOptions<AddCareTeamMemberMutation, AddCareTeamMemberMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<AddCareTeamMemberMutation, AddCareTeamMemberMutationVariables>(AddCareTeamMemberDocument, options);
+      }
+export type AddCareTeamMemberMutationHookResult = ReturnType<typeof useAddCareTeamMemberMutation>;
+export type AddCareTeamMemberMutationResult = Apollo.MutationResult<AddCareTeamMemberMutation>;
+export type AddCareTeamMemberMutationOptions = Apollo.BaseMutationOptions<AddCareTeamMemberMutation, AddCareTeamMemberMutationVariables>;
+export const UpdateCareTeamMemberDocument = gql`
+    mutation UpdateCareTeamMember($input: UpdateCareTeamMemberInput!) {
+  updateCareTeamMember(input: $input) {
+    id
+    name
+    role
+    practice
+    phone
+    contactFor
+  }
+}
+    `;
+export type UpdateCareTeamMemberMutationFn = Apollo.MutationFunction<UpdateCareTeamMemberMutation, UpdateCareTeamMemberMutationVariables>;
+
+/**
+ * __useUpdateCareTeamMemberMutation__
+ *
+ * To run a mutation, you first call `useUpdateCareTeamMemberMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateCareTeamMemberMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateCareTeamMemberMutation, { data, loading, error }] = useUpdateCareTeamMemberMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUpdateCareTeamMemberMutation(baseOptions?: Apollo.MutationHookOptions<UpdateCareTeamMemberMutation, UpdateCareTeamMemberMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateCareTeamMemberMutation, UpdateCareTeamMemberMutationVariables>(UpdateCareTeamMemberDocument, options);
+      }
+export type UpdateCareTeamMemberMutationHookResult = ReturnType<typeof useUpdateCareTeamMemberMutation>;
+export type UpdateCareTeamMemberMutationResult = Apollo.MutationResult<UpdateCareTeamMemberMutation>;
+export type UpdateCareTeamMemberMutationOptions = Apollo.BaseMutationOptions<UpdateCareTeamMemberMutation, UpdateCareTeamMemberMutationVariables>;
+export const RemoveCareTeamMemberDocument = gql`
+    mutation RemoveCareTeamMember($memberId: String!) {
+  removeCareTeamMember(memberId: $memberId)
+}
+    `;
+export type RemoveCareTeamMemberMutationFn = Apollo.MutationFunction<RemoveCareTeamMemberMutation, RemoveCareTeamMemberMutationVariables>;
+
+/**
+ * __useRemoveCareTeamMemberMutation__
+ *
+ * To run a mutation, you first call `useRemoveCareTeamMemberMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRemoveCareTeamMemberMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [removeCareTeamMemberMutation, { data, loading, error }] = useRemoveCareTeamMemberMutation({
+ *   variables: {
+ *      memberId: // value for 'memberId'
+ *   },
+ * });
+ */
+export function useRemoveCareTeamMemberMutation(baseOptions?: Apollo.MutationHookOptions<RemoveCareTeamMemberMutation, RemoveCareTeamMemberMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RemoveCareTeamMemberMutation, RemoveCareTeamMemberMutationVariables>(RemoveCareTeamMemberDocument, options);
+      }
+export type RemoveCareTeamMemberMutationHookResult = ReturnType<typeof useRemoveCareTeamMemberMutation>;
+export type RemoveCareTeamMemberMutationResult = Apollo.MutationResult<RemoveCareTeamMemberMutation>;
+export type RemoveCareTeamMemberMutationOptions = Apollo.BaseMutationOptions<RemoveCareTeamMemberMutation, RemoveCareTeamMemberMutationVariables>;
+export const GenerateAppointmentPrepDocument = gql`
+    mutation GenerateAppointmentPrep($eventId: String!) {
+  generateAppointmentPrep(eventId: $eventId) {
+    eventId
+    appointmentType
+    appointmentDate
+    symptomSummary {
+      dimension
+      average
+      trend
+      notableChanges
+    }
+    completedSince
+    upcomingTests
+    overdueItems
+    questionsToAsk {
+      question
+      context
+    }
+    medicationNotes
+    generatedAt
+  }
+}
+    `;
+export type GenerateAppointmentPrepMutationFn = Apollo.MutationFunction<GenerateAppointmentPrepMutation, GenerateAppointmentPrepMutationVariables>;
+
+/**
+ * __useGenerateAppointmentPrepMutation__
+ *
+ * To run a mutation, you first call `useGenerateAppointmentPrepMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useGenerateAppointmentPrepMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [generateAppointmentPrepMutation, { data, loading, error }] = useGenerateAppointmentPrepMutation({
+ *   variables: {
+ *      eventId: // value for 'eventId'
+ *   },
+ * });
+ */
+export function useGenerateAppointmentPrepMutation(baseOptions?: Apollo.MutationHookOptions<GenerateAppointmentPrepMutation, GenerateAppointmentPrepMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<GenerateAppointmentPrepMutation, GenerateAppointmentPrepMutationVariables>(GenerateAppointmentPrepDocument, options);
+      }
+export type GenerateAppointmentPrepMutationHookResult = ReturnType<typeof useGenerateAppointmentPrepMutation>;
+export type GenerateAppointmentPrepMutationResult = Apollo.MutationResult<GenerateAppointmentPrepMutation>;
+export type GenerateAppointmentPrepMutationOptions = Apollo.BaseMutationOptions<GenerateAppointmentPrepMutation, GenerateAppointmentPrepMutationVariables>;
 export const GenerateLifestyleRecommendationsDocument = gql`
     mutation GenerateLifestyleRecommendations {
   generateLifestyleRecommendations {

@@ -775,6 +775,51 @@ export const typeDefs = `#graphql
     entries: [JournalEntry!]!
   }
 
+  # --- Care Team ---
+
+  type CareTeamMember {
+    id: String!
+    name: String!
+    role: String!
+    practice: String
+    phone: String
+    contactFor: [String!]!
+  }
+
+  type SymptomRouting {
+    urgency: String!
+    providerName: String
+    providerRole: String
+    providerPhone: String
+    reasoning: String!
+    immediateAction: String
+  }
+
+  type AppointmentPrep {
+    eventId: String!
+    appointmentType: String!
+    appointmentDate: String
+    symptomSummary: [SymptomTrendItem!]!
+    completedSince: [String!]!
+    upcomingTests: [String!]!
+    overdueItems: [String!]!
+    questionsToAsk: [PrepQuestion!]!
+    medicationNotes: [String!]!
+    generatedAt: String!
+  }
+
+  type SymptomTrendItem {
+    dimension: String!
+    average: Float
+    trend: String!
+    notableChanges: String
+  }
+
+  type PrepQuestion {
+    question: String!
+    context: String!
+  }
+
   # --- Lifestyle ---
 
   type LifestyleRecommendations {
@@ -989,6 +1034,9 @@ export const typeDefs = `#graphql
     journalEntries(limit: Int): [JournalEntry!]!
     journalTrends(days: Int!): JournalTrends!
     lifestyleRecommendations: LifestyleRecommendations
+    careTeam: [CareTeamMember!]!
+    routeSymptom(symptom: String!): SymptomRouting!
+    appointmentPrep(eventId: String!): AppointmentPrep
 
     # FHIR
     healthSystems(search: String): [HealthSystem!]!
@@ -1121,6 +1169,23 @@ export const typeDefs = `#graphql
     notes: String
   }
 
+  input AddCareTeamMemberInput {
+    name: String!
+    role: String!
+    practice: String
+    phone: String
+    contactFor: [String!]
+  }
+
+  input UpdateCareTeamMemberInput {
+    memberId: String!
+    name: String
+    role: String
+    practice: String
+    phone: String
+    contactFor: [String!]
+  }
+
   input MonitoringReportInput {
     orderId: String!
     reportType: String!
@@ -1222,6 +1287,10 @@ export const typeDefs = `#graphql
     submitJournalEntry(input: SubmitJournalEntryInput!): JournalEntry!
     deleteJournalEntry(entryId: String!): Boolean!
     generateLifestyleRecommendations: LifestyleRecommendations!
+    addCareTeamMember(input: AddCareTeamMemberInput!): CareTeamMember!
+    updateCareTeamMember(input: UpdateCareTeamMemberInput!): CareTeamMember!
+    removeCareTeamMember(memberId: String!): Boolean!
+    generateAppointmentPrep(eventId: String!): AppointmentPrep!
 
     # Uploads
     requestGeneralUploadUrl(filename: String!, contentType: String!, bucket: String): UploadUrlResult!

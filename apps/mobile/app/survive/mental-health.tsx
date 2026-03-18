@@ -1,4 +1,4 @@
-import { SurviveStubScreen } from '@oncovax/app';
+import { MentalHealthScreen } from '@oncovax/app';
 export default function MentalHealthRoute() {
-  return <SurviveStubScreen title="Mental Health & Support" />;
+  return <MentalHealthScreen />;
 }

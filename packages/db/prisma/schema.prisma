@@ -98,6 +98,7 @@ model Patient {
   survivorshipPlan      SurvivorshipPlan?
   surveillanceEvents    SurveillanceEvent[]
   journalEntries        JournalEntry[]
+  careTeamMembers       CareTeamMember[]
 
   @@map("patients")
 }
@@ -740,4 +741,21 @@ model JournalEntry {
   @@unique([patientId, entryDate])
   @@index([patientId, entryDate(sort: Desc)])
   @@map("journal_entries")
+}
+
+model CareTeamMember {
+  id         String   @id @default(uuid()) @db.Uuid
+  patientId  String   @map("patient_id") @db.Uuid
+  name       String
+  role       String   @db.VarChar(100)
+  practice   String?
+  phone      String?  @db.VarChar(30)
+  contactFor String[] @default([]) @map("contact_for")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId])
+  @@map("care_team_members")
 }

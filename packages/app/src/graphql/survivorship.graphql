@@ -254,6 +254,100 @@ query GetLifestyleRecommendations {
   }
 }
 
+query GetCareTeam {
+  careTeam {
+    id
+    name
+    role
+    practice
+    phone
+    contactFor
+  }
+}
+
+query RouteSymptom($symptom: String!) {
+  routeSymptom(symptom: $symptom) {
+    urgency
+    providerName
+    providerRole
+    providerPhone
+    reasoning
+    immediateAction
+  }
+}
+
+query GetAppointmentPrep($eventId: String!) {
+  appointmentPrep(eventId: $eventId) {
+    eventId
+    appointmentType
+    appointmentDate
+    symptomSummary {
+      dimension
+      average
+      trend
+      notableChanges
+    }
+    completedSince
+    upcomingTests
+    overdueItems
+    questionsToAsk {
+      question
+      context
+    }
+    medicationNotes
+    generatedAt
+  }
+}
+
+mutation AddCareTeamMember($input: AddCareTeamMemberInput!) {
+  addCareTeamMember(input: $input) {
+    id
+    name
+    role
+    practice
+    phone
+    contactFor
+  }
+}
+
+mutation UpdateCareTeamMember($input: UpdateCareTeamMemberInput!) {
+  updateCareTeamMember(input: $input) {
+    id
+    name
+    role
+    practice
+    phone
+    contactFor
+  }
+}
+
+mutation RemoveCareTeamMember($memberId: String!) {
+  removeCareTeamMember(memberId: $memberId)
+}
+
+mutation GenerateAppointmentPrep($eventId: String!) {
+  generateAppointmentPrep(eventId: $eventId) {
+    eventId
+    appointmentType
+    appointmentDate
+    symptomSummary {
+      dimension
+      average
+      trend
+      notableChanges
+    }
+    completedSince
+    upcomingTests
+    overdueItems
+    questionsToAsk {
+      question
+      context
+    }
+    medicationNotes
+    generatedAt
+  }
+}
+
 mutation GenerateLifestyleRecommendations {
   generateLifestyleRecommendations {
     exercise {

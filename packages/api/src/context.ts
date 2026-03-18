@@ -104,6 +104,13 @@ export interface GraphQLContext {
     getJournalTrends: (patientId: string, days: number) => Promise<any>;
     getLifestyleRecommendations: (patientId: string) => Promise<any>;
     generateLifestyleRecommendations: (patientId: string) => Promise<any>;
+    getCareTeam: (patientId: string) => Promise<any>;
+    addCareTeamMember: (patientId: string, input: any) => Promise<any>;
+    updateCareTeamMember: (patientId: string, memberId: string, input: any) => Promise<any>;
+    removeCareTeamMember: (patientId: string, memberId: string) => Promise<void>;
+    routeSymptom: (patientId: string, symptom: string) => Promise<any>;
+    generateAppointmentPrep: (patientId: string, eventId: string) => Promise<any>;
+    getAppointmentPrep: (patientId: string, eventId: string) => Promise<any>;
   };
 }
 
