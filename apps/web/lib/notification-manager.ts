@@ -18,6 +18,7 @@ interface NotificationResults {
   scpAnnualReviews: number;
   lifestyleCheckIns: number;
   phaseTransitions: number;
+  recurrenceNotifications: number;
   errors: string[];
 }
 
@@ -226,6 +227,7 @@ export async function processAllNotifications(): Promise<NotificationResults> {
     scpAnnualReviews: 0,
     lifestyleCheckIns: 0,
     phaseTransitions: 0,
+    recurrenceNotifications: 0,
     errors: [],
   };
 
@@ -238,6 +240,7 @@ export async function processAllNotifications(): Promise<NotificationResults> {
     { name: 'scpAnnualReviews', fn: processScpAnnualReview },
     { name: 'lifestyleCheckIns', fn: processLifestyleCheckIn },
     { name: 'phaseTransitions', fn: processPhaseTransitions },
+    { name: 'recurrenceNotifications', fn: processRecurrenceNotifications },
   ] as const;
 
   for (const { name, fn } of processors) {
@@ -740,6 +743,117 @@ async function processPhaseTransitions(): Promise<number> {
       dedupeKey,
     });
     if (sent) count++;
+  }
+
+  return count;
+}
+
+// ============================================================================
+// Processor 9: Recurrence Notifications (timed after event creation)
+// ============================================================================
+
+async function processRecurrenceNotifications(): Promise<number> {
+  let count = 0;
+  const now = Date.now();
+
+  // Find recent recurrence events (within last 48 hours)
+  const recentCutoff = new Date(now - 48 * 60 * 60 * 1000);
+  const events = await prisma.recurrenceEvent.findMany({
+    where: { createdAt: { gte: recentCutoff } },
+  });
+
+  for (const event of events) {
+    const email = await getPatientEmail(event.patientId);
+    if (!email) continue;
+
+    const hoursAge = (now - new Date(event.createdAt).getTime()) / (1000 * 60 * 60);
+
+    // 2h: Support resources email
+    if (hoursAge >= 2) {
+      const dedupeKey = `recur_support:${event.id}`;
+      const sent = await sendSurvivorshipEmail({
+        patientId: event.patientId,
+        to: email,
+        category: 'recurrence_support',
+        subject: 'Support resources are here for you',
+        html: `<p>Hi there,</p>
+<p>We know this is an incredibly difficult time. We've gathered support resources specifically for people facing a recurrence.</p>
+<p><strong>If you need to talk now:</strong></p>
+<ul>
+<li>Crisis Text Line: Text HOME to 741741</li>
+<li>988 Suicide & Crisis Lifeline: Call or text 988</li>
+<li>Cancer Support Community: 888-793-9355</li>
+</ul>
+<p><a href="${APP_URL}/survive/recurrence/support">View all support resources</a></p>
+<p>You are not alone in this.<br>OncoVax Care Team</p>`,
+        dedupeKey,
+        referenceId: event.id,
+        referenceType: 'recurrence_event',
+      });
+      if (sent) count++;
+    }
+
+    // 4h: Trial results email
+    if (hoursAge >= 4) {
+      const dedupeKey = `recur_trials:${event.id}`;
+      const matchCount = await prisma.match.count({
+        where: { patientId: event.patientId },
+      });
+      const sent = await sendSurvivorshipEmail({
+        patientId: event.patientId,
+        to: email,
+        category: 'recurrence_trials',
+        subject: 'Updated trial matches are ready',
+        html: `<p>Hi there,</p>
+<p>We've re-searched clinical trials based on your updated situation. ${matchCount > 0 ? `We found <strong>${matchCount} potential matches</strong>.` : 'We\'re still searching for the best options.'}</p>
+<p>Clinical trials — especially for recurrent cancer — are often where the most promising new treatments are available.</p>
+<p><a href="${APP_URL}/survive/recurrence/trials">View updated trial matches</a></p>
+<p>Best,<br>OncoVax Care Team</p>`,
+        dedupeKey,
+        referenceId: event.id,
+        referenceType: 'recurrence_event',
+      });
+      if (sent) count++;
+    }
+
+    // 24h: Sequencing recommendation (only if acknowledged)
+    if (hoursAge >= 24 && event.acknowledgedAt) {
+      const dedupeKey = `recur_seq:${event.id}`;
+      const sent = await sendSurvivorshipEmail({
+        patientId: event.patientId,
+        to: email,
+        category: 'recurrence_sequencing',
+        subject: 'Consider genomic testing of the recurrent tumor',
+        html: `<p>Hi there,</p>
+<p>The recurrent tumor may have different genomic characteristics than your original cancer. New mutations can unlock new treatment options.</p>
+<p>We recommend discussing genomic testing with your oncologist.</p>
+<p><a href="${APP_URL}/survive/recurrence/sequencing">Learn about re-sequencing</a></p>
+<p>Best,<br>OncoVax Care Team</p>`,
+        dedupeKey,
+        referenceId: event.id,
+        referenceType: 'recurrence_event',
+      });
+      if (sent) count++;
+    }
+
+    // 48h: Financial update (only if acknowledged)
+    if (hoursAge >= 48 && event.acknowledgedAt) {
+      const dedupeKey = `recur_fin:${event.id}`;
+      const sent = await sendSurvivorshipEmail({
+        patientId: event.patientId,
+        to: email,
+        category: 'recurrence_financial',
+        subject: 'Financial assistance options updated',
+        html: `<p>Hi there,</p>
+<p>We've updated your financial assistance matches for your new treatment situation. Many programs specifically support patients with recurrent cancer.</p>
+<p><a href="${APP_URL}/financial">View updated financial assistance</a></p>
+<p>Best,<br>OncoVax Care Team</p>`,
+        dedupeKey,
+        referenceId: event.id,
+        referenceType: 'recurrence_event',
+      });
+      if (sent) count++;
+    }
   }
 
   return count;

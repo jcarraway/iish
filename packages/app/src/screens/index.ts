@@ -88,3 +88,13 @@ export { CtdnaGuideScreen } from './CtdnaGuideScreen';
 
 // S7 — Notifications + Feedback
 export { NotificationSettingsScreen } from './NotificationSettingsScreen';
+
+// S8 — Recurrence Pathway
+export { RecurrenceReportScreen } from './RecurrenceReportScreen';
+export { RecurrenceAcknowledgeScreen } from './RecurrenceAcknowledgeScreen';
+export { RecurrenceSupportScreen } from './RecurrenceSupportScreen';
+export { RecurrenceSequencingScreen } from './RecurrenceSequencingScreen';
+export { RecurrenceComparisonScreen } from './RecurrenceComparisonScreen';
+export { RecurrenceTrialsScreen } from './RecurrenceTrialsScreen';
+export { RecurrenceTreatmentScreen } from './RecurrenceTreatmentScreen';
+export { RecurrenceCascadeScreen } from './RecurrenceCascadeScreen';

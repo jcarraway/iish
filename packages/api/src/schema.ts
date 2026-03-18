@@ -1015,6 +1015,63 @@ export const typeDefs = `#graphql
     createdAt: DateTime!
   }
 
+  # ============================================================================
+  # Recurrence
+  # ============================================================================
+
+  type RecurrenceEvent {
+    id: String!
+    patientId: String!
+    detectedDate: String!
+    detectionMethod: String!
+    recurrenceType: String
+    recurrenceSites: [String!]!
+    confirmedByBiopsy: Boolean!
+    newPathologyAvailable: Boolean!
+    newStage: String
+    newBiomarkers: JSON
+    timeSinceInitialDx: Int
+    timeSinceCompletion: Int
+    ctdnaResultId: String
+    priorTreatments: [String!]!
+    documentUploadId: String
+    cascadeStatus: CascadeStatus!
+    acknowledgedAt: String
+    createdAt: DateTime!
+    updatedAt: DateTime!
+  }
+
+  type CascadeStatus {
+    acknowledged: Boolean!
+    supportOffered: Boolean!
+    resequencingRecommended: Boolean!
+    trialRematched: Boolean!
+    financialRematched: Boolean!
+    secondOpinionOffered: Boolean!
+    careTeamUpdated: Boolean!
+    translatorRegenerated: Boolean!
+    planArchived: Boolean!
+    pipelineActivated: Boolean!
+    genomicComparisonReady: Boolean!
+  }
+
+  type GenomicComparison {
+    hasNewData: Boolean!
+    resistanceMutations: [String!]!
+    biomarkerChanges: [String!]!
+    actionableChanges: [String!]!
+    patientSummary: String!
+    generatedAt: String!
+  }
+
+  type SecondOpinionResource {
+    name: String!
+    type: String!
+    description: String!
+    url: String!
+    virtual: Boolean!
+  }
+
   type SCPDiff {
     changedSections: [String!]!
     addedItems: [String!]!
@@ -1117,6 +1174,12 @@ export const typeDefs = `#graphql
     notificationPreferences: NotificationPreference
     notificationHistory(limit: Int): [NotificationLogEntry!]!
     survivorshipFeedback: [SurvivorshipFeedback!]!
+
+    # Recurrence
+    recurrenceEvent: RecurrenceEvent
+    recurrenceEvents: [RecurrenceEvent!]!
+    genomicComparison(recurrenceEventId: String!): GenomicComparison!
+    secondOpinionResources: [SecondOpinionResource!]!
 
     # FHIR
     healthSystems(search: String): [HealthSystem!]!
@@ -1295,6 +1358,22 @@ export const typeDefs = `#graphql
     context: JSON
   }
 
+  input ReportRecurrenceInput {
+    detectedDate: String!
+    detectionMethod: String!
+    recurrenceType: String
+    recurrenceSites: [String!]
+    confirmedByBiopsy: Boolean
+    newStage: String
+    documentUploadId: String
+  }
+
+  input UpdateCascadeStepInput {
+    recurrenceEventId: String!
+    step: String!
+    value: Boolean!
+  }
+
   input MonitoringReportInput {
     orderId: String!
     reportType: String!
@@ -1406,6 +1485,13 @@ export const typeDefs = `#graphql
     updateNotificationPreferences(input: UpdateNotificationPreferenceInput!): NotificationPreference!
     submitFeedback(input: SubmitFeedbackInput!): SurvivorshipFeedback!
     annualRefreshSCP: AnnualRefreshResult!
+
+    # Recurrence
+    reportRecurrence(input: ReportRecurrenceInput!): RecurrenceEvent!
+    acknowledgeRecurrence(recurrenceEventId: String!): RecurrenceEvent!
+    updateCascadeStep(input: UpdateCascadeStepInput!): RecurrenceEvent!
+    regenerateTranslator(recurrenceEventId: String!): RecurrenceEvent!
+    archiveSurvivorshipPlan: Boolean!
 
     # Uploads
     requestGeneralUploadUrl(filename: String!, contentType: String!, bucket: String): UploadUrlResult!

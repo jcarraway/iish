@@ -6,6 +6,7 @@ import {
   useGetSurveillanceScheduleQuery,
   useGetJournalEntriesQuery,
   useGetCtdnaHistoryQuery,
+  useGetRecurrenceEventQuery,
 } from '../generated/graphql';
 
 export function SurviveDashboardScreen() {
@@ -16,8 +17,9 @@ export function SurviveDashboardScreen() {
     errorPolicy: 'ignore',
   });
   const { data: ctdnaData, loading: ctdnaLoading } = useGetCtdnaHistoryQuery({ errorPolicy: 'ignore' });
+  const { data: recurrenceData, loading: recurrenceLoading } = useGetRecurrenceEventQuery({ errorPolicy: 'ignore' });
 
-  const loading = planLoading || schedLoading || journalLoading || ctdnaLoading;
+  const loading = planLoading || schedLoading || journalLoading || ctdnaLoading || recurrenceLoading;
   const plan = planData?.survivorshipPlan;
   const events = scheduleData?.surveillanceSchedule ?? [];
   const entries = journalData?.journalEntries ?? [];
@@ -95,6 +97,14 @@ export function SurviveDashboardScreen() {
   const latestCtdna = ctdnaResults[0];
   const hasDetectedCtdna = ctdnaResults.some(r => r.result === 'detected');
 
+  // Recurrence
+  const recurrenceEvent = recurrenceData?.recurrenceEvent;
+  const hasActiveRecurrence = !!recurrenceEvent;
+  const recurrenceCascade = recurrenceEvent?.cascadeStatus;
+  const recurrenceProgress = recurrenceCascade
+    ? Object.values(recurrenceCascade).filter(v => v === true).length
+    : 0;
+
   return (
     <ScrollView sx={{ flex: 1 }}>
       <View sx={{ mx: 'auto', maxWidth: 896, px: '$6', py: '$16', width: '100%' }}>
@@ -104,6 +114,37 @@ export function SurviveDashboardScreen() {
         </Text>
 
         <View sx={{ mt: '$8', gap: '$4' }}>
+          {/* Recurrence card — shown at TOP when active */}
+          {hasActiveRecurrence && (
+            <Link href="/survive/recurrence/status">
+              <View sx={{
+                borderRadius: 12,
+                borderWidth: 2,
+                borderColor: '#F59E0B',
+                backgroundColor: '#FFFBEB',
+                p: '$5',
+              }}>
+                <View sx={{ flexDirection: 'row', alignItems: 'center', gap: '$2' }}>
+                  <View sx={{
+                    width: 32, height: 32, borderRadius: 8,
+                    backgroundColor: '#FEF3C7', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <Text sx={{ fontSize: 14 }}>{'💛'}</Text>
+                  </View>
+                  <Text sx={{ fontWeight: '600', color: '#92400E' }}>
+                    Your recurrence response is active
+                  </Text>
+                </View>
+                <Text sx={{ mt: '$3', fontSize: 13, color: '#92400E', lineHeight: 20 }}>
+                  We're working through your care updates. {recurrenceProgress} steps completed.
+                </Text>
+                <Text sx={{ mt: '$2', fontSize: 12, fontWeight: '600', color: '#92400E' }}>
+                  View status {'\u2192'}
+                </Text>
+              </View>
+            </Link>
+          )}
+
           {/* Your Plan card */}
           <Link href="/survive/plan">
             <View sx={{
@@ -319,6 +360,7 @@ export function SurviveDashboardScreen() {
               { label: 'Monitoring', href: '/survive/monitoring', icon: '📊' },
               { label: 'ctDNA', href: '/survive/monitoring/ctdna', icon: '🧬' },
               { label: 'Notifications', href: '/survive/notifications', icon: '🔔' },
+              { label: 'Report a change', href: '/survive/recurrence/report', icon: '📝' },
             ].map(item => (
               <Link key={item.href} href={item.href}>
                 <View sx={{

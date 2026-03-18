@@ -76,6 +76,17 @@ import {
   getFeedback as _getFeedback,
   annualRefreshSCP as _annualRefreshSCP,
 } from '@/lib/notification-manager';
+import {
+  reportRecurrence as _reportRecurrence,
+  acknowledgeRecurrence as _acknowledgeRecurrence,
+  updateCascadeStep as _updateCascadeStep,
+  regenerateTranslator as _regenerateTranslator,
+  archiveSurvivorshipPlan as _archiveSurvivorshipPlan,
+  getRecurrenceEvent as _getRecurrenceEvent,
+  getRecurrenceEvents as _getRecurrenceEvents,
+  generateGenomicComparison as _generateGenomicComparison,
+  getSecondOpinionResources as _getSecondOpinionResources,
+} from '@/lib/recurrence-manager';
 import { refreshAccessToken, encryptToken } from '@/lib/fhir/smart-auth';
 import { mapFhirToPatientProfile } from '@/lib/fhir/mapper';
 import type { PatientProfile } from '@oncovax/shared';
@@ -935,6 +946,44 @@ async function annualRefreshSCPAdapter(patientId: string) {
   return _annualRefreshSCP(patientId);
 }
 
+// --- Recurrence ---
+
+async function reportRecurrenceAdapter(patientId: string, input: any) {
+  return _reportRecurrence(patientId, input);
+}
+
+async function acknowledgeRecurrenceAdapter(recurrenceEventId: string) {
+  return _acknowledgeRecurrence(recurrenceEventId);
+}
+
+async function updateCascadeStepAdapter(recurrenceEventId: string, step: string, value: boolean) {
+  return _updateCascadeStep(recurrenceEventId, step, value);
+}
+
+async function regenerateTranslatorAdapter(patientId: string, recurrenceEventId: string) {
+  return _regenerateTranslator(patientId, recurrenceEventId);
+}
+
+async function archiveSurvivorshipPlanAdapter(patientId: string) {
+  return _archiveSurvivorshipPlan(patientId);
+}
+
+async function getRecurrenceEventAdapter(patientId: string) {
+  return _getRecurrenceEvent(patientId);
+}
+
+async function getRecurrenceEventsAdapter(patientId: string) {
+  return _getRecurrenceEvents(patientId);
+}
+
+async function generateGenomicComparisonAdapter(patientId: string, recurrenceEventId: string) {
+  return _generateGenomicComparison(patientId, recurrenceEventId);
+}
+
+async function getSecondOpinionResourcesAdapter(patientId: string) {
+  return _getSecondOpinionResources(patientId);
+}
+
 // ============================================================================
 // Apollo Server setup
 // ============================================================================
@@ -1055,6 +1104,17 @@ const handler = startServerAndCreateNextHandler<NextRequest, GraphQLContext>(ser
         submitFeedback: submitFeedbackAdapter,
         getFeedback: getFeedbackAdapter,
         annualRefreshSCP: annualRefreshSCPAdapter,
+
+        // Recurrence
+        reportRecurrence: reportRecurrenceAdapter,
+        acknowledgeRecurrence: acknowledgeRecurrenceAdapter,
+        updateCascadeStep: updateCascadeStepAdapter,
+        regenerateTranslator: regenerateTranslatorAdapter,
+        archiveSurvivorshipPlan: archiveSurvivorshipPlanAdapter,
+        getRecurrenceEvent: getRecurrenceEventAdapter,
+        getRecurrenceEvents: getRecurrenceEventsAdapter,
+        generateGenomicComparison: generateGenomicComparisonAdapter,
+        getSecondOpinionResources: getSecondOpinionResourcesAdapter,
       },
     };
   },

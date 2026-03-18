@@ -517,3 +517,163 @@ mutation GenerateLifestyleRecommendations {
     generatedAt
   }
 }
+
+# ============================================================================
+# Recurrence
+# ============================================================================
+
+query GetRecurrenceEvent {
+  recurrenceEvent {
+    id
+    patientId
+    detectedDate
+    detectionMethod
+    recurrenceType
+    recurrenceSites
+    confirmedByBiopsy
+    newPathologyAvailable
+    newStage
+    timeSinceInitialDx
+    timeSinceCompletion
+    ctdnaResultId
+    priorTreatments
+    documentUploadId
+    cascadeStatus {
+      acknowledged
+      supportOffered
+      resequencingRecommended
+      trialRematched
+      financialRematched
+      secondOpinionOffered
+      careTeamUpdated
+      translatorRegenerated
+      planArchived
+      pipelineActivated
+      genomicComparisonReady
+    }
+    acknowledgedAt
+    createdAt
+    updatedAt
+  }
+}
+
+query GetRecurrenceEvents {
+  recurrenceEvents {
+    id
+    detectedDate
+    detectionMethod
+    recurrenceType
+    confirmedByBiopsy
+    acknowledgedAt
+    createdAt
+  }
+}
+
+query GetGenomicComparison($recurrenceEventId: String!) {
+  genomicComparison(recurrenceEventId: $recurrenceEventId) {
+    hasNewData
+    resistanceMutations
+    biomarkerChanges
+    actionableChanges
+    patientSummary
+    generatedAt
+  }
+}
+
+query GetSecondOpinionResources {
+  secondOpinionResources {
+    name
+    type
+    description
+    url
+    virtual
+  }
+}
+
+mutation ReportRecurrence($input: ReportRecurrenceInput!) {
+  reportRecurrence(input: $input) {
+    id
+    patientId
+    detectedDate
+    detectionMethod
+    recurrenceType
+    recurrenceSites
+    confirmedByBiopsy
+    cascadeStatus {
+      acknowledged
+      supportOffered
+      resequencingRecommended
+      trialRematched
+      financialRematched
+      secondOpinionOffered
+      careTeamUpdated
+      translatorRegenerated
+      planArchived
+      pipelineActivated
+      genomicComparisonReady
+    }
+    createdAt
+  }
+}
+
+mutation AcknowledgeRecurrence($recurrenceEventId: String!) {
+  acknowledgeRecurrence(recurrenceEventId: $recurrenceEventId) {
+    id
+    acknowledgedAt
+    cascadeStatus {
+      acknowledged
+      supportOffered
+      resequencingRecommended
+      trialRematched
+      financialRematched
+      secondOpinionOffered
+      careTeamUpdated
+      translatorRegenerated
+      planArchived
+      pipelineActivated
+      genomicComparisonReady
+    }
+  }
+}
+
+mutation UpdateCascadeStep($input: UpdateCascadeStepInput!) {
+  updateCascadeStep(input: $input) {
+    id
+    cascadeStatus {
+      acknowledged
+      supportOffered
+      resequencingRecommended
+      trialRematched
+      financialRematched
+      secondOpinionOffered
+      careTeamUpdated
+      translatorRegenerated
+      planArchived
+      pipelineActivated
+      genomicComparisonReady
+    }
+  }
+}
+
+mutation RegenerateTranslator($recurrenceEventId: String!) {
+  regenerateTranslator(recurrenceEventId: $recurrenceEventId) {
+    id
+    cascadeStatus {
+      acknowledged
+      supportOffered
+      resequencingRecommended
+      trialRematched
+      financialRematched
+      secondOpinionOffered
+      careTeamUpdated
+      translatorRegenerated
+      planArchived
+      pipelineActivated
+      genomicComparisonReady
+    }
+  }
+}
+
+mutation ArchiveSurvivorshipPlan {
+  archiveSurvivorshipPlan
+}

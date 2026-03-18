@@ -103,6 +103,7 @@ model Patient {
   notificationLogs        NotificationLog[]
   notificationPreference  NotificationPreference?
   survivorshipFeedback    SurvivorshipFeedback[]
+  recurrenceEvents        RecurrenceEvent[]
 
   @@map("patients")
 }
@@ -836,4 +837,31 @@ model SurvivorshipFeedback {
 
   @@index([patientId, feedbackType])
   @@map("survivorship_feedback")
+}
+
+model RecurrenceEvent {
+  id                    String    @id @default(uuid()) @db.Uuid
+  patientId             String    @map("patient_id") @db.Uuid
+  detectedDate          DateTime  @map("detected_date")
+  detectionMethod       String    @map("detection_method") @db.VarChar(30)
+  recurrenceType        String?   @map("recurrence_type") @db.VarChar(20)
+  recurrenceSites       String[]  @default([]) @map("recurrence_sites")
+  confirmedByBiopsy     Boolean   @default(false) @map("confirmed_by_biopsy")
+  newPathologyAvailable Boolean   @default(false) @map("new_pathology_available")
+  newStage              String?   @map("new_stage") @db.VarChar(20)
+  newBiomarkers         Json?     @map("new_biomarkers")
+  timeSinceInitialDx    Int?      @map("time_since_initial_dx")
+  timeSinceCompletion   Int?      @map("time_since_completion")
+  ctdnaResultId         String?   @map("ctdna_result_id") @db.Uuid
+  priorTreatments       String[]  @default([]) @map("prior_treatments")
+  documentUploadId      String?   @map("document_upload_id") @db.Uuid
+  cascadeStatus         Json      @default("{}") @map("cascade_status")
+  acknowledgedAt        DateTime? @map("acknowledged_at")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId, createdAt(sort: Desc)])
+  @@map("recurrence_events")
 }

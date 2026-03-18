@@ -121,6 +121,17 @@ export interface GraphQLContext {
     submitFeedback: (patientId: string, input: any) => Promise<any>;
     getFeedback: (patientId: string) => Promise<any[]>;
     annualRefreshSCP: (patientId: string) => Promise<any>;
+
+    // Recurrence
+    reportRecurrence: (patientId: string, input: any) => Promise<any>;
+    acknowledgeRecurrence: (recurrenceEventId: string) => Promise<any>;
+    updateCascadeStep: (recurrenceEventId: string, step: string, value: boolean) => Promise<any>;
+    regenerateTranslator: (patientId: string, recurrenceEventId: string) => Promise<any>;
+    archiveSurvivorshipPlan: (patientId: string) => Promise<boolean>;
+    getRecurrenceEvent: (patientId: string) => Promise<any>;
+    getRecurrenceEvents: (patientId: string) => Promise<any[]>;
+    generateGenomicComparison: (patientId: string, recurrenceEventId: string) => Promise<any>;
+    getSecondOpinionResources: (patientId: string) => Promise<any[]>;
   };
 }
 

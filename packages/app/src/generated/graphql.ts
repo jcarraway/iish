@@ -121,6 +121,21 @@ export type CareTeamMember = {
   role: Scalars['String']['output'];
 };
 
+export type CascadeStatus = {
+  __typename?: 'CascadeStatus';
+  acknowledged: Scalars['Boolean']['output'];
+  careTeamUpdated: Scalars['Boolean']['output'];
+  financialRematched: Scalars['Boolean']['output'];
+  genomicComparisonReady: Scalars['Boolean']['output'];
+  pipelineActivated: Scalars['Boolean']['output'];
+  planArchived: Scalars['Boolean']['output'];
+  resequencingRecommended: Scalars['Boolean']['output'];
+  secondOpinionOffered: Scalars['Boolean']['output'];
+  supportOffered: Scalars['Boolean']['output'];
+  translatorRegenerated: Scalars['Boolean']['output'];
+  trialRematched: Scalars['Boolean']['output'];
+};
+
 export type CommonConcern = {
   __typename?: 'CommonConcern';
   answer: Scalars['String']['output'];
@@ -332,6 +347,16 @@ export type GenomicBiomarkers = {
   msi?: Maybe<MsiBiomarker>;
   pdl1?: Maybe<Pdl1Biomarker>;
   tmb?: Maybe<TmbBiomarker>;
+};
+
+export type GenomicComparison = {
+  __typename?: 'GenomicComparison';
+  actionableChanges: Array<Scalars['String']['output']>;
+  biomarkerChanges: Array<Scalars['String']['output']>;
+  generatedAt: Scalars['String']['output'];
+  hasNewData: Scalars['Boolean']['output'];
+  patientSummary: Scalars['String']['output'];
+  resistanceMutations: Array<Scalars['String']['output']>;
 };
 
 export type GenomicData = {
@@ -648,10 +673,12 @@ export type MsiBiomarker = {
 export type Mutation = {
   __typename?: 'Mutation';
   acceptQuote: ManufacturingOrder;
+  acknowledgeRecurrence: RecurrenceEvent;
   addCareTeamMember: CareTeamMember;
   addCtdnaResult: CtdnaResult;
   addOrderNote: ManufacturingOrder;
   annualRefreshSCP: AnnualRefreshResult;
+  archiveSurvivorshipPlan: Scalars['Boolean']['output'];
   assessRegulatoryPathway: RegulatoryPathwayAssessment;
   authorizeFhir: FhirAuthorizeResult;
   cancelPipelineJob: PipelineJob;
@@ -679,8 +706,10 @@ export type Mutation = {
   markEventComplete: SurveillanceEvent;
   matchFinancialPrograms: Array<FinancialMatch>;
   refreshSCP: SurvivorshipPlan;
+  regenerateTranslator: RecurrenceEvent;
   rematch: MatchDelta;
   removeCareTeamMember: Scalars['Boolean']['output'];
+  reportRecurrence: RecurrenceEvent;
   requestGeneralUploadUrl: UploadUrlResult;
   requestMagicLink: Scalars['Boolean']['output'];
   requestUploadUrl: UploadUrl;
@@ -696,6 +725,7 @@ export type Mutation = {
   subscribeFinancialProgram: Scalars['Boolean']['output'];
   translateTreatment: TreatmentTranslation;
   updateCareTeamMember: CareTeamMember;
+  updateCascadeStep: RecurrenceEvent;
   updateManufacturingOrderStatus: ManufacturingOrder;
   updateMatchStatus: Match;
   updateNotificationPreferences: NotificationPreference;
@@ -708,6 +738,11 @@ export type Mutation = {
 
 export type MutationAcceptQuoteArgs = {
   orderId: Scalars['String']['input'];
+};
+
+
+export type MutationAcknowledgeRecurrenceArgs = {
+  recurrenceEventId: Scalars['String']['input'];
 };
 
 
@@ -841,8 +876,18 @@ export type MutationMatchFinancialProgramsArgs = {
 };
 
 
+export type MutationRegenerateTranslatorArgs = {
+  recurrenceEventId: Scalars['String']['input'];
+};
+
+
 export type MutationRemoveCareTeamMemberArgs = {
   memberId: Scalars['String']['input'];
+};
+
+
+export type MutationReportRecurrenceArgs = {
+  input: ReportRecurrenceInput;
 };
 
 
@@ -926,6 +971,11 @@ export type MutationTranslateTreatmentArgs = {
 
 export type MutationUpdateCareTeamMemberArgs = {
   input: UpdateCareTeamMemberInput;
+};
+
+
+export type MutationUpdateCascadeStepArgs = {
+  input: UpdateCascadeStepInput;
 };
 
 
@@ -1205,6 +1255,7 @@ export type Query = {
   financialProgram?: Maybe<FinancialProgram>;
   financialPrograms: Array<FinancialProgram>;
   generateReport?: Maybe<Scalars['JSON']['output']>;
+  genomicComparison: GenomicComparison;
   genomicResult?: Maybe<GenomicResult>;
   genomicResults: Array<GenomicResult>;
   healthSystems: Array<HealthSystem>;
@@ -1232,12 +1283,15 @@ export type Query = {
   pipelineJobs: Array<PipelineJob>;
   pipelineResults: PipelineResultDownloads;
   recommendedPartners: Array<PartnerRecommendation>;
+  recurrenceEvent?: Maybe<RecurrenceEvent>;
+  recurrenceEvents: Array<RecurrenceEvent>;
   regulatoryAssessment?: Maybe<RegulatoryPathwayAssessment>;
   regulatoryAssessments: Array<RegulatoryPathwayAssessment>;
   regulatoryDocument?: Maybe<RegulatoryDocument>;
   regulatoryDocuments: Array<RegulatoryDocument>;
   reportPdf: ReportPdfResult;
   routeSymptom: SymptomRouting;
+  secondOpinionResources: Array<SecondOpinionResource>;
   sequencingBrief: Scalars['String']['output'];
   sequencingExplanation: SequencingExplanation;
   sequencingOrder?: Maybe<SequencingOrder>;
@@ -1279,6 +1333,11 @@ export type QueryFinancialProgramArgs = {
 export type QueryGenerateReportArgs = {
   pipelineJobId: Scalars['String']['input'];
   reportType: Scalars['String']['input'];
+};
+
+
+export type QueryGenomicComparisonArgs = {
+  recurrenceEventId: Scalars['String']['input'];
 };
 
 
@@ -1443,6 +1502,29 @@ export type ReceptorStatus = {
   pr?: Maybe<ReceptorDetail>;
 };
 
+export type RecurrenceEvent = {
+  __typename?: 'RecurrenceEvent';
+  acknowledgedAt?: Maybe<Scalars['String']['output']>;
+  cascadeStatus: CascadeStatus;
+  confirmedByBiopsy: Scalars['Boolean']['output'];
+  createdAt: Scalars['DateTime']['output'];
+  ctdnaResultId?: Maybe<Scalars['String']['output']>;
+  detectedDate: Scalars['String']['output'];
+  detectionMethod: Scalars['String']['output'];
+  documentUploadId?: Maybe<Scalars['String']['output']>;
+  id: Scalars['String']['output'];
+  newBiomarkers?: Maybe<Scalars['JSON']['output']>;
+  newPathologyAvailable: Scalars['Boolean']['output'];
+  newStage?: Maybe<Scalars['String']['output']>;
+  patientId: Scalars['String']['output'];
+  priorTreatments: Array<Scalars['String']['output']>;
+  recurrenceSites: Array<Scalars['String']['output']>;
+  recurrenceType?: Maybe<Scalars['String']['output']>;
+  timeSinceCompletion?: Maybe<Scalars['Int']['output']>;
+  timeSinceInitialDx?: Maybe<Scalars['Int']['output']>;
+  updatedAt: Scalars['DateTime']['output'];
+};
+
 export type RegulatoryDocument = {
   __typename?: 'RegulatoryDocument';
   assessmentId: Scalars['String']['output'];
@@ -1476,6 +1558,16 @@ export type ReportPdfResult = {
   url: Scalars['String']['output'];
 };
 
+export type ReportRecurrenceInput = {
+  confirmedByBiopsy?: InputMaybe<Scalars['Boolean']['input']>;
+  detectedDate: Scalars['String']['input'];
+  detectionMethod: Scalars['String']['input'];
+  documentUploadId?: InputMaybe<Scalars['String']['input']>;
+  newStage?: InputMaybe<Scalars['String']['input']>;
+  recurrenceSites?: InputMaybe<Array<Scalars['String']['input']>>;
+  recurrenceType?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type RescheduleEventInput = {
   eventId: Scalars['String']['input'];
   newDueDate: Scalars['String']['input'];
@@ -1487,6 +1579,15 @@ export type ScpDiff = {
   changedSections: Array<Scalars['String']['output']>;
   removedItems: Array<Scalars['String']['output']>;
   summary: Scalars['String']['output'];
+};
+
+export type SecondOpinionResource = {
+  __typename?: 'SecondOpinionResource';
+  description: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  type: Scalars['String']['output'];
+  url: Scalars['String']['output'];
+  virtual: Scalars['Boolean']['output'];
 };
 
 export type SecondOpinionTrigger = {
@@ -1762,6 +1863,12 @@ export type UpdateCareTeamMemberInput = {
   phone?: InputMaybe<Scalars['String']['input']>;
   practice?: InputMaybe<Scalars['String']['input']>;
   role?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdateCascadeStepInput = {
+  recurrenceEventId: Scalars['String']['input'];
+  step: Scalars['String']['input'];
+  value: Scalars['Boolean']['input'];
 };
 
 export type UpdateNotificationPreferenceInput = {
@@ -2551,6 +2658,61 @@ export type GenerateLifestyleRecommendationsMutationVariables = Exact<{ [key: st
 
 
 export type GenerateLifestyleRecommendationsMutation = { __typename?: 'Mutation', generateLifestyleRecommendations: { __typename?: 'LifestyleRecommendations', generatedAt: string, exercise: { __typename?: 'ExerciseRecommendation', headline: string, effectSize: string, weeklyTargetMinutes: number, intensity: string, strengthDaysPerWeek: number, precautions: Array<{ __typename?: 'ExercisePrecaution', issue: string, guidance: string }>, starterPlan: Array<{ __typename?: 'ExerciseWeek', week: number, totalMinutes: number, sessions: Array<{ __typename?: 'ExerciseSession', day: string, type: string, duration: number, description: string }> }>, symptomExercises: Array<{ __typename?: 'SymptomExercise', symptom: string, exerciseType: string, evidence: string }> }, nutrition: { __typename?: 'NutritionRecommendation', headline: string, strongEvidence: Array<string>, medicationGuidance: Array<{ __typename?: 'MedicationNutrition', medication: string, considerations: Array<string>, emphasize: Array<string>, limit: Array<string> }>, mythBusting: Array<{ __typename?: 'NutritionMyth', myth: string, reality: string, nuance: string }> }, alcohol: { __typename?: 'AlcoholRecommendation', headline: string, quantifiedRisk: string, subtypeContext: string, recommendation: string, evidenceStrength: string, honestFraming: string }, environment: { __typename?: 'EnvironmentalRecommendation', approach: string, steps: Array<{ __typename?: 'EnvironmentalStep', category: string, action: string, why: string, difficulty: string, cost: string, evidence: string }>, overblownConcerns: Array<{ __typename?: 'OverblownConcern', claim: string, reality: string }> } } };
+
+export type GetRecurrenceEventQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetRecurrenceEventQuery = { __typename?: 'Query', recurrenceEvent?: { __typename?: 'RecurrenceEvent', id: string, patientId: string, detectedDate: string, detectionMethod: string, recurrenceType?: string | null, recurrenceSites: Array<string>, confirmedByBiopsy: boolean, newPathologyAvailable: boolean, newStage?: string | null, timeSinceInitialDx?: number | null, timeSinceCompletion?: number | null, ctdnaResultId?: string | null, priorTreatments: Array<string>, documentUploadId?: string | null, acknowledgedAt?: string | null, createdAt: string, updatedAt: string, cascadeStatus: { __typename?: 'CascadeStatus', acknowledged: boolean, supportOffered: boolean, resequencingRecommended: boolean, trialRematched: boolean, financialRematched: boolean, secondOpinionOffered: boolean, careTeamUpdated: boolean, translatorRegenerated: boolean, planArchived: boolean, pipelineActivated: boolean, genomicComparisonReady: boolean } } | null };
+
+export type GetRecurrenceEventsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetRecurrenceEventsQuery = { __typename?: 'Query', recurrenceEvents: Array<{ __typename?: 'RecurrenceEvent', id: string, detectedDate: string, detectionMethod: string, recurrenceType?: string | null, confirmedByBiopsy: boolean, acknowledgedAt?: string | null, createdAt: string }> };
+
+export type GetGenomicComparisonQueryVariables = Exact<{
+  recurrenceEventId: Scalars['String']['input'];
+}>;
+
+
+export type GetGenomicComparisonQuery = { __typename?: 'Query', genomicComparison: { __typename?: 'GenomicComparison', hasNewData: boolean, resistanceMutations: Array<string>, biomarkerChanges: Array<string>, actionableChanges: Array<string>, patientSummary: string, generatedAt: string } };
+
+export type GetSecondOpinionResourcesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetSecondOpinionResourcesQuery = { __typename?: 'Query', secondOpinionResources: Array<{ __typename?: 'SecondOpinionResource', name: string, type: string, description: string, url: string, virtual: boolean }> };
+
+export type ReportRecurrenceMutationVariables = Exact<{
+  input: ReportRecurrenceInput;
+}>;
+
+
+export type ReportRecurrenceMutation = { __typename?: 'Mutation', reportRecurrence: { __typename?: 'RecurrenceEvent', id: string, patientId: string, detectedDate: string, detectionMethod: string, recurrenceType?: string | null, recurrenceSites: Array<string>, confirmedByBiopsy: boolean, createdAt: string, cascadeStatus: { __typename?: 'CascadeStatus', acknowledged: boolean, supportOffered: boolean, resequencingRecommended: boolean, trialRematched: boolean, financialRematched: boolean, secondOpinionOffered: boolean, careTeamUpdated: boolean, translatorRegenerated: boolean, planArchived: boolean, pipelineActivated: boolean, genomicComparisonReady: boolean } } };
+
+export type AcknowledgeRecurrenceMutationVariables = Exact<{
+  recurrenceEventId: Scalars['String']['input'];
+}>;
+
+
+export type AcknowledgeRecurrenceMutation = { __typename?: 'Mutation', acknowledgeRecurrence: { __typename?: 'RecurrenceEvent', id: string, acknowledgedAt?: string | null, cascadeStatus: { __typename?: 'CascadeStatus', acknowledged: boolean, supportOffered: boolean, resequencingRecommended: boolean, trialRematched: boolean, financialRematched: boolean, secondOpinionOffered: boolean, careTeamUpdated: boolean, translatorRegenerated: boolean, planArchived: boolean, pipelineActivated: boolean, genomicComparisonReady: boolean } } };
+
+export type UpdateCascadeStepMutationVariables = Exact<{
+  input: UpdateCascadeStepInput;
+}>;
+
+
+export type UpdateCascadeStepMutation = { __typename?: 'Mutation', updateCascadeStep: { __typename?: 'RecurrenceEvent', id: string, cascadeStatus: { __typename?: 'CascadeStatus', acknowledged: boolean, supportOffered: boolean, resequencingRecommended: boolean, trialRematched: boolean, financialRematched: boolean, secondOpinionOffered: boolean, careTeamUpdated: boolean, translatorRegenerated: boolean, planArchived: boolean, pipelineActivated: boolean, genomicComparisonReady: boolean } } };
+
+export type RegenerateTranslatorMutationVariables = Exact<{
+  recurrenceEventId: Scalars['String']['input'];
+}>;
+
+
+export type RegenerateTranslatorMutation = { __typename?: 'Mutation', regenerateTranslator: { __typename?: 'RecurrenceEvent', id: string, cascadeStatus: { __typename?: 'CascadeStatus', acknowledged: boolean, supportOffered: boolean, resequencingRecommended: boolean, trialRematched: boolean, financialRematched: boolean, secondOpinionOffered: boolean, careTeamUpdated: boolean, translatorRegenerated: boolean, planArchived: boolean, pipelineActivated: boolean, genomicComparisonReady: boolean } } };
+
+export type ArchiveSurvivorshipPlanMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ArchiveSurvivorshipPlanMutation = { __typename?: 'Mutation', archiveSurvivorshipPlan: boolean };
 
 export type GetTrialsQueryVariables = Exact<{
   cancerType?: InputMaybe<Scalars['String']['input']>;
@@ -8082,6 +8244,441 @@ export function useGenerateLifestyleRecommendationsMutation(baseOptions?: Apollo
 export type GenerateLifestyleRecommendationsMutationHookResult = ReturnType<typeof useGenerateLifestyleRecommendationsMutation>;
 export type GenerateLifestyleRecommendationsMutationResult = Apollo.MutationResult<GenerateLifestyleRecommendationsMutation>;
 export type GenerateLifestyleRecommendationsMutationOptions = Apollo.BaseMutationOptions<GenerateLifestyleRecommendationsMutation, GenerateLifestyleRecommendationsMutationVariables>;
+export const GetRecurrenceEventDocument = gql`
+    query GetRecurrenceEvent {
+  recurrenceEvent {
+    id
+    patientId
+    detectedDate
+    detectionMethod
+    recurrenceType
+    recurrenceSites
+    confirmedByBiopsy
+    newPathologyAvailable
+    newStage
+    timeSinceInitialDx
+    timeSinceCompletion
+    ctdnaResultId
+    priorTreatments
+    documentUploadId
+    cascadeStatus {
+      acknowledged
+      supportOffered
+      resequencingRecommended
+      trialRematched
+      financialRematched
+      secondOpinionOffered
+      careTeamUpdated
+      translatorRegenerated
+      planArchived
+      pipelineActivated
+      genomicComparisonReady
+    }
+    acknowledgedAt
+    createdAt
+    updatedAt
+  }
+}
+    `;
+
+/**
+ * __useGetRecurrenceEventQuery__
+ *
+ * To run a query within a React component, call `useGetRecurrenceEventQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetRecurrenceEventQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetRecurrenceEventQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetRecurrenceEventQuery(baseOptions?: Apollo.QueryHookOptions<GetRecurrenceEventQuery, GetRecurrenceEventQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetRecurrenceEventQuery, GetRecurrenceEventQueryVariables>(GetRecurrenceEventDocument, options);
+      }
+export function useGetRecurrenceEventLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetRecurrenceEventQuery, GetRecurrenceEventQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetRecurrenceEventQuery, GetRecurrenceEventQueryVariables>(GetRecurrenceEventDocument, options);
+        }
+// @ts-ignore
+export function useGetRecurrenceEventSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetRecurrenceEventQuery, GetRecurrenceEventQueryVariables>): Apollo.UseSuspenseQueryResult<GetRecurrenceEventQuery, GetRecurrenceEventQueryVariables>;
+export function useGetRecurrenceEventSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetRecurrenceEventQuery, GetRecurrenceEventQueryVariables>): Apollo.UseSuspenseQueryResult<GetRecurrenceEventQuery | undefined, GetRecurrenceEventQueryVariables>;
+export function useGetRecurrenceEventSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetRecurrenceEventQuery, GetRecurrenceEventQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetRecurrenceEventQuery, GetRecurrenceEventQueryVariables>(GetRecurrenceEventDocument, options);
+        }
+export type GetRecurrenceEventQueryHookResult = ReturnType<typeof useGetRecurrenceEventQuery>;
+export type GetRecurrenceEventLazyQueryHookResult = ReturnType<typeof useGetRecurrenceEventLazyQuery>;
+export type GetRecurrenceEventSuspenseQueryHookResult = ReturnType<typeof useGetRecurrenceEventSuspenseQuery>;
+export type GetRecurrenceEventQueryResult = Apollo.QueryResult<GetRecurrenceEventQuery, GetRecurrenceEventQueryVariables>;
+export const GetRecurrenceEventsDocument = gql`
+    query GetRecurrenceEvents {
+  recurrenceEvents {
+    id
+    detectedDate
+    detectionMethod
+    recurrenceType
+    confirmedByBiopsy
+    acknowledgedAt
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useGetRecurrenceEventsQuery__
+ *
+ * To run a query within a React component, call `useGetRecurrenceEventsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetRecurrenceEventsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetRecurrenceEventsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetRecurrenceEventsQuery(baseOptions?: Apollo.QueryHookOptions<GetRecurrenceEventsQuery, GetRecurrenceEventsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetRecurrenceEventsQuery, GetRecurrenceEventsQueryVariables>(GetRecurrenceEventsDocument, options);
+      }
+export function useGetRecurrenceEventsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetRecurrenceEventsQuery, GetRecurrenceEventsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetRecurrenceEventsQuery, GetRecurrenceEventsQueryVariables>(GetRecurrenceEventsDocument, options);
+        }
+// @ts-ignore
+export function useGetRecurrenceEventsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetRecurrenceEventsQuery, GetRecurrenceEventsQueryVariables>): Apollo.UseSuspenseQueryResult<GetRecurrenceEventsQuery, GetRecurrenceEventsQueryVariables>;
+export function useGetRecurrenceEventsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetRecurrenceEventsQuery, GetRecurrenceEventsQueryVariables>): Apollo.UseSuspenseQueryResult<GetRecurrenceEventsQuery | undefined, GetRecurrenceEventsQueryVariables>;
+export function useGetRecurrenceEventsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetRecurrenceEventsQuery, GetRecurrenceEventsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetRecurrenceEventsQuery, GetRecurrenceEventsQueryVariables>(GetRecurrenceEventsDocument, options);
+        }
+export type GetRecurrenceEventsQueryHookResult = ReturnType<typeof useGetRecurrenceEventsQuery>;
+export type GetRecurrenceEventsLazyQueryHookResult = ReturnType<typeof useGetRecurrenceEventsLazyQuery>;
+export type GetRecurrenceEventsSuspenseQueryHookResult = ReturnType<typeof useGetRecurrenceEventsSuspenseQuery>;
+export type GetRecurrenceEventsQueryResult = Apollo.QueryResult<GetRecurrenceEventsQuery, GetRecurrenceEventsQueryVariables>;
+export const GetGenomicComparisonDocument = gql`
+    query GetGenomicComparison($recurrenceEventId: String!) {
+  genomicComparison(recurrenceEventId: $recurrenceEventId) {
+    hasNewData
+    resistanceMutations
+    biomarkerChanges
+    actionableChanges
+    patientSummary
+    generatedAt
+  }
+}
+    `;
+
+/**
+ * __useGetGenomicComparisonQuery__
+ *
+ * To run a query within a React component, call `useGetGenomicComparisonQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetGenomicComparisonQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetGenomicComparisonQuery({
+ *   variables: {
+ *      recurrenceEventId: // value for 'recurrenceEventId'
+ *   },
+ * });
+ */
+export function useGetGenomicComparisonQuery(baseOptions: Apollo.QueryHookOptions<GetGenomicComparisonQuery, GetGenomicComparisonQueryVariables> & ({ variables: GetGenomicComparisonQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetGenomicComparisonQuery, GetGenomicComparisonQueryVariables>(GetGenomicComparisonDocument, options);
+      }
+export function useGetGenomicComparisonLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetGenomicComparisonQuery, GetGenomicComparisonQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetGenomicComparisonQuery, GetGenomicComparisonQueryVariables>(GetGenomicComparisonDocument, options);
+        }
+// @ts-ignore
+export function useGetGenomicComparisonSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetGenomicComparisonQuery, GetGenomicComparisonQueryVariables>): Apollo.UseSuspenseQueryResult<GetGenomicComparisonQuery, GetGenomicComparisonQueryVariables>;
+export function useGetGenomicComparisonSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetGenomicComparisonQuery, GetGenomicComparisonQueryVariables>): Apollo.UseSuspenseQueryResult<GetGenomicComparisonQuery | undefined, GetGenomicComparisonQueryVariables>;
+export function useGetGenomicComparisonSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetGenomicComparisonQuery, GetGenomicComparisonQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetGenomicComparisonQuery, GetGenomicComparisonQueryVariables>(GetGenomicComparisonDocument, options);
+        }
+export type GetGenomicComparisonQueryHookResult = ReturnType<typeof useGetGenomicComparisonQuery>;
+export type GetGenomicComparisonLazyQueryHookResult = ReturnType<typeof useGetGenomicComparisonLazyQuery>;
+export type GetGenomicComparisonSuspenseQueryHookResult = ReturnType<typeof useGetGenomicComparisonSuspenseQuery>;
+export type GetGenomicComparisonQueryResult = Apollo.QueryResult<GetGenomicComparisonQuery, GetGenomicComparisonQueryVariables>;
+export const GetSecondOpinionResourcesDocument = gql`
+    query GetSecondOpinionResources {
+  secondOpinionResources {
+    name
+    type
+    description
+    url
+    virtual
+  }
+}
+    `;
+
+/**
+ * __useGetSecondOpinionResourcesQuery__
+ *
+ * To run a query within a React component, call `useGetSecondOpinionResourcesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSecondOpinionResourcesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSecondOpinionResourcesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetSecondOpinionResourcesQuery(baseOptions?: Apollo.QueryHookOptions<GetSecondOpinionResourcesQuery, GetSecondOpinionResourcesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetSecondOpinionResourcesQuery, GetSecondOpinionResourcesQueryVariables>(GetSecondOpinionResourcesDocument, options);
+      }
+export function useGetSecondOpinionResourcesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSecondOpinionResourcesQuery, GetSecondOpinionResourcesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetSecondOpinionResourcesQuery, GetSecondOpinionResourcesQueryVariables>(GetSecondOpinionResourcesDocument, options);
+        }
+// @ts-ignore
+export function useGetSecondOpinionResourcesSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetSecondOpinionResourcesQuery, GetSecondOpinionResourcesQueryVariables>): Apollo.UseSuspenseQueryResult<GetSecondOpinionResourcesQuery, GetSecondOpinionResourcesQueryVariables>;
+export function useGetSecondOpinionResourcesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetSecondOpinionResourcesQuery, GetSecondOpinionResourcesQueryVariables>): Apollo.UseSuspenseQueryResult<GetSecondOpinionResourcesQuery | undefined, GetSecondOpinionResourcesQueryVariables>;
+export function useGetSecondOpinionResourcesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetSecondOpinionResourcesQuery, GetSecondOpinionResourcesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetSecondOpinionResourcesQuery, GetSecondOpinionResourcesQueryVariables>(GetSecondOpinionResourcesDocument, options);
+        }
+export type GetSecondOpinionResourcesQueryHookResult = ReturnType<typeof useGetSecondOpinionResourcesQuery>;
+export type GetSecondOpinionResourcesLazyQueryHookResult = ReturnType<typeof useGetSecondOpinionResourcesLazyQuery>;
+export type GetSecondOpinionResourcesSuspenseQueryHookResult = ReturnType<typeof useGetSecondOpinionResourcesSuspenseQuery>;
+export type GetSecondOpinionResourcesQueryResult = Apollo.QueryResult<GetSecondOpinionResourcesQuery, GetSecondOpinionResourcesQueryVariables>;
+export const ReportRecurrenceDocument = gql`
+    mutation ReportRecurrence($input: ReportRecurrenceInput!) {
+  reportRecurrence(input: $input) {
+    id
+    patientId
+    detectedDate
+    detectionMethod
+    recurrenceType
+    recurrenceSites
+    confirmedByBiopsy
+    cascadeStatus {
+      acknowledged
+      supportOffered
+      resequencingRecommended
+      trialRematched
+      financialRematched
+      secondOpinionOffered
+      careTeamUpdated
+      translatorRegenerated
+      planArchived
+      pipelineActivated
+      genomicComparisonReady
+    }
+    createdAt
+  }
+}
+    `;
+export type ReportRecurrenceMutationFn = Apollo.MutationFunction<ReportRecurrenceMutation, ReportRecurrenceMutationVariables>;
+
+/**
+ * __useReportRecurrenceMutation__
+ *
+ * To run a mutation, you first call `useReportRecurrenceMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useReportRecurrenceMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [reportRecurrenceMutation, { data, loading, error }] = useReportRecurrenceMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useReportRecurrenceMutation(baseOptions?: Apollo.MutationHookOptions<ReportRecurrenceMutation, ReportRecurrenceMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ReportRecurrenceMutation, ReportRecurrenceMutationVariables>(ReportRecurrenceDocument, options);
+      }
+export type ReportRecurrenceMutationHookResult = ReturnType<typeof useReportRecurrenceMutation>;
+export type ReportRecurrenceMutationResult = Apollo.MutationResult<ReportRecurrenceMutation>;
+export type ReportRecurrenceMutationOptions = Apollo.BaseMutationOptions<ReportRecurrenceMutation, ReportRecurrenceMutationVariables>;
+export const AcknowledgeRecurrenceDocument = gql`
+    mutation AcknowledgeRecurrence($recurrenceEventId: String!) {
+  acknowledgeRecurrence(recurrenceEventId: $recurrenceEventId) {
+    id
+    acknowledgedAt
+    cascadeStatus {
+      acknowledged
+      supportOffered
+      resequencingRecommended
+      trialRematched
+      financialRematched
+      secondOpinionOffered
+      careTeamUpdated
+      translatorRegenerated
+      planArchived
+      pipelineActivated
+      genomicComparisonReady
+    }
+  }
+}
+    `;
+export type AcknowledgeRecurrenceMutationFn = Apollo.MutationFunction<AcknowledgeRecurrenceMutation, AcknowledgeRecurrenceMutationVariables>;
+
+/**
+ * __useAcknowledgeRecurrenceMutation__
+ *
+ * To run a mutation, you first call `useAcknowledgeRecurrenceMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useAcknowledgeRecurrenceMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [acknowledgeRecurrenceMutation, { data, loading, error }] = useAcknowledgeRecurrenceMutation({
+ *   variables: {
+ *      recurrenceEventId: // value for 'recurrenceEventId'
+ *   },
+ * });
+ */
+export function useAcknowledgeRecurrenceMutation(baseOptions?: Apollo.MutationHookOptions<AcknowledgeRecurrenceMutation, AcknowledgeRecurrenceMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<AcknowledgeRecurrenceMutation, AcknowledgeRecurrenceMutationVariables>(AcknowledgeRecurrenceDocument, options);
+      }
+export type AcknowledgeRecurrenceMutationHookResult = ReturnType<typeof useAcknowledgeRecurrenceMutation>;
+export type AcknowledgeRecurrenceMutationResult = Apollo.MutationResult<AcknowledgeRecurrenceMutation>;
+export type AcknowledgeRecurrenceMutationOptions = Apollo.BaseMutationOptions<AcknowledgeRecurrenceMutation, AcknowledgeRecurrenceMutationVariables>;
+export const UpdateCascadeStepDocument = gql`
+    mutation UpdateCascadeStep($input: UpdateCascadeStepInput!) {
+  updateCascadeStep(input: $input) {
+    id
+    cascadeStatus {
+      acknowledged
+      supportOffered
+      resequencingRecommended
+      trialRematched
+      financialRematched
+      secondOpinionOffered
+      careTeamUpdated
+      translatorRegenerated
+      planArchived
+      pipelineActivated
+      genomicComparisonReady
+    }
+  }
+}
+    `;
+export type UpdateCascadeStepMutationFn = Apollo.MutationFunction<UpdateCascadeStepMutation, UpdateCascadeStepMutationVariables>;
+
+/**
+ * __useUpdateCascadeStepMutation__
+ *
+ * To run a mutation, you first call `useUpdateCascadeStepMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateCascadeStepMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateCascadeStepMutation, { data, loading, error }] = useUpdateCascadeStepMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUpdateCascadeStepMutation(baseOptions?: Apollo.MutationHookOptions<UpdateCascadeStepMutation, UpdateCascadeStepMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateCascadeStepMutation, UpdateCascadeStepMutationVariables>(UpdateCascadeStepDocument, options);
+      }
+export type UpdateCascadeStepMutationHookResult = ReturnType<typeof useUpdateCascadeStepMutation>;
+export type UpdateCascadeStepMutationResult = Apollo.MutationResult<UpdateCascadeStepMutation>;
+export type UpdateCascadeStepMutationOptions = Apollo.BaseMutationOptions<UpdateCascadeStepMutation, UpdateCascadeStepMutationVariables>;
+export const RegenerateTranslatorDocument = gql`
+    mutation RegenerateTranslator($recurrenceEventId: String!) {
+  regenerateTranslator(recurrenceEventId: $recurrenceEventId) {
+    id
+    cascadeStatus {
+      acknowledged
+      supportOffered
+      resequencingRecommended
+      trialRematched
+      financialRematched
+      secondOpinionOffered
+      careTeamUpdated
+      translatorRegenerated
+      planArchived
+      pipelineActivated
+      genomicComparisonReady
+    }
+  }
+}
+    `;
+export type RegenerateTranslatorMutationFn = Apollo.MutationFunction<RegenerateTranslatorMutation, RegenerateTranslatorMutationVariables>;
+
+/**
+ * __useRegenerateTranslatorMutation__
+ *
+ * To run a mutation, you first call `useRegenerateTranslatorMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRegenerateTranslatorMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [regenerateTranslatorMutation, { data, loading, error }] = useRegenerateTranslatorMutation({
+ *   variables: {
+ *      recurrenceEventId: // value for 'recurrenceEventId'
+ *   },
+ * });
+ */
+export function useRegenerateTranslatorMutation(baseOptions?: Apollo.MutationHookOptions<RegenerateTranslatorMutation, RegenerateTranslatorMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RegenerateTranslatorMutation, RegenerateTranslatorMutationVariables>(RegenerateTranslatorDocument, options);
+      }
+export type RegenerateTranslatorMutationHookResult = ReturnType<typeof useRegenerateTranslatorMutation>;
+export type RegenerateTranslatorMutationResult = Apollo.MutationResult<RegenerateTranslatorMutation>;
+export type RegenerateTranslatorMutationOptions = Apollo.BaseMutationOptions<RegenerateTranslatorMutation, RegenerateTranslatorMutationVariables>;
+export const ArchiveSurvivorshipPlanDocument = gql`
+    mutation ArchiveSurvivorshipPlan {
+  archiveSurvivorshipPlan
+}
+    `;
+export type ArchiveSurvivorshipPlanMutationFn = Apollo.MutationFunction<ArchiveSurvivorshipPlanMutation, ArchiveSurvivorshipPlanMutationVariables>;
+
+/**
+ * __useArchiveSurvivorshipPlanMutation__
+ *
+ * To run a mutation, you first call `useArchiveSurvivorshipPlanMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useArchiveSurvivorshipPlanMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [archiveSurvivorshipPlanMutation, { data, loading, error }] = useArchiveSurvivorshipPlanMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useArchiveSurvivorshipPlanMutation(baseOptions?: Apollo.MutationHookOptions<ArchiveSurvivorshipPlanMutation, ArchiveSurvivorshipPlanMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ArchiveSurvivorshipPlanMutation, ArchiveSurvivorshipPlanMutationVariables>(ArchiveSurvivorshipPlanDocument, options);
+      }
+export type ArchiveSurvivorshipPlanMutationHookResult = ReturnType<typeof useArchiveSurvivorshipPlanMutation>;
+export type ArchiveSurvivorshipPlanMutationResult = Apollo.MutationResult<ArchiveSurvivorshipPlanMutation>;
+export type ArchiveSurvivorshipPlanMutationOptions = Apollo.BaseMutationOptions<ArchiveSurvivorshipPlanMutation, ArchiveSurvivorshipPlanMutationVariables>;
 export const GetTrialsDocument = gql`
     query GetTrials($cancerType: String, $phase: String, $limit: Int) {
   trials(cancerType: $cancerType, phase: $phase, limit: $limit) {

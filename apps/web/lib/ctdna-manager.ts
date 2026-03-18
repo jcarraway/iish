@@ -52,6 +52,10 @@ export async function addCtdnaResult(patientId: string, input: {
       where: { id: ctdnaResult.id },
       data: { triggeredTrialRematch: true },
     });
+
+    // Create preliminary recurrence event
+    const { createPreliminaryRecurrenceEvent } = await import('./recurrence-manager');
+    createPreliminaryRecurrenceEvent(patientId, ctdnaResult.id).catch(() => {});
   }
 
   // 4. Auto-complete matching surveillance event
