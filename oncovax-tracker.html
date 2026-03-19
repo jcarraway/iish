@@ -557,6 +557,23 @@
           ],
         },
         {
+          id: "xplat",
+          name: "Cross-platform migration (Dripsy + Apollo)",
+          badge: "CORE",
+          badgeClass: "badge-core",
+          sessions: [
+            { id: "D0", name: "Foundation — packages/ui, app, api", weeks: "W1" },
+            { id: "D1", name: "Component migration (22 Dripsy)", weeks: "W1-2" },
+            { id: "D2", name: "GraphQL schema + codegen", weeks: "W2-3" },
+            { id: "D3", name: "Screen migration — 8 simple/list", weeks: "W3-4" },
+            { id: "D4", name: "Screen migration — 19 detail/mfg", weeks: "W4-5" },
+            { id: "D5", name: "Dashboard + intake + sequencing", weeks: "W5-6" },
+            { id: "D6", name: "Pipeline + seq detail + records (12)", weeks: "W6-7" },
+            { id: "D7", name: "Mobile routing — all 46 screens", weeks: "W7-8" },
+            { id: "D8", name: "Dead code cleanup + REST→GraphQL", weeks: "W8" },
+          ],
+        },
+        {
           id: "phase5",
           name: "Phase 5: Survivorship module",
           badge: "SURV",
@@ -569,25 +586,25 @@
             },
             {
               id: "S2",
-              name: "Recurrence monitoring + ctDNA guide",
+              name: "Surveillance schedule engine",
               weeks: "W2-3",
             },
             {
               id: "S3",
-              name: "Late effects tracker + symptom journal",
+              name: "Symptom journal + late effects tracker",
               weeks: "W3-5",
             },
             {
               id: "S4",
-              name: "Lifestyle engine (exercise + nutrition)",
+              name: "Evidence-based lifestyle engine",
               weeks: "W5-6",
             },
-            { id: "S5", name: "Psychosocial support layer", weeks: "W6-7" },
-            { id: "S6", name: "Care coordination hub", weeks: "W7-8" },
-            { id: "S7", name: "Integration + onboarding flow", weeks: "W8-10" },
+            { id: "S5", name: "Psychosocial support + care coordination", weeks: "W6-7" },
+            { id: "S6", name: "ctDNA monitoring + recurrence detection", weeks: "W7-8" },
+            { id: "S7", name: "Notifications + phase transitions + feedback", weeks: "W8-10" },
             {
               id: "S8",
-              name: "Recurrence pathway (10-step cascade)",
+              name: "Recurrence pathway (11-step cascade)",
               weeks: "W10-12",
             },
           ],
@@ -686,13 +703,8 @@
           sessions: [
             {
               id: "F1",
-              name: "Risk assessment + options navigator",
-              weeks: "W1-2",
-            },
-            {
-              id: "F2",
-              name: "Provider directory + financial + comms",
-              weeks: "W2-4",
+              name: "Risk assessment + preservation options + providers + guide",
+              weeks: "W1",
             },
           ],
         },
@@ -704,13 +716,8 @@
           sessions: [
             {
               id: "SO1",
-              name: "Trigger system + center directory",
-              weeks: "W1-2",
-            },
-            {
-              id: "SO2",
-              name: "Record assembly + communication",
-              weeks: "W2-4",
+              name: "Triggers + centers + packets + communication + outcomes",
+              weeks: "W1",
             },
           ],
         },
@@ -722,13 +729,8 @@
           sessions: [
             {
               id: "TL1",
-              name: "Logistics assessment + assistance matching",
-              weeks: "W1-2",
-            },
-            {
-              id: "TL2",
-              name: "Logistics plan generator + tracking",
-              weeks: "W2-4",
+              name: "Assessment + assistance programs + plan generator + tracking",
+              weeks: "W1",
             },
           ],
         },
@@ -758,13 +760,8 @@
           sessions: [
             {
               id: "IA1",
-              name: "Denial tracking + appeal generator",
-              weeks: "W1-3",
-            },
-            {
-              id: "IA2",
-              name: "Rights education + tracking + escalation",
-              weeks: "W3-4",
+              name: "Denial tracking + appeals + rights + escalation",
+              weeks: "W1",
             },
           ],
         },
@@ -880,6 +877,33 @@
         // Phase 4 — complete
         "phase4:M1": "complete",
         "phase4:M2": "complete",
+        // Cross-platform migration — all 9 sessions complete
+        "xplat:D0": "complete",
+        "xplat:D1": "complete",
+        "xplat:D2": "complete",
+        "xplat:D3": "complete",
+        "xplat:D4": "complete",
+        "xplat:D5": "complete",
+        "xplat:D6": "complete",
+        "xplat:D7": "complete",
+        "xplat:D8": "complete",
+        // Phase 5 — all 8 sessions complete
+        "phase5:S1": "complete",
+        "phase5:S2": "complete",
+        "phase5:S3": "complete",
+        "phase5:S4": "complete",
+        "phase5:S5": "complete",
+        "phase5:S6": "complete",
+        "phase5:S7": "complete",
+        "phase5:S8": "complete",
+        // Access Gap — Fertility complete
+        "fertility:F1": "complete",
+        // Access Gap — Advocate complete
+        "advocate:IA1": "complete",
+        // Access Gap — Logistics complete
+        "logistics:TL1": "complete",
+        // Access Gap — Second Opinion complete
+        "second:SO1": "complete",
       };
 
       const DEFAULT_NOTES = {
@@ -921,6 +945,54 @@
           "~25 new files, 6 modified. 3 Prisma models (ManufacturingPartner, RegulatoryPathwayAssessment, RegulatoryDocument), 15 CDMOs seeded (3 tiers). pathway-advisor.ts (decision tree: trial→expanded_access→right_to_try→physician_ind), regulatory-documents.ts (8 Claude-powered templates with AI disclaimers). 10 API routes (4 manufacturing, 6 regulatory). 3 components (ManufacturingPartnerCard, PathwayRecommendation, RegulatoryDocumentCard). 8 pages under /manufacture/. Dashboard + nav integration. Docker Compose for local dev (postgres:15-alpine + redis:7-alpine). 0 type errors.",
         "phase4:M2":
           "~34 new files, 5 modified. PHASE 4 COMPLETE. 3 Prisma models (ManufacturingOrder, AdministrationSite, PostAdministrationReport — 23 total). manufacturing-orders.ts (9-stage lifecycle, blueprint packaging with PII stripping), providers.ts (Haversine distance, ZIP geocoding), monitoring.ts (8-timepoint schedule, AE escalation). 11 API routes (5 orders, 3 providers, 3 monitoring). 7 components (OrderTimeline, OrderStatusCard, AdministrationSiteCard, AdministrationSiteMap, MonitoringReportForm, MonitoringScheduleWidget, AdverseEventSummary). 12 pages (orders, providers, monitoring, provider portal). 12 admin sites seeded. 0 type errors.",
+        // D0-D8 Cross-platform migration
+        "xplat:D0":
+          "packages/ui (RN + Solito re-exports), packages/app (Dripsy theme, providers, Apollo cache config), packages/api (Apollo Server schema + resolvers wrapping lib/). Web + mobile configured with Apollo Client, DripsyProvider, react-native-web.",
+        "xplat:D1":
+          "22 of 24 components migrated from Tailwind to Dripsy. Custom cross-platform Picker. ADVERSE_EVENT_OPTIONS moved to shared constants. Web-only: DocumentUploader, AdministrationSiteMap.",
+        "xplat:D2":
+          "Complete GraphQL layer — 45+ types, 27Q, 25M. 7 new resolver files (18 total). 25 adapter functions. 13 .graphql files (70 operations). Codegen: 5082 lines, 70 typed hooks.",
+        "xplat:D3":
+          "8 screens (Home, Auth, Learn, Start, Matches, Financial, SequencingHub, Providers). SequencingProvider schema gap fixed. 8 web pages re-pointed as thin re-exports.",
+        "xplat:D4":
+          "19 detail/manufacturing/monitoring screens migrated. All web pages re-pointed.",
+        "xplat:D5":
+          "7 screens (Dashboard, Translate, ConfirmProfile, ManualIntake, MyChart, SequencingGuide, InsuranceCoverage). Schema additions for intake/extract/order mutations.",
+        "xplat:D6":
+          "Final 12 screens (pipeline 7, sequencing detail 4, records 1). ALL 46 MIGRATABLE SCREENS NOW SHARED.",
+        "xplat:D7":
+          "52 Expo Router files wired to all 46 shared screens. Auth guard, 5-tab layout, MoreScreen, 3 upload placeholders. MOBILE APP FUNCTIONALLY COMPLETE.",
+        "xplat:D8":
+          "Deleted 21 dead Tailwind components + utils.ts. Added requestMagicLink mutation + generateReport query. 5 files migrated from fetch() to GraphQL hooks. ZERO fetch('/api/...') in shared code.",
+        // S1-S8 Phase 5 Survivorship
+        "phase5:S1":
+          "3 Prisma models (SurvivorshipPlan, SurveillanceEvent, JournalEntry). 2-step Claude SCP generator. 4 shared screens (SurviveDashboard, TreatmentComplete, SCPReading, SurviveStub). 9 web + 9 mobile routes. Dashboard + MoreScreen integration.",
+        "phase5:S2":
+          "surveillance-manager.ts: 4 event lifecycle functions, auto-generate next occurrence, Claude result extraction. 4 GraphQL mutations + inputs. 2 shared screens (SurveillanceCalendar, SurveillanceEventDetail).",
+        "phase5:S3":
+          "journal-manager.ts: submitJournalEntry with upsert, deleteJournalEntry, getJournalTrends. 3 shared screens (JournalEntry with 60-sec number buttons, JournalHistory with trends, LateEffects from SCP).",
+        "phase5:S4":
+          "lifestyle-generator.ts: single Claude call → exercise/nutrition/alcohol/environment recs. Redis 7-day cache. 15 new GraphQL types. 1 screen (LifestyleScreen with 4 collapsible sections).",
+        "phase5:S5":
+          "CareTeamMember Prisma model. care-team-manager.ts: CRUD + symptom routing (Claude + emergency override) + appointment prep. 2 screens (MentalHealthScreen, CareTeamScreen).",
+        "phase5:S6":
+          "CtdnaResult Prisma model. ctdna-manager.ts: addCtdnaResult + Claude interpretation + trial re-match trigger. 2 screens (CtdnaGuide, CtdnaDashboard). Platform NEVER announces recurrence.",
+        "phase5:S7":
+          "3 Prisma models (NotificationLog, NotificationPreference, SurvivorshipFeedback). notification-manager.ts: 8 notification processors + phase logic + feedback + SCP annual refresh. Cron endpoint. FeedbackPrompt component. NotificationSettingsScreen.",
+        "phase5:S8":
+          "RecurrenceEvent Prisma model. recurrence-manager.ts: 10 functions + 11-step cascade orchestrator. 8 shared screens (Report, Acknowledge, Support, Sequencing, Comparison, Trials, Treatment, Cascade). Emotional support first design. PHASE 5 COMPLETE.",
+        // Access Gap — Fertility
+        "fertility:F1":
+          "2 Prisma models (FertilityAssessment, FertilityProvider). fertility-manager.ts: 8 functions (deterministic risk from 17 agents, preservation options, Haversine provider search, 5 financial programs, Claude discussion guide). 30 providers seeded. 5 screens + 5 web + 5 mobile routes. Dashboard + MoreScreen integration.",
+        // Access Gap — Advocate
+        "advocate:IA1":
+          "2 Prisma models (InsuranceDenial, AppealLetter). insurance-advocate.ts: 10 functions (denial CRUD, Claude appeal letters with NCCN citations + [PHYSICIAN SIGNATURE REQUIRED], peer review prep, 3 strategies, ACA + 11 state protections). 5 screens + 5 web + 5 mobile routes. Dashboard + MoreScreen integration.",
+        // Access Gap — Logistics
+        "logistics:TL1":
+          "2 Prisma models (TrialLogisticsAssessment, LogisticsAssistanceApplication). logistics-manager.ts: 7 functions (Haversine distance + cost estimation + feasibility scoring, 14 assistance programs across 6 categories, Claude logistics plan generation + Redis cache). 5 screens + 5 web + 5 mobile routes. MoreScreen integration.",
+        // Access Gap — Second Opinion
+        "second:SO1":
+          "2 Prisma models (SecondOpinionCenter, SecondOpinionRequest). second-opinion-manager.ts: 8 functions (8 deterministic trigger rules, center finder with Haversine, Claude record packet + communication guide + Redis cache). 30 NCI centers seeded. recurrence-manager.ts updated to query DB. 5 screens + 5 web + 5 mobile routes. MoreScreen integration.",
       };
 
       let state = { statuses: {}, notes: {}, expanded: {}, filter: "all" };

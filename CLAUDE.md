@@ -12,18 +12,18 @@ oncovax/
 │   ├── web/                    # Next.js 15.0.0, React 19.0.0, Tailwind CSS 3.4
 │   │   ├── app/                # App Router — pages + 88 API route files + cron endpoint
 │   │   ├── components/         # 3 web-only components (DocumentUploader, AdministrationSiteCard, AdministrationSiteMap)
-│   │   └── lib/                # 48 library files (see below)
+│   │   └── lib/                # 50 library files (see below)
 │   └── mobile/                 # Expo SDK 54, React Native 0.76.9, Dripsy + Solito
-│       ├── app/                # Expo Router — 82 route files across 17 directories
+│       ├── app/                # Expo Router — 92 route files across 21 directories
 │       └── lib/                # apollo.ts (GraphQL client), auth.ts (SecureStore guard)
 ├── docker-compose.yml          # Local dev: postgres:15-alpine + redis:7-alpine
 ├── packages/
 │   ├── ui/                     # Thin RN + Solito re-exports (@oncovax/ui)
-│   ├── app/                    # 79 shared screens, 24 Dripsy components, theme, 118+ generated hooks (@oncovax/app)
-│   │   └── src/{screens[79],components[24],providers,theme,graphql,generated,utils,index}.ts
-│   ├── api/                    # Apollo Server schema (95+ types, 55Q, 61M) + 22 resolver files (@oncovax/api)
-│   │   └── src/{schema,resolvers[22 files],context,index}.ts
-│   ├── db/                     # Prisma 7 + PostgreSQL (36 models)
+│   ├── app/                    # 89 shared screens, 24 Dripsy components, theme, 133+ generated hooks (@oncovax/app)
+│   │   └── src/{screens[89],components[24],providers,theme,graphql,generated,utils,index}.ts
+│   ├── api/                    # Apollo Server schema (99+ types, 62Q, 69M) + 24 resolver files (@oncovax/api)
+│   │   └── src/{schema,resolvers[24 files],context,index}.ts
+│   ├── db/                     # Prisma 7 + PostgreSQL (40 models)
 │   │   ├── prisma/schema.prisma
 │   │   └── prisma.config.ts    # defineConfig — url goes HERE, not in schema
 │   ├── shared/                 # Types (720+ lines), Zod schemas, constants, auth
@@ -34,7 +34,7 @@ oncovax/
 │   └── neoantigen-pipeline/    # Rust workspace (3 crates + common)
 ├── infrastructure/
 │   └── terraform/              # AWS VPC, S3, NATS, ECR, Batch
-└── scripts/                    # 9 seed/sync scripts
+└── scripts/                    # 11 seed/sync scripts
 ```
 
 ## Critical Implementation Patterns
@@ -76,9 +76,9 @@ export async function POST(req: NextRequest) {
 
 ### UI: Dripsy + Solito (Cross-Platform, Screen Migration Complete)
 - **Shared components:** 22 Dripsy components in `packages/app/src/components/` — cross-platform ready
-- **Shared screens:** 60 screens in `packages/app/src/screens/` — all migratable screens done (D3-D6) + 4 survivorship (S1) + 2 surveillance (S2) + 3 journal/effects (S3) + 1 lifestyle (S4) + 2 psychosocial/care team (S5) + 2 ctDNA (S6)
+- **Shared screens:** 89 screens in `packages/app/src/screens/` — 46 migratable (D3-D6) + 4 survivorship (S1) + 2 surveillance (S2) + 3 journal/effects (S3) + 1 lifestyle (S4) + 2 care team (S5) + 2 ctDNA (S6) + 1 notifications (S7) + 8 recurrence (S8) + 5 fertility + 5 advocate + 5 logistics + 5 second opinion
 - **Web pages:** All migratable pages are thin re-exports: `'use client'; export { XxxScreen as default } from '@oncovax/app';`
-- **Mobile routes:** All 46 screens wired via Expo Router — 50 route files (30 direct re-exports, 17 param wrappers, 3 upload placeholders)
+- **Mobile routes:** All 89 screens wired via Expo Router — 92 route files across 21 directories
 - **Mobile tabs:** 5-tab layout (Home, Matches, Sequencing, Pipeline, More) with Ionicons
 - **Mobile auth:** `useProtectedRoute()` hook — SecureStore token check + redirect to `/auth` modal
 - **Web-only components (3):** `DocumentUploader` (File API), `AdministrationSiteCard`, `AdministrationSiteMap` (Mapbox) — kept in `apps/web/components/`
@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
 ### AI: Anthropic Claude
 - Model: `claude-opus-4-20250514` (hardcoded in `apps/web/lib/ai.ts`)
 - Package: `@anthropic-ai/sdk@0.39.0`
-- Used for: document extraction, eligibility parsing, trial matching, treatment translation, genomic interpretation, report generation, regulatory document drafting, SCP generation, surveillance result extraction, lifestyle recommendation generation, symptom routing, appointment prep, ctDNA interpretation, fertility discussion guides, appeal letter generation, peer review prep
+- Used for: document extraction, eligibility parsing, trial matching, treatment translation, genomic interpretation, report generation, regulatory document drafting, SCP generation, surveillance result extraction, lifestyle recommendation generation, symptom routing, appointment prep, ctDNA interpretation, fertility discussion guides, appeal letter generation, peer review prep, logistics plan generation, record packet assembly, communication guide generation
 
 ## What's Built (Phases 1-4)
 
@@ -143,11 +143,17 @@ export async function POST(req: NextRequest) {
 **Access Gap — ADVOCATE (complete):**
 - 2 Prisma models (InsuranceDenial, AppealLetter), 1 lib file (insurance-advocate.ts: 10 functions — createDenial, getDenials, getDenial, updateDenialStatus, generateAppealLetter via Claude with NCCN citations + [PHYSICIAN SIGNATURE REQUIRED], getAppealLetter, updateAppealOutcome with cascading status, getAppealStrategy with 3 strategy constants, getAppealRights with ACA + 11 state protections, generatePeerReviewPrep via Claude). GraphQL: 5 types + 3 inputs + 5 queries + 5 mutations, 1 resolver file (advocate.ts), 10 context signatures, 10 route handler adapters. 10 operations in advocate.graphql. 5 shared screens (AdvocateDashboard with active denials + deadline alerts + quick links, NewDenial structured form with auto-deadline, AppealDetail with letter display + status timeline + peer review prep, AppealRights with ACA + state protections + ERISA explanation, EscalationGuide with 3 strategy paths + success rates). 5 web pages + 5 mobile routes under `/advocate/`. Dashboard + MoreScreen integration. **AI-powered appeal letters citing NCCN guidelines, deadline tracking, escalation paths with success rates, state-specific protections.**
 
+**Access Gap — LOGISTICS (complete):**
+- 2 Prisma models (TrialLogisticsAssessment, LogisticsAssistanceApplication), 1 lib file (logistics-manager.ts: 7 functions — assessTrialLogistics with Haversine distance + cost estimation + feasibility scoring, getLogisticsAssessment/s, getAssistancePrograms with 14 programs across 6 categories, generateLogisticsPlan via Claude + Redis cache, updateAssistanceApplication, getAssistanceApplications). GraphQL: 3 types + 1 input + 4 queries + 3 mutations, 1 resolver file (logistics.ts), 7 context signatures, 7 route handler adapters. 7 operations in logistics.graphql. 5 shared screens (LogisticsDashboard with feasibility badges + OOP estimates, LogisticsAssessment with distance/cost/barriers + plan generation, LogisticsAssistancePrograms grouped by category with eligibility matching, LogisticsApplications with status tracking, LogisticsPlan with Claude-generated sections). 5 web pages + 5 mobile routes under `/logistics/`. MoreScreen integration. **Distance/cost assessment, 14 assistance programs, Claude logistics plans, application tracking.**
+
+**Access Gap — SECOND (complete):**
+- 2 Prisma models (SecondOpinionCenter, SecondOpinionRequest), 1 lib file (second-opinion-manager.ts: 8 functions — evaluateSecondOpinionTriggers with 8 deterministic rules, createSecondOpinionRequest, getSecondOpinionRequest, getSecondOpinionCenters with Haversine + filters, generateRecordPacket + generateCommunicationGuide via Claude + Redis cache, selectCenter, recordSecondOpinionOutcome), 1 seed script (30 NCI centers — 14 comprehensive + 16 designated). GraphQL: 5 types + 2 inputs + 3 queries + 5 mutations, 1 resolver file (second-opinion.ts), 8 context signatures, 8 route handler adapters. 8 operations in second-opinion.graphql. 5 shared screens (SecondOpinionDashboard with trigger cards + status timeline, SecondOpinionCenters with NCI badges + virtual filters, SecondOpinionPacket with Claude clinical summary + questions, SecondOpinionCommunication with 4 template sections, SecondOpinionOutcome with empowering messaging). 5 web pages + 5 mobile routes under `/second-opinion/`. MoreScreen integration. recurrence-manager.ts updated to query DB. **8 deterministic trigger rules, 30 NCI center directory, Claude record packets + communication guides, collaborative tone.**
+
 ## What's NOT Built Yet
 
 **Cross-cutting:** INTEL (research intelligence), LEARN (educational content/SEO), VISUAL (30 visualizations), CARE (care commerce), COOL (cold capping), ENGINE (opportunity detection).
 
-**Access gap:** SECOND, LOGISTICS, PALLIATIVE, PEERS.
+**Access gap:** PALLIATIVE, PEERS.
 
 **Phase 0 — PREVENT:** Pre-diagnosis risk intelligence + prevention.
 
