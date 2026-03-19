@@ -189,6 +189,14 @@ export interface GraphQLContext {
     generateCommunicationGuide: (patientId: string) => Promise<any>;
     selectCenter: (patientId: string, centerId: string, isVirtual: boolean, appointmentDate?: string) => Promise<any>;
     recordSecondOpinionOutcome: (patientId: string, outcome: string, outcomeSummary?: string) => Promise<any>;
+
+    // Intel — Research Intelligence
+    getResearchItems: (filters?: any) => Promise<any>;
+    getResearchItem: (id: string) => Promise<any>;
+    searchResearchItems: (query: string, filters?: any) => Promise<any>;
+    getSyncStates: () => Promise<any[]>;
+    triggerIngestion: (sourceId: string) => Promise<any>;
+    reclassifyItem: (itemId: string) => Promise<any>;
   };
 }
 

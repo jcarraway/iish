@@ -305,6 +305,14 @@ export function DashboardScreen() {
             )}
           </DashboardCard>
 
+          {/* Research Intelligence */}
+          <DashboardCard href="/intel" icon="📰" iconBg="#F0FDF4" iconColor="emerald600" title="Research Intelligence">
+            <Text sx={{ mt: '$3', fontSize: 14, color: '$mutedForeground' }}>
+              AI-curated breast cancer research — classified by maturity and practice impact
+            </Text>
+            <Text sx={{ mt: '$1', fontSize: 12, color: 'blue600' }}>Browse research →</Text>
+          </DashboardCard>
+
           {/* Insurance Advocate */}
           <DashboardCard href="/advocate" icon="🛡️" iconBg="#EDE9FE" iconColor="violet600" title="Insurance Advocate">
             {activeDenials.length > 0 ? (

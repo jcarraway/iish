@@ -1147,3 +1147,86 @@ model ArticlePersonalization {
   @@unique([patientId, articleId])
   @@map("article_personalizations")
 }
+
+model ResearchItem {
+  id                        String    @id @default(uuid()) @db.Uuid
+
+  // Source tracking
+  sourceType                String    @map("source_type") @db.VarChar(30)
+  sourceItemId              String?   @map("source_item_id") @db.VarChar(50)
+  sourceUrl                 String?   @map("source_url")
+  sourceCredibility         String    @default("peer_reviewed") @map("source_credibility") @db.VarChar(30)
+
+  // Content
+  title                     String
+  rawContent                String?   @map("raw_content")
+  authors                   String[]  @default([])
+  institutions              String[]  @default([])
+  journalName               String?   @map("journal_name")
+  doi                       String?   @db.VarChar(100)
+  publishedAt               DateTime? @map("published_at")
+
+  // Classification
+  cancerTypes               String[]  @default([]) @map("cancer_types")
+  breastSubtypes            String[]  @default([]) @map("breast_subtypes")
+  maturityTier              String?   @map("maturity_tier") @db.VarChar(5)
+  domains                   String[]  @default([])
+  treatmentClasses          String[]  @default([]) @map("treatment_classes")
+  biomarkerRelevance        String[]  @default([]) @map("biomarker_relevance")
+  treatmentStages           String[]  @default([]) @map("treatment_stages")
+  evidenceLevel             String?   @map("evidence_level") @db.VarChar(5)
+  practiceImpact            String?   @map("practice_impact") @db.VarChar(20)
+  classificationConfidence  Float?    @map("classification_confidence")
+
+  // Summaries
+  patientSummary            String?   @map("patient_summary")
+  clinicianSummary          Json?     @map("clinician_summary")
+
+  // Data points
+  keyEndpoints              Json?     @map("key_endpoints")
+  drugNames                 String[]  @default([]) @map("drug_names")
+  trialNctIds               String[]  @default([]) @map("trial_nct_ids")
+
+  // QC
+  retractionStatus          String?   @map("retraction_status") @db.VarChar(20)
+  industrySponsored         Boolean?  @map("industry_sponsored")
+  hypeScore                 Float?    @map("hype_score")
+  hypeFlags                 String[]  @default([]) @map("hype_flags")
+
+  // Relationships
+  relatedItemIds            String[]  @default([]) @map("related_item_ids")
+  supersedes                String[]  @default([])
+  contradictedBy            String[]  @default([]) @map("contradicted_by")
+
+  // Dedup
+  contentHash               String?   @map("content_hash") @db.VarChar(64)
+  mergedSourceIds           String[]  @default([]) @map("merged_source_ids")
+
+  // Processing
+  classificationStatus      String    @default("pending") @map("classification_status") @db.VarChar(20)
+  lastProcessedAt           DateTime? @map("last_processed_at")
+
+  createdAt                 DateTime  @default(now()) @map("created_at")
+  updatedAt                 DateTime  @updatedAt @map("updated_at")
+
+  @@index([classificationStatus])
+  @@index([maturityTier])
+  @@index([practiceImpact])
+  @@index([publishedAt(sort: Desc)])
+  @@index([contentHash])
+  @@index([sourceType, sourceItemId])
+  @@map("research_items")
+}
+
+model IngestionSyncState {
+  sourceId              String    @id @map("source_id") @db.VarChar(50)
+  lastSyncAt            DateTime? @map("last_sync_at")
+  lastItemDate          DateTime? @map("last_item_date")
+  itemsIngestedTotal    Int       @default(0) @map("items_ingested_total")
+  itemsIngestedLastRun  Int       @default(0) @map("items_ingested_last_run")
+  lastError             String?   @map("last_error")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  @@map("ingestion_sync_state")
+}

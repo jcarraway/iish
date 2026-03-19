@@ -14,6 +14,7 @@ const SECTIONS = [
   { label: 'Insurance', route: '/advocate', icon: 'shield-checkmark-outline' as const },
   { label: 'Logistics', route: '/logistics', icon: 'airplane-outline' as const },
   { label: 'Second Opinion', route: '/second-opinion', icon: 'people-outline' as const },
+  { label: 'Research', route: '/intel', icon: 'newspaper-outline' as const },
   { label: 'Records', route: '/dashboard/records', icon: 'document-text-outline' as const },
 ] as const;
 

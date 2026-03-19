@@ -147,6 +147,14 @@ import {
   generateArticleBatch as _generateArticleBatch,
   getRelatedArticles as _getRelatedArticles,
 } from '@/lib/learn-manager';
+import {
+  getResearchItems as _getResearchItems,
+  getResearchItem as _getResearchItem,
+  searchResearchItems as _searchResearchItems,
+  getSyncStates as _getSyncStates,
+  triggerIngestion as _triggerIngestion,
+  reclassifyItem as _reclassifyItem,
+} from '@/lib/intel-manager';
 
 // ============================================================================
 // Adapter functions — bridge resolver signatures to actual lib functions
@@ -1369,6 +1377,14 @@ const handler = startServerAndCreateNextHandler<NextRequest, GraphQLContext>(ser
         generateCommunicationGuide: generateCommunicationGuideAdapter,
         selectCenter: selectCenterAdapter,
         recordSecondOpinionOutcome: recordSecondOpinionOutcomeAdapter,
+
+        // Intel — Research Intelligence
+        getResearchItems: _getResearchItems,
+        getResearchItem: _getResearchItem,
+        searchResearchItems: _searchResearchItems,
+        getSyncStates: _getSyncStates,
+        triggerIngestion: _triggerIngestion,
+        reclassifyItem: _reclassifyItem,
       },
     };
   },

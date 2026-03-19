@@ -1,0 +1,132 @@
+# ============================================================================
+# Intel — Research Intelligence
+# ============================================================================
+
+query GetResearchItems($filters: ResearchItemFilters) {
+  researchItems(filters: $filters) {
+    id
+    sourceType
+    sourceUrl
+    sourceCredibility
+    title
+    journalName
+    doi
+    publishedAt
+    cancerTypes
+    breastSubtypes
+    maturityTier
+    domains
+    treatmentClasses
+    biomarkerRelevance
+    evidenceLevel
+    practiceImpact
+    patientSummary
+    drugNames
+    hypeScore
+    classificationStatus
+    createdAt
+  }
+}
+
+query GetResearchItem($id: String!) {
+  researchItem(id: $id) {
+    id
+    sourceType
+    sourceItemId
+    sourceUrl
+    sourceCredibility
+    title
+    rawContent
+    authors
+    institutions
+    journalName
+    doi
+    publishedAt
+    cancerTypes
+    breastSubtypes
+    maturityTier
+    domains
+    treatmentClasses
+    biomarkerRelevance
+    treatmentStages
+    evidenceLevel
+    practiceImpact
+    classificationConfidence
+    patientSummary
+    clinicianSummary {
+      headline
+      keyEndpoints
+      studyDesign
+      context
+      practiceImplication
+      limitations
+      grade
+    }
+    keyEndpoints
+    drugNames
+    trialNctIds
+    retractionStatus
+    industrySponsored
+    hypeScore
+    hypeFlags
+    classificationStatus
+    createdAt
+  }
+}
+
+query SearchResearch($query: String!, $filters: ResearchItemFilters) {
+  searchResearch(query: $query, filters: $filters) {
+    id
+    sourceType
+    sourceUrl
+    sourceCredibility
+    title
+    journalName
+    doi
+    publishedAt
+    cancerTypes
+    breastSubtypes
+    maturityTier
+    domains
+    treatmentClasses
+    evidenceLevel
+    practiceImpact
+    patientSummary
+    drugNames
+    classificationStatus
+    createdAt
+  }
+}
+
+query GetIngestionSyncStates {
+  ingestionSyncStates {
+    sourceId
+    lastSyncAt
+    lastItemDate
+    itemsIngestedTotal
+    itemsIngestedLastRun
+    lastError
+  }
+}
+
+mutation TriggerIngestion($sourceId: String!) {
+  triggerIngestion(sourceId: $sourceId) {
+    ingested
+    classified
+    summarized
+    skipped
+    errors
+  }
+}
+
+mutation ReclassifyItem($itemId: String!) {
+  reclassifyItem(itemId: $itemId) {
+    id
+    maturityTier
+    domains
+    evidenceLevel
+    practiceImpact
+    patientSummary
+    classificationStatus
+  }
+}

@@ -131,3 +131,9 @@ export { SecondOpinionCentersScreen } from './SecondOpinionCentersScreen';
 export { SecondOpinionPacketScreen } from './SecondOpinionPacketScreen';
 export { SecondOpinionCommunicationScreen } from './SecondOpinionCommunicationScreen';
 export { SecondOpinionOutcomeScreen } from './SecondOpinionOutcomeScreen';
+
+// Intel — Research Intelligence
+export { IntelFeedScreen } from './IntelFeedScreen';
+export { IntelItemDetailScreen } from './IntelItemDetailScreen';
+export { IntelSettingsScreen } from './IntelSettingsScreen';
+export { IntelLandscapeScreen } from './IntelLandscapeScreen';

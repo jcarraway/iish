@@ -1480,6 +1480,86 @@ export const typeDefs = `#graphql
   }
 
   # ============================================================================
+  # Intel — Research Intelligence
+  # ============================================================================
+
+  type ResearchItem {
+    id: String!
+    sourceType: String!
+    sourceItemId: String
+    sourceUrl: String
+    sourceCredibility: String!
+    title: String!
+    rawContent: String
+    authors: [String!]!
+    institutions: [String!]!
+    journalName: String
+    doi: String
+    publishedAt: String
+    cancerTypes: [String!]!
+    breastSubtypes: [String!]!
+    maturityTier: String
+    domains: [String!]!
+    treatmentClasses: [String!]!
+    biomarkerRelevance: [String!]!
+    treatmentStages: [String!]!
+    evidenceLevel: String
+    practiceImpact: String
+    classificationConfidence: Float
+    patientSummary: String
+    clinicianSummary: ClinicianSummary
+    keyEndpoints: JSON
+    drugNames: [String!]!
+    trialNctIds: [String!]!
+    retractionStatus: String
+    industrySponsored: Boolean
+    hypeScore: Float
+    hypeFlags: [String!]!
+    classificationStatus: String!
+    createdAt: DateTime!
+  }
+
+  type ClinicianSummary {
+    headline: String!
+    keyEndpoints: [String!]!
+    studyDesign: String!
+    context: String!
+    practiceImplication: String!
+    limitations: [String!]!
+    grade: String!
+  }
+
+  type IngestionSyncState {
+    sourceId: String!
+    lastSyncAt: String
+    lastItemDate: String
+    itemsIngestedTotal: Int!
+    itemsIngestedLastRun: Int!
+    lastError: String
+  }
+
+  type IngestionCycleResult {
+    ingested: Int!
+    classified: Int!
+    summarized: Int!
+    skipped: Int!
+    errors: Int!
+  }
+
+  input ResearchItemFilters {
+    maturityTiers: [String!]
+    domains: [String!]
+    treatmentClasses: [String!]
+    practiceImpact: String
+    cancerTypes: [String!]
+    breastSubtypes: [String!]
+    dateFrom: String
+    dateTo: String
+    limit: Int
+    offset: Int
+  }
+
+  # ============================================================================
   # Queries
   # ============================================================================
 
@@ -1614,6 +1694,14 @@ export const typeDefs = `#graphql
 
     # Learn (authenticated)
     readingPlan: ReadingPlan
+
+    # Intel — Research Intelligence (public)
+    researchItems(filters: ResearchItemFilters): [ResearchItem!]!
+    researchItem(id: String!): ResearchItem
+    searchResearch(query: String!, filters: ResearchItemFilters): [ResearchItem!]!
+
+    # Intel — Research Intelligence (authenticated)
+    ingestionSyncStates: [IngestionSyncState!]!
   }
 
   # ============================================================================
@@ -1992,5 +2080,9 @@ export const typeDefs = `#graphql
     publishArticle(articleId: String!): Article!
     generatePersonalizedContext(slug: String!): ArticlePersonalizedContext!
     generateReadingPlan: ReadingPlan!
+
+    # Intel — Research Intelligence
+    triggerIngestion(sourceId: String!): IngestionCycleResult!
+    reclassifyItem(itemId: String!): ResearchItem!
   }
 `;

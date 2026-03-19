@@ -254,6 +254,17 @@ export type CascadeStatus = {
   trialRematched: Scalars['Boolean']['output'];
 };
 
+export type ClinicianSummary = {
+  __typename?: 'ClinicianSummary';
+  context: Scalars['String']['output'];
+  grade: Scalars['String']['output'];
+  headline: Scalars['String']['output'];
+  keyEndpoints: Array<Scalars['String']['output']>;
+  limitations: Array<Scalars['String']['output']>;
+  practiceImplication: Scalars['String']['output'];
+  studyDesign: Scalars['String']['output'];
+};
+
 export type CommonConcern = {
   __typename?: 'CommonConcern';
   answer: Scalars['String']['output'];
@@ -645,6 +656,25 @@ export type HrdBiomarker = {
   status: Scalars['String']['output'];
 };
 
+export type IngestionCycleResult = {
+  __typename?: 'IngestionCycleResult';
+  classified: Scalars['Int']['output'];
+  errors: Scalars['Int']['output'];
+  ingested: Scalars['Int']['output'];
+  skipped: Scalars['Int']['output'];
+  summarized: Scalars['Int']['output'];
+};
+
+export type IngestionSyncState = {
+  __typename?: 'IngestionSyncState';
+  itemsIngestedLastRun: Scalars['Int']['output'];
+  itemsIngestedTotal: Scalars['Int']['output'];
+  lastError?: Maybe<Scalars['String']['output']>;
+  lastItemDate?: Maybe<Scalars['String']['output']>;
+  lastSyncAt?: Maybe<Scalars['String']['output']>;
+  sourceId: Scalars['String']['output'];
+};
+
 export type InsuranceCoverage = {
   __typename?: 'InsuranceCoverage';
   conditions: Array<Scalars['String']['output']>;
@@ -988,6 +1018,7 @@ export type Mutation = {
   markEventComplete: SurveillanceEvent;
   matchFinancialPrograms: Array<FinancialMatch>;
   publishArticle: Article;
+  reclassifyItem: ResearchItem;
   recordSecondOpinionOutcome: SecondOpinionRequest;
   refreshSCP: SurvivorshipPlan;
   regenerateTranslator: RecurrenceEvent;
@@ -1010,6 +1041,7 @@ export type Mutation = {
   submitPipelineJob: PipelineJob;
   subscribeFinancialProgram: Scalars['Boolean']['output'];
   translateTreatment: TreatmentTranslation;
+  triggerIngestion: IngestionCycleResult;
   updateAppealOutcome: AppealLetter;
   updateAssistanceApplication: LogisticsAssistanceApplication;
   updateCareTeamMember: CareTeamMember;
@@ -1206,6 +1238,11 @@ export type MutationPublishArticleArgs = {
 };
 
 
+export type MutationReclassifyItemArgs = {
+  itemId: Scalars['String']['input'];
+};
+
+
 export type MutationRecordSecondOpinionOutcomeArgs = {
   input: RecordSecondOpinionOutcomeInput;
 };
@@ -1311,6 +1348,11 @@ export type MutationSubscribeFinancialProgramArgs = {
 
 export type MutationTranslateTreatmentArgs = {
   matchId: Scalars['String']['input'];
+};
+
+
+export type MutationTriggerIngestionArgs = {
+  sourceId: Scalars['String']['input'];
 };
 
 
@@ -1665,6 +1707,7 @@ export type Query = {
   glossaryTerm?: Maybe<GlossaryTerm>;
   glossaryTerms: Array<GlossaryTerm>;
   healthSystems: Array<HealthSystem>;
+  ingestionSyncStates: Array<IngestionSyncState>;
   insuranceDenial?: Maybe<InsuranceDenial>;
   insuranceDenials: Array<InsuranceDenial>;
   journalEntries: Array<JournalEntry>;
@@ -1700,8 +1743,11 @@ export type Query = {
   regulatoryDocument?: Maybe<RegulatoryDocument>;
   regulatoryDocuments: Array<RegulatoryDocument>;
   reportPdf: ReportPdfResult;
+  researchItem?: Maybe<ResearchItem>;
+  researchItems: Array<ResearchItem>;
   routeSymptom: SymptomRouting;
   searchArticles: Array<Article>;
+  searchResearch: Array<ResearchItem>;
   secondOpinionCenters: Array<SecondOpinionCenter>;
   secondOpinionEvaluation: SecondOpinionEvaluation;
   secondOpinionRequest?: Maybe<SecondOpinionRequest>;
@@ -1920,6 +1966,16 @@ export type QueryReportPdfArgs = {
 };
 
 
+export type QueryResearchItemArgs = {
+  id: Scalars['String']['input'];
+};
+
+
+export type QueryResearchItemsArgs = {
+  filters?: InputMaybe<ResearchItemFilters>;
+};
+
+
 export type QueryRouteSymptomArgs = {
   symptom: Scalars['String']['input'];
 };
@@ -1927,6 +1983,12 @@ export type QueryRouteSymptomArgs = {
 
 export type QuerySearchArticlesArgs = {
   filters?: InputMaybe<ArticleFilters>;
+  query: Scalars['String']['input'];
+};
+
+
+export type QuerySearchResearchArgs = {
+  filters?: InputMaybe<ResearchItemFilters>;
   query: Scalars['String']['input'];
 };
 
@@ -2079,6 +2141,56 @@ export type RequestFertilityReferralInput = {
 export type RescheduleEventInput = {
   eventId: Scalars['String']['input'];
   newDueDate: Scalars['String']['input'];
+};
+
+export type ResearchItem = {
+  __typename?: 'ResearchItem';
+  authors: Array<Scalars['String']['output']>;
+  biomarkerRelevance: Array<Scalars['String']['output']>;
+  breastSubtypes: Array<Scalars['String']['output']>;
+  cancerTypes: Array<Scalars['String']['output']>;
+  classificationConfidence?: Maybe<Scalars['Float']['output']>;
+  classificationStatus: Scalars['String']['output'];
+  clinicianSummary?: Maybe<ClinicianSummary>;
+  createdAt: Scalars['DateTime']['output'];
+  doi?: Maybe<Scalars['String']['output']>;
+  domains: Array<Scalars['String']['output']>;
+  drugNames: Array<Scalars['String']['output']>;
+  evidenceLevel?: Maybe<Scalars['String']['output']>;
+  hypeFlags: Array<Scalars['String']['output']>;
+  hypeScore?: Maybe<Scalars['Float']['output']>;
+  id: Scalars['String']['output'];
+  industrySponsored?: Maybe<Scalars['Boolean']['output']>;
+  institutions: Array<Scalars['String']['output']>;
+  journalName?: Maybe<Scalars['String']['output']>;
+  keyEndpoints?: Maybe<Scalars['JSON']['output']>;
+  maturityTier?: Maybe<Scalars['String']['output']>;
+  patientSummary?: Maybe<Scalars['String']['output']>;
+  practiceImpact?: Maybe<Scalars['String']['output']>;
+  publishedAt?: Maybe<Scalars['String']['output']>;
+  rawContent?: Maybe<Scalars['String']['output']>;
+  retractionStatus?: Maybe<Scalars['String']['output']>;
+  sourceCredibility: Scalars['String']['output'];
+  sourceItemId?: Maybe<Scalars['String']['output']>;
+  sourceType: Scalars['String']['output'];
+  sourceUrl?: Maybe<Scalars['String']['output']>;
+  title: Scalars['String']['output'];
+  treatmentClasses: Array<Scalars['String']['output']>;
+  treatmentStages: Array<Scalars['String']['output']>;
+  trialNctIds: Array<Scalars['String']['output']>;
+};
+
+export type ResearchItemFilters = {
+  breastSubtypes?: InputMaybe<Array<Scalars['String']['input']>>;
+  cancerTypes?: InputMaybe<Array<Scalars['String']['input']>>;
+  dateFrom?: InputMaybe<Scalars['String']['input']>;
+  dateTo?: InputMaybe<Scalars['String']['input']>;
+  domains?: InputMaybe<Array<Scalars['String']['input']>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  maturityTiers?: InputMaybe<Array<Scalars['String']['input']>>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  practiceImpact?: InputMaybe<Scalars['String']['input']>;
+  treatmentClasses?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
 export type ScpDiff = {
@@ -2806,6 +2918,47 @@ export type RematchMutationVariables = Exact<{ [key: string]: never; }>;
 
 
 export type RematchMutation = { __typename?: 'Mutation', rematch: { __typename?: 'MatchDelta', totalBefore: number, totalAfter: number, newMatches: Array<{ __typename?: 'MatchDeltaEntry', trialId: string, nctId: string, title: string, newScore?: number | null, genomicBasis?: string | null }>, improvedMatches: Array<{ __typename?: 'MatchDeltaEntry', trialId: string, nctId: string, title: string, oldScore?: number | null, newScore?: number | null, genomicBasis?: string | null }>, removedMatches: Array<{ __typename?: 'MatchDeltaEntry', trialId: string, nctId: string, title: string, oldScore?: number | null, reason?: string | null }> } };
+
+export type GetResearchItemsQueryVariables = Exact<{
+  filters?: InputMaybe<ResearchItemFilters>;
+}>;
+
+
+export type GetResearchItemsQuery = { __typename?: 'Query', researchItems: Array<{ __typename?: 'ResearchItem', id: string, sourceType: string, sourceUrl?: string | null, sourceCredibility: string, title: string, journalName?: string | null, doi?: string | null, publishedAt?: string | null, cancerTypes: Array<string>, breastSubtypes: Array<string>, maturityTier?: string | null, domains: Array<string>, treatmentClasses: Array<string>, biomarkerRelevance: Array<string>, evidenceLevel?: string | null, practiceImpact?: string | null, patientSummary?: string | null, drugNames: Array<string>, hypeScore?: number | null, classificationStatus: string, createdAt: string }> };
+
+export type GetResearchItemQueryVariables = Exact<{
+  id: Scalars['String']['input'];
+}>;
+
+
+export type GetResearchItemQuery = { __typename?: 'Query', researchItem?: { __typename?: 'ResearchItem', id: string, sourceType: string, sourceItemId?: string | null, sourceUrl?: string | null, sourceCredibility: string, title: string, rawContent?: string | null, authors: Array<string>, institutions: Array<string>, journalName?: string | null, doi?: string | null, publishedAt?: string | null, cancerTypes: Array<string>, breastSubtypes: Array<string>, maturityTier?: string | null, domains: Array<string>, treatmentClasses: Array<string>, biomarkerRelevance: Array<string>, treatmentStages: Array<string>, evidenceLevel?: string | null, practiceImpact?: string | null, classificationConfidence?: number | null, patientSummary?: string | null, keyEndpoints?: Record<string, unknown> | null, drugNames: Array<string>, trialNctIds: Array<string>, retractionStatus?: string | null, industrySponsored?: boolean | null, hypeScore?: number | null, hypeFlags: Array<string>, classificationStatus: string, createdAt: string, clinicianSummary?: { __typename?: 'ClinicianSummary', headline: string, keyEndpoints: Array<string>, studyDesign: string, context: string, practiceImplication: string, limitations: Array<string>, grade: string } | null } | null };
+
+export type SearchResearchQueryVariables = Exact<{
+  query: Scalars['String']['input'];
+  filters?: InputMaybe<ResearchItemFilters>;
+}>;
+
+
+export type SearchResearchQuery = { __typename?: 'Query', searchResearch: Array<{ __typename?: 'ResearchItem', id: string, sourceType: string, sourceUrl?: string | null, sourceCredibility: string, title: string, journalName?: string | null, doi?: string | null, publishedAt?: string | null, cancerTypes: Array<string>, breastSubtypes: Array<string>, maturityTier?: string | null, domains: Array<string>, treatmentClasses: Array<string>, evidenceLevel?: string | null, practiceImpact?: string | null, patientSummary?: string | null, drugNames: Array<string>, classificationStatus: string, createdAt: string }> };
+
+export type GetIngestionSyncStatesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetIngestionSyncStatesQuery = { __typename?: 'Query', ingestionSyncStates: Array<{ __typename?: 'IngestionSyncState', sourceId: string, lastSyncAt?: string | null, lastItemDate?: string | null, itemsIngestedTotal: number, itemsIngestedLastRun: number, lastError?: string | null }> };
+
+export type TriggerIngestionMutationVariables = Exact<{
+  sourceId: Scalars['String']['input'];
+}>;
+
+
+export type TriggerIngestionMutation = { __typename?: 'Mutation', triggerIngestion: { __typename?: 'IngestionCycleResult', ingested: number, classified: number, summarized: number, skipped: number, errors: number } };
+
+export type ReclassifyItemMutationVariables = Exact<{
+  itemId: Scalars['String']['input'];
+}>;
+
+
+export type ReclassifyItemMutation = { __typename?: 'Mutation', reclassifyItem: { __typename?: 'ResearchItem', id: string, maturityTier?: string | null, domains: Array<string>, evidenceLevel?: string | null, practiceImpact?: string | null, patientSummary?: string | null, classificationStatus: string } };
 
 export type GetArticleQueryVariables = Exact<{
   slug: Scalars['String']['input'];
@@ -5598,6 +5751,337 @@ export function useRematchMutation(baseOptions?: Apollo.MutationHookOptions<Rema
 export type RematchMutationHookResult = ReturnType<typeof useRematchMutation>;
 export type RematchMutationResult = Apollo.MutationResult<RematchMutation>;
 export type RematchMutationOptions = Apollo.BaseMutationOptions<RematchMutation, RematchMutationVariables>;
+export const GetResearchItemsDocument = gql`
+    query GetResearchItems($filters: ResearchItemFilters) {
+  researchItems(filters: $filters) {
+    id
+    sourceType
+    sourceUrl
+    sourceCredibility
+    title
+    journalName
+    doi
+    publishedAt
+    cancerTypes
+    breastSubtypes
+    maturityTier
+    domains
+    treatmentClasses
+    biomarkerRelevance
+    evidenceLevel
+    practiceImpact
+    patientSummary
+    drugNames
+    hypeScore
+    classificationStatus
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useGetResearchItemsQuery__
+ *
+ * To run a query within a React component, call `useGetResearchItemsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetResearchItemsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetResearchItemsQuery({
+ *   variables: {
+ *      filters: // value for 'filters'
+ *   },
+ * });
+ */
+export function useGetResearchItemsQuery(baseOptions?: Apollo.QueryHookOptions<GetResearchItemsQuery, GetResearchItemsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetResearchItemsQuery, GetResearchItemsQueryVariables>(GetResearchItemsDocument, options);
+      }
+export function useGetResearchItemsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetResearchItemsQuery, GetResearchItemsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetResearchItemsQuery, GetResearchItemsQueryVariables>(GetResearchItemsDocument, options);
+        }
+// @ts-ignore
+export function useGetResearchItemsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetResearchItemsQuery, GetResearchItemsQueryVariables>): Apollo.UseSuspenseQueryResult<GetResearchItemsQuery, GetResearchItemsQueryVariables>;
+export function useGetResearchItemsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetResearchItemsQuery, GetResearchItemsQueryVariables>): Apollo.UseSuspenseQueryResult<GetResearchItemsQuery | undefined, GetResearchItemsQueryVariables>;
+export function useGetResearchItemsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetResearchItemsQuery, GetResearchItemsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetResearchItemsQuery, GetResearchItemsQueryVariables>(GetResearchItemsDocument, options);
+        }
+export type GetResearchItemsQueryHookResult = ReturnType<typeof useGetResearchItemsQuery>;
+export type GetResearchItemsLazyQueryHookResult = ReturnType<typeof useGetResearchItemsLazyQuery>;
+export type GetResearchItemsSuspenseQueryHookResult = ReturnType<typeof useGetResearchItemsSuspenseQuery>;
+export type GetResearchItemsQueryResult = Apollo.QueryResult<GetResearchItemsQuery, GetResearchItemsQueryVariables>;
+export const GetResearchItemDocument = gql`
+    query GetResearchItem($id: String!) {
+  researchItem(id: $id) {
+    id
+    sourceType
+    sourceItemId
+    sourceUrl
+    sourceCredibility
+    title
+    rawContent
+    authors
+    institutions
+    journalName
+    doi
+    publishedAt
+    cancerTypes
+    breastSubtypes
+    maturityTier
+    domains
+    treatmentClasses
+    biomarkerRelevance
+    treatmentStages
+    evidenceLevel
+    practiceImpact
+    classificationConfidence
+    patientSummary
+    clinicianSummary {
+      headline
+      keyEndpoints
+      studyDesign
+      context
+      practiceImplication
+      limitations
+      grade
+    }
+    keyEndpoints
+    drugNames
+    trialNctIds
+    retractionStatus
+    industrySponsored
+    hypeScore
+    hypeFlags
+    classificationStatus
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useGetResearchItemQuery__
+ *
+ * To run a query within a React component, call `useGetResearchItemQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetResearchItemQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetResearchItemQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetResearchItemQuery(baseOptions: Apollo.QueryHookOptions<GetResearchItemQuery, GetResearchItemQueryVariables> & ({ variables: GetResearchItemQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetResearchItemQuery, GetResearchItemQueryVariables>(GetResearchItemDocument, options);
+      }
+export function useGetResearchItemLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetResearchItemQuery, GetResearchItemQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetResearchItemQuery, GetResearchItemQueryVariables>(GetResearchItemDocument, options);
+        }
+// @ts-ignore
+export function useGetResearchItemSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetResearchItemQuery, GetResearchItemQueryVariables>): Apollo.UseSuspenseQueryResult<GetResearchItemQuery, GetResearchItemQueryVariables>;
+export function useGetResearchItemSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetResearchItemQuery, GetResearchItemQueryVariables>): Apollo.UseSuspenseQueryResult<GetResearchItemQuery | undefined, GetResearchItemQueryVariables>;
+export function useGetResearchItemSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetResearchItemQuery, GetResearchItemQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetResearchItemQuery, GetResearchItemQueryVariables>(GetResearchItemDocument, options);
+        }
+export type GetResearchItemQueryHookResult = ReturnType<typeof useGetResearchItemQuery>;
+export type GetResearchItemLazyQueryHookResult = ReturnType<typeof useGetResearchItemLazyQuery>;
+export type GetResearchItemSuspenseQueryHookResult = ReturnType<typeof useGetResearchItemSuspenseQuery>;
+export type GetResearchItemQueryResult = Apollo.QueryResult<GetResearchItemQuery, GetResearchItemQueryVariables>;
+export const SearchResearchDocument = gql`
+    query SearchResearch($query: String!, $filters: ResearchItemFilters) {
+  searchResearch(query: $query, filters: $filters) {
+    id
+    sourceType
+    sourceUrl
+    sourceCredibility
+    title
+    journalName
+    doi
+    publishedAt
+    cancerTypes
+    breastSubtypes
+    maturityTier
+    domains
+    treatmentClasses
+    evidenceLevel
+    practiceImpact
+    patientSummary
+    drugNames
+    classificationStatus
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useSearchResearchQuery__
+ *
+ * To run a query within a React component, call `useSearchResearchQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSearchResearchQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSearchResearchQuery({
+ *   variables: {
+ *      query: // value for 'query'
+ *      filters: // value for 'filters'
+ *   },
+ * });
+ */
+export function useSearchResearchQuery(baseOptions: Apollo.QueryHookOptions<SearchResearchQuery, SearchResearchQueryVariables> & ({ variables: SearchResearchQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SearchResearchQuery, SearchResearchQueryVariables>(SearchResearchDocument, options);
+      }
+export function useSearchResearchLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SearchResearchQuery, SearchResearchQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SearchResearchQuery, SearchResearchQueryVariables>(SearchResearchDocument, options);
+        }
+// @ts-ignore
+export function useSearchResearchSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SearchResearchQuery, SearchResearchQueryVariables>): Apollo.UseSuspenseQueryResult<SearchResearchQuery, SearchResearchQueryVariables>;
+export function useSearchResearchSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SearchResearchQuery, SearchResearchQueryVariables>): Apollo.UseSuspenseQueryResult<SearchResearchQuery | undefined, SearchResearchQueryVariables>;
+export function useSearchResearchSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SearchResearchQuery, SearchResearchQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SearchResearchQuery, SearchResearchQueryVariables>(SearchResearchDocument, options);
+        }
+export type SearchResearchQueryHookResult = ReturnType<typeof useSearchResearchQuery>;
+export type SearchResearchLazyQueryHookResult = ReturnType<typeof useSearchResearchLazyQuery>;
+export type SearchResearchSuspenseQueryHookResult = ReturnType<typeof useSearchResearchSuspenseQuery>;
+export type SearchResearchQueryResult = Apollo.QueryResult<SearchResearchQuery, SearchResearchQueryVariables>;
+export const GetIngestionSyncStatesDocument = gql`
+    query GetIngestionSyncStates {
+  ingestionSyncStates {
+    sourceId
+    lastSyncAt
+    lastItemDate
+    itemsIngestedTotal
+    itemsIngestedLastRun
+    lastError
+  }
+}
+    `;
+
+/**
+ * __useGetIngestionSyncStatesQuery__
+ *
+ * To run a query within a React component, call `useGetIngestionSyncStatesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetIngestionSyncStatesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetIngestionSyncStatesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetIngestionSyncStatesQuery(baseOptions?: Apollo.QueryHookOptions<GetIngestionSyncStatesQuery, GetIngestionSyncStatesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetIngestionSyncStatesQuery, GetIngestionSyncStatesQueryVariables>(GetIngestionSyncStatesDocument, options);
+      }
+export function useGetIngestionSyncStatesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetIngestionSyncStatesQuery, GetIngestionSyncStatesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetIngestionSyncStatesQuery, GetIngestionSyncStatesQueryVariables>(GetIngestionSyncStatesDocument, options);
+        }
+// @ts-ignore
+export function useGetIngestionSyncStatesSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetIngestionSyncStatesQuery, GetIngestionSyncStatesQueryVariables>): Apollo.UseSuspenseQueryResult<GetIngestionSyncStatesQuery, GetIngestionSyncStatesQueryVariables>;
+export function useGetIngestionSyncStatesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetIngestionSyncStatesQuery, GetIngestionSyncStatesQueryVariables>): Apollo.UseSuspenseQueryResult<GetIngestionSyncStatesQuery | undefined, GetIngestionSyncStatesQueryVariables>;
+export function useGetIngestionSyncStatesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetIngestionSyncStatesQuery, GetIngestionSyncStatesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetIngestionSyncStatesQuery, GetIngestionSyncStatesQueryVariables>(GetIngestionSyncStatesDocument, options);
+        }
+export type GetIngestionSyncStatesQueryHookResult = ReturnType<typeof useGetIngestionSyncStatesQuery>;
+export type GetIngestionSyncStatesLazyQueryHookResult = ReturnType<typeof useGetIngestionSyncStatesLazyQuery>;
+export type GetIngestionSyncStatesSuspenseQueryHookResult = ReturnType<typeof useGetIngestionSyncStatesSuspenseQuery>;
+export type GetIngestionSyncStatesQueryResult = Apollo.QueryResult<GetIngestionSyncStatesQuery, GetIngestionSyncStatesQueryVariables>;
+export const TriggerIngestionDocument = gql`
+    mutation TriggerIngestion($sourceId: String!) {
+  triggerIngestion(sourceId: $sourceId) {
+    ingested
+    classified
+    summarized
+    skipped
+    errors
+  }
+}
+    `;
+export type TriggerIngestionMutationFn = Apollo.MutationFunction<TriggerIngestionMutation, TriggerIngestionMutationVariables>;
+
+/**
+ * __useTriggerIngestionMutation__
+ *
+ * To run a mutation, you first call `useTriggerIngestionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useTriggerIngestionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [triggerIngestionMutation, { data, loading, error }] = useTriggerIngestionMutation({
+ *   variables: {
+ *      sourceId: // value for 'sourceId'
+ *   },
+ * });
+ */
+export function useTriggerIngestionMutation(baseOptions?: Apollo.MutationHookOptions<TriggerIngestionMutation, TriggerIngestionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<TriggerIngestionMutation, TriggerIngestionMutationVariables>(TriggerIngestionDocument, options);
+      }
+export type TriggerIngestionMutationHookResult = ReturnType<typeof useTriggerIngestionMutation>;
+export type TriggerIngestionMutationResult = Apollo.MutationResult<TriggerIngestionMutation>;
+export type TriggerIngestionMutationOptions = Apollo.BaseMutationOptions<TriggerIngestionMutation, TriggerIngestionMutationVariables>;
+export const ReclassifyItemDocument = gql`
+    mutation ReclassifyItem($itemId: String!) {
+  reclassifyItem(itemId: $itemId) {
+    id
+    maturityTier
+    domains
+    evidenceLevel
+    practiceImpact
+    patientSummary
+    classificationStatus
+  }
+}
+    `;
+export type ReclassifyItemMutationFn = Apollo.MutationFunction<ReclassifyItemMutation, ReclassifyItemMutationVariables>;
+
+/**
+ * __useReclassifyItemMutation__
+ *
+ * To run a mutation, you first call `useReclassifyItemMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useReclassifyItemMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [reclassifyItemMutation, { data, loading, error }] = useReclassifyItemMutation({
+ *   variables: {
+ *      itemId: // value for 'itemId'
+ *   },
+ * });
+ */
+export function useReclassifyItemMutation(baseOptions?: Apollo.MutationHookOptions<ReclassifyItemMutation, ReclassifyItemMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ReclassifyItemMutation, ReclassifyItemMutationVariables>(ReclassifyItemDocument, options);
+      }
+export type ReclassifyItemMutationHookResult = ReturnType<typeof useReclassifyItemMutation>;
+export type ReclassifyItemMutationResult = Apollo.MutationResult<ReclassifyItemMutation>;
+export type ReclassifyItemMutationOptions = Apollo.BaseMutationOptions<ReclassifyItemMutation, ReclassifyItemMutationVariables>;
 export const GetArticleDocument = gql`
     query GetArticle($slug: String!) {
   article(slug: $slug) {

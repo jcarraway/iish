@@ -10,20 +10,20 @@ Personalized cancer vaccine intelligence platform. Monorepo covering the full pa
 oncovax/
 ├── apps/
 │   ├── web/                    # Next.js 15.0.0, React 19.0.0, Tailwind CSS 3.4
-│   │   ├── app/                # App Router — pages + 88 API route files + cron endpoint
+│   │   ├── app/                # App Router — pages + 89 API route files + 2 cron endpoints
 │   │   ├── components/         # 3 web-only components (DocumentUploader, AdministrationSiteCard, AdministrationSiteMap)
-│   │   └── lib/                # 51 library files (see below)
+│   │   └── lib/                # 53 library files (see below)
 │   └── mobile/                 # Expo SDK 54, React Native 0.76.9, Dripsy + Solito
-│       ├── app/                # Expo Router — 98 route files across 24 directories
+│       ├── app/                # Expo Router — 102 route files across 25 directories
 │       └── lib/                # apollo.ts (GraphQL client), auth.ts (SecureStore guard)
 ├── docker-compose.yml          # Local dev: postgres:15-alpine + redis:7-alpine
 ├── packages/
 │   ├── ui/                     # Thin RN + Solito re-exports (@oncovax/ui)
-│   ├── app/                    # 94 shared screens, 24 Dripsy components, theme, 144+ generated hooks (@oncovax/app)
+│   ├── app/                    # 98 shared screens, 24 Dripsy components, theme, 150+ generated hooks (@oncovax/app)
 │   │   └── src/{screens[94],components[24],providers,theme,graphql,generated,utils,index}.ts
-│   ├── api/                    # Apollo Server schema (108+ types, 69Q, 73M) + 25 resolver files (@oncovax/api)
+│   ├── api/                    # Apollo Server schema (115+ types, 73Q, 75M) + 26 resolver files (@oncovax/api)
 │   │   └── src/{schema,resolvers[24 files],context,index}.ts
-│   ├── db/                     # Prisma 7 + PostgreSQL (43 models)
+│   ├── db/                     # Prisma 7 + PostgreSQL (45 models)
 │   │   ├── prisma/schema.prisma
 │   │   └── prisma.config.ts    # defineConfig — url goes HERE, not in schema
 │   ├── shared/                 # Types (720+ lines), Zod schemas, constants, auth
@@ -34,7 +34,7 @@ oncovax/
 │   └── neoantigen-pipeline/    # Rust workspace (3 crates + common)
 ├── infrastructure/
 │   └── terraform/              # AWS VPC, S3, NATS, ECR, Batch
-└── scripts/                    # 12 seed/sync scripts
+└── scripts/                    # 13 seed/sync scripts
 ```
 
 ## Critical Implementation Patterns
@@ -76,9 +76,9 @@ export async function POST(req: NextRequest) {
 
 ### UI: Dripsy + Solito (Cross-Platform, Screen Migration Complete)
 - **Shared components:** 22 Dripsy components in `packages/app/src/components/` — cross-platform ready
-- **Shared screens:** 94 screens in `packages/app/src/screens/` — 46 migratable (D3-D6) + 4 survivorship (S1) + 2 surveillance (S2) + 3 journal/effects (S3) + 1 lifestyle (S4) + 2 care team (S5) + 2 ctDNA (S6) + 1 notifications (S7) + 8 recurrence (S8) + 5 fertility + 5 advocate + 5 logistics + 5 second opinion + 6 learn (L1)
+- **Shared screens:** 98 screens in `packages/app/src/screens/` — 46 migratable (D3-D6) + 4 survivorship (S1) + 2 surveillance (S2) + 3 journal/effects (S3) + 1 lifestyle (S4) + 2 care team (S5) + 2 ctDNA (S6) + 1 notifications (S7) + 8 recurrence (S8) + 5 fertility + 5 advocate + 5 logistics + 5 second opinion + 6 learn (L1) + 4 intel (I1)
 - **Web pages:** Most pages are thin re-exports: `'use client'; export { XxxScreen as default } from '@oncovax/app';`. Exception: `/learn/[category]/[slug]/page.tsx` is a server component with `generateMetadata` + `generateStaticParams` + JSON-LD that renders a client component wrapper.
-- **Mobile routes:** All 94 screens wired via Expo Router — 98 route files across 24 directories
+- **Mobile routes:** All 98 screens wired via Expo Router — 102 route files across 25 directories
 - **Mobile tabs:** 5-tab layout (Home, Matches, Sequencing, Pipeline, More) with Ionicons
 - **Mobile auth:** `useProtectedRoute()` hook — SecureStore token check + redirect to `/auth` modal
 - **Web-only components (3):** `DocumentUploader` (File API), `AdministrationSiteCard`, `AdministrationSiteMap` (Mapbox) — kept in `apps/web/components/`
@@ -91,6 +91,7 @@ export async function POST(req: NextRequest) {
 - Generator: `prisma-client` (not `prisma-client-js`), `output` field required
 - Client needs driver adapter: `new PrismaClient({ adapter: new PrismaPg({ connectionString }) })`
 - All models use `@map("snake_case")` columns and `@@map("table_names")`
+- 45 models total (43 + ResearchItem, IngestionSyncState from INTEL I1)
 
 ### Auth: Custom Magic Link (NOT NextAuth)
 - `jose` HS256 for JWT tokens with 15min expiry
@@ -103,7 +104,7 @@ export async function POST(req: NextRequest) {
 ### AI: Anthropic Claude
 - Model: `claude-opus-4-20250514` (hardcoded in `apps/web/lib/ai.ts`)
 - Package: `@anthropic-ai/sdk@0.39.0`
-- Used for: document extraction, eligibility parsing, trial matching, treatment translation, genomic interpretation, report generation, regulatory document drafting, SCP generation, surveillance result extraction, lifestyle recommendation generation, symptom routing, appointment prep, ctDNA interpretation, fertility discussion guides, appeal letter generation, peer review prep, logistics plan generation, record packet assembly, communication guide generation, article generation, personalized article context, reading plan generation
+- Used for: document extraction, eligibility parsing, trial matching, treatment translation, genomic interpretation, report generation, regulatory document drafting, SCP generation, surveillance result extraction, lifestyle recommendation generation, symptom routing, appointment prep, ctDNA interpretation, fertility discussion guides, appeal letter generation, peer review prep, logistics plan generation, record packet assembly, communication guide generation, article generation, personalized article context, reading plan generation, research classification (maturity/evidence/impact), research summarization (patient + clinician)
 
 ## What's Built (Phases 1-4)
 
@@ -152,9 +153,12 @@ export async function POST(req: NextRequest) {
 **LEARN — L1: Foundation + Launch Corpus (complete):**
 - 3 Prisma models (Article with ~30 fields including SEO/taxonomy/cross-linking, GlossaryTerm, ArticlePersonalization), 1 lib file (learn-manager.ts: 14 functions — getArticle with view count increment, getArticles with taxonomy filters, getArticlesByCategory, searchArticles with PostgreSQL ILIKE, getRelatedArticles, getGlossaryTerms/Term, generateArticle via Claude structured JSON, generateArticleBatch, publishArticle, generatePersonalizedContext via Claude + Redis 7-day cache, generateReadingPlan via Claude + Redis 7-day cache, getArticleForSeo, getAllPublishedSlugs), 1 seed script (25 articles across 8 categories + 50 glossary terms via Claude). GraphQL: 9 types (Article, ArticleSection, ArticleActionItem, KeyStatistic, GlossaryTerm, ArticlePersonalizedContext, ReadingPlanItem, ReadingPlan, ArticleCategoryResult) + 2 inputs + 7 queries (5 public + 2 authenticated) + 4 mutations, 1 resolver file (learn.ts), 14 context signatures, 14 route handler adapters. 11 operations in learn.graphql. 6 shared screens (LearnHubScreen with search + featured carousel + category grid + personalized reading plan, LearnCategoryScreen with audience filter, LearnArticleScreen with patient summary + content sections + collapsible clinical detail + action items + statistics + references + personalized context + glossary tooltips, LearnSearchScreen with debounced search + category filter, LearnGlossaryScreen with alphabetical sections + category filter, LearnGlossaryTermScreen). 7 web pages + sitemap route + 6 mobile routes under `/learn/`. **First public (unauthenticated) queries. First SSR/SSG page with generateMetadata + generateStaticParams + JSON-LD structured data. First XML sitemap route. SEO-optimized article reader with personalization for logged-in users.**
 
+**INTEL — I1: Research Intelligence Foundation + PubMed Ingestion (complete):**
+- 2 Prisma models (ResearchItem with ~40 fields including source tracking/classification/summaries/QC/dedup/processing, IngestionSyncState), 2 lib files (intel-sources.ts: PubMed E-utilities client with esearch/efetch + regex XML parsing + SHA-256 dedup + 30-journal credibility map + rate limiting with exponential backoff; intel-manager.ts: 14 functions — normalizeItem, findDuplicates, ingestPubMedArticles with sync state + 11 search terms + batch dedup, classifyItem via Claude with conservative rules (mouse→T4, preprint→L5, T1 requires FDA mention) + Redis 30-day cache, summarizeItem with patient 6th-grade + clinician structured JSON summaries, processClassificationQueue, processSummarizationQueue, runIngestionCycle, getSyncStates, getResearchItems with taxonomy filters + hasSome + pagination, getResearchItem, searchResearchItems with ILIKE, triggerIngestion, reclassifyItem). Cron endpoint (apps/web/app/api/cron/intel/route.ts). GraphQL: 4 types (ResearchItem, ClinicianSummary, IngestionSyncState, IngestionCycleResult) + 1 input (ResearchItemFilters) + 4 queries (3 public + 1 authenticated) + 2 mutations, 1 resolver file (intel.ts), 6 context signatures, 6 route handler imports. 6 operations in intel.graphql. 4 shared screens (IntelFeedScreen with search + maturity tier filter pills + domain filter pills + practice impact filter + research cards, IntelItemDetailScreen with badges + patient summary + collapsible clinician summary + drug/biomarker chips + hype check + source links, IntelSettingsScreen stub, IntelLandscapeScreen stub). 4 web pages + 4 mobile routes under `/intel/`. Dashboard + MoreScreen integration. 1 seed script (seed-intel-pubmed.ts). **First external API ingestion pipeline (PubMed E-utilities). First Claude classification pipeline (maturity tier + evidence level + practice impact). Conservative classification with post-hoc rule enforcement.**
+
 ## What's NOT Built Yet
 
-**Cross-cutting:** INTEL (research intelligence), VISUAL (30 visualizations), CARE (care commerce), COOL (cold capping), ENGINE (opportunity detection).
+**Cross-cutting:** INTEL I2-I7 (remaining intel sessions), VISUAL (30 visualizations), CARE (care commerce), COOL (cold capping), ENGINE (opportunity detection).
 
 **Access gap:** PALLIATIVE, PEERS.
 
