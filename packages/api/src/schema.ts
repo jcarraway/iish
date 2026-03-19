@@ -1243,6 +1243,141 @@ export const typeDefs = `#graphql
   }
 
   # ============================================================================
+  # Logistics
+  # ============================================================================
+
+  type TrialLogisticsAssessment {
+    id: String!
+    patientId: String!
+    matchId: String!
+    siteId: String
+    distanceMiles: Float
+    estimatedCosts: JSON
+    matchedPrograms: JSON
+    estimatedOutOfPocket: Float
+    feasibilityScore: String!
+    barriers: [String!]!
+    logisticsPlan: String
+    logisticsPlanGeneratedAt: String
+    createdAt: DateTime!
+    updatedAt: DateTime!
+  }
+
+  type AssistanceProgramMatch {
+    key: String!
+    name: String!
+    provider: String!
+    category: String!
+    description: String!
+    coverage: String!
+    phone: String
+    url: String
+    eligibility: String!
+    eligible: Boolean!
+    eligibleReason: String
+  }
+
+  type LogisticsAssistanceApplication {
+    id: String!
+    patientId: String!
+    assessmentId: String!
+    programKey: String!
+    programName: String!
+    status: String!
+    appliedAt: String
+    statusUpdatedAt: String
+    notes: String
+    createdAt: DateTime!
+  }
+
+  input UpdateAssistanceApplicationInput {
+    assessmentId: String!
+    programKey: String!
+    status: String!
+    notes: String
+  }
+
+  # ============================================================================
+  # Second Opinion
+  # ============================================================================
+
+  type SecondOpinionTriggerResult {
+    id: String!
+    name: String!
+    severity: String!
+    rationale: String!
+    evidenceBase: String!
+  }
+
+  type SecondOpinionEvaluation {
+    triggers: [SecondOpinionTriggerResult!]!
+    overallSeverity: String!
+    recommended: Boolean!
+  }
+
+  type SecondOpinionCenter {
+    id: String!
+    name: String!
+    nciDesignation: String
+    subspecialties: [String!]!
+    offersVirtual: Boolean!
+    virtualPlatform: String
+    averageWaitDays: Int
+    pathologyReReview: Boolean!
+    address: String
+    city: String
+    state: String
+    latitude: Float
+    longitude: Float
+    distance: Float
+    acceptsInsurance: [String!]!
+    estimatedCostInsured: String
+    estimatedCostUninsured: String
+    financialAssistance: Boolean!
+    coordinator: String
+    phone: String
+    website: String
+    intakeFormUrl: String
+  }
+
+  type SecondOpinionRequest {
+    id: String!
+    patientId: String!
+    triggerReasons: JSON!
+    triggerSeverity: String!
+    status: String!
+    centerId: String
+    centerName: String
+    isVirtual: Boolean
+    appointmentDate: String
+    clinicalSummary: String
+    questionsForReview: [String!]!
+    communicationGuide: JSON
+    outcome: String
+    outcomeSummary: String
+    createdAt: DateTime!
+    updatedAt: DateTime!
+  }
+
+  type CommunicationGuide {
+    portalMessage: String!
+    inPersonScript: String!
+    recordsRequest: String!
+    reassurance: String!
+  }
+
+  input SelectCenterInput {
+    centerId: String!
+    isVirtual: Boolean!
+    appointmentDate: String
+  }
+
+  input RecordSecondOpinionOutcomeInput {
+    outcome: String!
+    outcomeSummary: String
+  }
+
+  # ============================================================================
   # Queries
   # ============================================================================
 
@@ -1355,6 +1490,17 @@ export const typeDefs = `#graphql
     appealLetter(id: String!): AppealLetter
     appealStrategy(denialCategory: String!): AppealStrategy!
     appealRights(state: String): AppealRights!
+
+    # Logistics
+    trialLogisticsAssessment(matchId: String!): TrialLogisticsAssessment
+    trialLogisticsAssessments: [TrialLogisticsAssessment!]!
+    assistancePrograms: [AssistanceProgramMatch!]!
+    assistanceApplications: [LogisticsAssistanceApplication!]!
+
+    # Second Opinion
+    secondOpinionEvaluation: SecondOpinionEvaluation!
+    secondOpinionRequest: SecondOpinionRequest
+    secondOpinionCenters(virtual: Boolean, subspecialty: String): [SecondOpinionCenter!]!
   }
 
   # ============================================================================
@@ -1715,5 +1861,17 @@ export const typeDefs = `#graphql
 
     # Uploads
     requestGeneralUploadUrl(filename: String!, contentType: String!, bucket: String): UploadUrlResult!
+
+    # Logistics
+    assessTrialLogistics(matchId: String!): TrialLogisticsAssessment!
+    generateLogisticsPlan(matchId: String!): JSON!
+    updateAssistanceApplication(input: UpdateAssistanceApplicationInput!): LogisticsAssistanceApplication!
+
+    # Second Opinion
+    createSecondOpinionRequest: SecondOpinionRequest!
+    generateRecordPacket: JSON!
+    generateCommunicationGuide: CommunicationGuide!
+    selectSecondOpinionCenter(input: SelectCenterInput!): SecondOpinionRequest!
+    recordSecondOpinionOutcome(input: RecordSecondOpinionOutcomeInput!): SecondOpinionRequest!
   }
 `;

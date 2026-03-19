@@ -112,6 +112,25 @@ import {
   getAppealRights as _getAppealRights,
   generatePeerReviewPrep as _generatePeerReviewPrep,
 } from '@/lib/insurance-advocate';
+import {
+  assessTrialLogistics as _assessTrialLogistics,
+  getLogisticsAssessment as _getLogisticsAssessment,
+  getLogisticsAssessments as _getLogisticsAssessments,
+  getAssistancePrograms as _getAssistancePrograms,
+  generateLogisticsPlan as _generateLogisticsPlan,
+  updateAssistanceApplication as _updateAssistanceApplication,
+  getAssistanceApplications as _getAssistanceApplications,
+} from '@/lib/logistics-manager';
+import {
+  evaluateSecondOpinionTriggers as _evaluateSecondOpinionTriggers,
+  createSecondOpinionRequest as _createSecondOpinionRequest,
+  getSecondOpinionRequest as _getSecondOpinionRequest,
+  getSecondOpinionCenters as _getSecondOpinionCenters,
+  generateRecordPacket as _generateRecordPacket,
+  generateCommunicationGuide as _generateCommunicationGuide,
+  selectCenter as _selectCenter,
+  recordSecondOpinionOutcome as _recordSecondOpinionOutcome,
+} from '@/lib/second-opinion-manager';
 
 // ============================================================================
 // Adapter functions — bridge resolver signatures to actual lib functions
@@ -1082,6 +1101,70 @@ async function generatePeerReviewPrepAdapter(denialId: string) {
   return _generatePeerReviewPrep(denialId);
 }
 
+// --- Logistics ---
+
+async function assessTrialLogisticsAdapter(patientId: string, matchId: string) {
+  return _assessTrialLogistics(patientId, matchId);
+}
+
+async function getLogisticsAssessmentAdapter(patientId: string, matchId: string) {
+  return _getLogisticsAssessment(patientId, matchId);
+}
+
+async function getLogisticsAssessmentsAdapter(patientId: string) {
+  return _getLogisticsAssessments(patientId);
+}
+
+async function getAssistanceProgramsAdapter(patientId: string) {
+  return _getAssistancePrograms(patientId);
+}
+
+async function generateLogisticsPlanAdapter(patientId: string, matchId: string) {
+  return _generateLogisticsPlan(patientId, matchId);
+}
+
+async function updateAssistanceApplicationAdapter(patientId: string, assessmentId: string, programKey: string, status: string, notes?: string) {
+  return _updateAssistanceApplication(patientId, assessmentId, programKey, status, notes);
+}
+
+async function getAssistanceApplicationsAdapter(patientId: string) {
+  return _getAssistanceApplications(patientId);
+}
+
+// --- Second Opinion ---
+
+async function evaluateSecondOpinionTriggersAdapter(patientId: string) {
+  return _evaluateSecondOpinionTriggers(patientId);
+}
+
+async function createSecondOpinionRequestAdapter(patientId: string) {
+  return _createSecondOpinionRequest(patientId);
+}
+
+async function getSecondOpinionRequestAdapter(patientId: string) {
+  return _getSecondOpinionRequest(patientId);
+}
+
+async function getSecondOpinionCentersAdapter(patientId: string, filters?: any) {
+  return _getSecondOpinionCenters(patientId, filters);
+}
+
+async function generateRecordPacketAdapter(patientId: string) {
+  return _generateRecordPacket(patientId);
+}
+
+async function generateCommunicationGuideAdapter(patientId: string) {
+  return _generateCommunicationGuide(patientId);
+}
+
+async function selectCenterAdapter(patientId: string, centerId: string, isVirtual: boolean, appointmentDate?: string) {
+  return _selectCenter(patientId, centerId, isVirtual, appointmentDate);
+}
+
+async function recordSecondOpinionOutcomeAdapter(patientId: string, outcome: string, outcomeSummary?: string) {
+  return _recordSecondOpinionOutcome(patientId, outcome, outcomeSummary);
+}
+
 // ============================================================================
 // Apollo Server setup
 // ============================================================================
@@ -1235,6 +1318,25 @@ const handler = startServerAndCreateNextHandler<NextRequest, GraphQLContext>(ser
         getAppealStrategy: getAppealStrategyAdapter,
         getAppealRights: getAppealRightsAdapter,
         generatePeerReviewPrep: generatePeerReviewPrepAdapter,
+
+        // Logistics
+        assessTrialLogistics: assessTrialLogisticsAdapter,
+        getLogisticsAssessment: getLogisticsAssessmentAdapter,
+        getLogisticsAssessments: getLogisticsAssessmentsAdapter,
+        getAssistancePrograms: getAssistanceProgramsAdapter,
+        generateLogisticsPlan: generateLogisticsPlanAdapter,
+        updateAssistanceApplication: updateAssistanceApplicationAdapter,
+        getAssistanceApplications: getAssistanceApplicationsAdapter,
+
+        // Second Opinion
+        evaluateSecondOpinionTriggers: evaluateSecondOpinionTriggersAdapter,
+        createSecondOpinionRequest: createSecondOpinionRequestAdapter,
+        getSecondOpinionRequest: getSecondOpinionRequestAdapter,
+        getSecondOpinionCenters: getSecondOpinionCentersAdapter,
+        generateRecordPacket: generateRecordPacketAdapter,
+        generateCommunicationGuide: generateCommunicationGuideAdapter,
+        selectCenter: selectCenterAdapter,
+        recordSecondOpinionOutcome: recordSecondOpinionOutcomeAdapter,
       },
     };
   },

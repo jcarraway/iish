@@ -112,3 +112,17 @@ export { NewDenialScreen } from './NewDenialScreen';
 export { AppealDetailScreen } from './AppealDetailScreen';
 export { AppealRightsScreen } from './AppealRightsScreen';
 export { EscalationGuideScreen } from './EscalationGuideScreen';
+
+// Logistics — Trial Logistics Navigator
+export { LogisticsDashboardScreen } from './LogisticsDashboardScreen';
+export { LogisticsAssessmentScreen } from './LogisticsAssessmentScreen';
+export { LogisticsAssistanceProgramsScreen } from './LogisticsAssistanceProgramsScreen';
+export { LogisticsApplicationsScreen } from './LogisticsApplicationsScreen';
+export { LogisticsPlanScreen } from './LogisticsPlanScreen';
+
+// Second Opinion — Second Opinion Facilitation
+export { SecondOpinionDashboardScreen } from './SecondOpinionDashboardScreen';
+export { SecondOpinionCentersScreen } from './SecondOpinionCentersScreen';
+export { SecondOpinionPacketScreen } from './SecondOpinionPacketScreen';
+export { SecondOpinionCommunicationScreen } from './SecondOpinionCommunicationScreen';
+export { SecondOpinionOutcomeScreen } from './SecondOpinionOutcomeScreen';

@@ -106,6 +106,9 @@ model Patient {
   recurrenceEvents        RecurrenceEvent[]
   fertilityAssessments    FertilityAssessment[]
   insuranceDenials        InsuranceDenial[]
+  logisticsAssessments    TrialLogisticsAssessment[]
+  logisticsApplications   LogisticsAssistanceApplication[]
+  secondOpinionRequests   SecondOpinionRequest[]
 
   @@map("patients")
 }
@@ -963,4 +966,100 @@ model AppealLetter {
 
   @@index([denialId])
   @@map("appeal_letters")
+}
+
+model TrialLogisticsAssessment {
+  id                    String    @id @default(uuid()) @db.Uuid
+  patientId             String    @map("patient_id") @db.Uuid
+  matchId               String    @map("match_id") @db.Uuid
+  siteId                String?   @map("site_id") @db.Uuid
+  distanceMiles         Float?    @map("distance_miles")
+  estimatedCosts        Json?     @map("estimated_costs")
+  matchedPrograms       Json?     @map("matched_programs")
+  estimatedOutOfPocket  Float?    @map("estimated_out_of_pocket")
+  feasibilityScore      String    @map("feasibility_score") @db.VarChar(20)
+  barriers              String[]  @default([])
+  logisticsPlan         String?   @map("logistics_plan")
+  logisticsPlanGeneratedAt DateTime? @map("logistics_plan_generated_at")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@unique([patientId, matchId])
+  @@index([patientId, createdAt(sort: Desc)])
+  @@map("trial_logistics_assessments")
+}
+
+model LogisticsAssistanceApplication {
+  id            String    @id @default(uuid()) @db.Uuid
+  patientId     String    @map("patient_id") @db.Uuid
+  assessmentId  String    @map("assessment_id") @db.Uuid
+  programKey    String    @map("program_key") @db.VarChar(50)
+  programName   String    @map("program_name")
+  status        String    @default("not_started") @db.VarChar(20)
+  appliedAt     DateTime? @map("applied_at")
+  statusUpdatedAt DateTime? @map("status_updated_at")
+  notes         String?
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@unique([assessmentId, programKey])
+  @@index([patientId])
+  @@map("logistics_assistance_applications")
+}
+
+model SecondOpinionCenter {
+  id                      String    @id @default(uuid()) @db.Uuid
+  name                    String    @db.VarChar(200)
+  nciDesignation          String?   @map("nci_designation") @db.VarChar(30)
+  subspecialties          String[]  @default([])
+  offersVirtual           Boolean   @default(false) @map("offers_virtual")
+  virtualPlatform         String?   @map("virtual_platform")
+  averageWaitDays         Int?      @map("average_wait_days")
+  pathologyReReview       Boolean   @default(false) @map("pathology_rereview")
+  address                 String?
+  city                    String?   @db.VarChar(100)
+  state                   String?   @db.VarChar(2)
+  latitude                Float?
+  longitude               Float?
+  acceptsInsurance        String[]  @default([]) @map("accepts_insurance")
+  estimatedCostInsured    String?   @map("estimated_cost_insured")
+  estimatedCostUninsured  String?   @map("estimated_cost_uninsured")
+  financialAssistance     Boolean   @default(false) @map("financial_assistance")
+  coordinator             String?
+  phone                   String?
+  website                 String?
+  intakeFormUrl           String?   @map("intake_form_url")
+  isActive                Boolean   @default(true) @map("is_active")
+  createdAt               DateTime  @default(now()) @map("created_at")
+  updatedAt               DateTime  @updatedAt @map("updated_at")
+
+  @@map("second_opinion_centers")
+}
+
+model SecondOpinionRequest {
+  id                  String    @id @default(uuid()) @db.Uuid
+  patientId           String    @map("patient_id") @db.Uuid
+  triggerReasons      Json      @map("trigger_reasons")
+  triggerSeverity     String    @map("trigger_severity") @db.VarChar(30)
+  status              String    @default("recommended") @db.VarChar(20)
+  centerId            String?   @map("center_id") @db.Uuid
+  centerName          String?   @map("center_name")
+  isVirtual           Boolean?  @map("is_virtual")
+  appointmentDate     DateTime? @map("appointment_date") @db.Date
+  clinicalSummary     String?   @map("clinical_summary")
+  questionsForReview  String[]  @default([]) @map("questions_for_review")
+  communicationGuide  Json?     @map("communication_guide")
+  outcome             String?   @db.VarChar(30)
+  outcomeSummary      String?   @map("outcome_summary")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId, createdAt(sort: Desc)])
+  @@map("second_opinion_requests")
 }

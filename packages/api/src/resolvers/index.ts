@@ -20,6 +20,8 @@ import { survivorshipResolvers } from './survivorship';
 import { recurrenceResolvers } from './recurrence';
 import { fertilityResolvers } from './fertility';
 import { advocateResolvers } from './advocate';
+import { logisticsResolvers } from './logistics';
+import { secondOpinionResolvers } from './second-opinion';
 
 /**
  * Merge all resolver maps into a single object.
@@ -62,4 +64,6 @@ export const resolvers = mergeResolvers(
   recurrenceResolvers,
   fertilityResolvers,
   advocateResolvers,
+  logisticsResolvers,
+  secondOpinionResolvers,
 );

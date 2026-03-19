@@ -154,6 +154,25 @@ export interface GraphQLContext {
     getAppealStrategy: (denialCategory: string) => any;
     getAppealRights: (state?: string) => any;
     generatePeerReviewPrep: (denialId: string) => Promise<any>;
+
+    // Logistics
+    assessTrialLogistics: (patientId: string, matchId: string) => Promise<any>;
+    getLogisticsAssessment: (patientId: string, matchId: string) => Promise<any>;
+    getLogisticsAssessments: (patientId: string) => Promise<any[]>;
+    getAssistancePrograms: (patientId: string) => Promise<any[]>;
+    generateLogisticsPlan: (patientId: string, matchId: string) => Promise<any>;
+    updateAssistanceApplication: (patientId: string, assessmentId: string, programKey: string, status: string, notes?: string) => Promise<any>;
+    getAssistanceApplications: (patientId: string) => Promise<any[]>;
+
+    // Second Opinion
+    evaluateSecondOpinionTriggers: (patientId: string) => Promise<any>;
+    createSecondOpinionRequest: (patientId: string) => Promise<any>;
+    getSecondOpinionRequest: (patientId: string) => Promise<any>;
+    getSecondOpinionCenters: (patientId: string, filters?: any) => Promise<any[]>;
+    generateRecordPacket: (patientId: string) => Promise<any>;
+    generateCommunicationGuide: (patientId: string) => Promise<any>;
+    selectCenter: (patientId: string, centerId: string, isVirtual: boolean, appointmentDate?: string) => Promise<any>;
+    recordSecondOpinionOutcome: (patientId: string, outcome: string, outcomeSummary?: string) => Promise<any>;
   };
 }
 

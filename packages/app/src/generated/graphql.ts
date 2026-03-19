@@ -149,6 +149,21 @@ export type AppointmentPrep = {
   upcomingTests: Array<Scalars['String']['output']>;
 };
 
+export type AssistanceProgramMatch = {
+  __typename?: 'AssistanceProgramMatch';
+  category: Scalars['String']['output'];
+  coverage: Scalars['String']['output'];
+  description: Scalars['String']['output'];
+  eligibility: Scalars['String']['output'];
+  eligible: Scalars['Boolean']['output'];
+  eligibleReason?: Maybe<Scalars['String']['output']>;
+  key: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  phone?: Maybe<Scalars['String']['output']>;
+  provider: Scalars['String']['output'];
+  url?: Maybe<Scalars['String']['output']>;
+};
+
 export type CareTeamMember = {
   __typename?: 'CareTeamMember';
   contactFor: Array<Scalars['String']['output']>;
@@ -186,6 +201,14 @@ export type CommonMutation = {
   frequency: Scalars['String']['output'];
   name: Scalars['String']['output'];
   significance: Scalars['String']['output'];
+};
+
+export type CommunicationGuide = {
+  __typename?: 'CommunicationGuide';
+  inPersonScript: Scalars['String']['output'];
+  portalMessage: Scalars['String']['output'];
+  reassurance: Scalars['String']['output'];
+  recordsRequest: Scalars['String']['output'];
 };
 
 export type ConversationGuide = {
@@ -630,6 +653,20 @@ export type LifestyleRecommendations = {
   nutrition: NutritionRecommendation;
 };
 
+export type LogisticsAssistanceApplication = {
+  __typename?: 'LogisticsAssistanceApplication';
+  appliedAt?: Maybe<Scalars['String']['output']>;
+  assessmentId: Scalars['String']['output'];
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['String']['output'];
+  notes?: Maybe<Scalars['String']['output']>;
+  patientId: Scalars['String']['output'];
+  programKey: Scalars['String']['output'];
+  programName: Scalars['String']['output'];
+  status: Scalars['String']['output'];
+  statusUpdatedAt?: Maybe<Scalars['String']['output']>;
+};
+
 export type LohBiomarker = {
   __typename?: 'LohBiomarker';
   status: Scalars['String']['output'];
@@ -821,6 +858,7 @@ export type Mutation = {
   archiveSurvivorshipPlan: Scalars['Boolean']['output'];
   assessFertilityRisk: FertilityAssessment;
   assessRegulatoryPathway: RegulatoryPathwayAssessment;
+  assessTrialLogistics: TrialLogisticsAssessment;
   authorizeFhir: FhirAuthorizeResult;
   cancelPipelineJob: PipelineJob;
   checkInsuranceCoverage: InsuranceCoverage;
@@ -830,6 +868,7 @@ export type Mutation = {
   createInsuranceDenial: InsuranceDenial;
   createManufacturingOrder: ManufacturingOrder;
   createPatientManual: Patient;
+  createSecondOpinionRequest: SecondOpinionRequest;
   createSequencingOrder: SequencingOrder;
   deleteJournalEntry: Scalars['Boolean']['output'];
   extractDocument: Document;
@@ -838,11 +877,14 @@ export type Mutation = {
   extractGenomicReport: GenomicResult;
   generateAppealLetter: AppealLetter;
   generateAppointmentPrep: AppointmentPrep;
+  generateCommunicationGuide: CommunicationGuide;
   generateFertilityDiscussionGuide: FertilityDiscussionGuide;
   generateLOMN: Lomn;
   generateLifestyleRecommendations: LifestyleRecommendations;
+  generateLogisticsPlan: Scalars['JSON']['output'];
   generateMatches: Array<Match>;
   generatePeerReviewPrep: PeerReviewPrep;
+  generateRecordPacket: Scalars['JSON']['output'];
   generateRegulatoryDocument: RegulatoryDocument;
   generateReportPdf: ReportPdfResult;
   generateSequencingRecommendation: SequencingRecommendation;
@@ -850,6 +892,7 @@ export type Mutation = {
   logout: Scalars['Boolean']['output'];
   markEventComplete: SurveillanceEvent;
   matchFinancialPrograms: Array<FinancialMatch>;
+  recordSecondOpinionOutcome: SecondOpinionRequest;
   refreshSCP: SurvivorshipPlan;
   regenerateTranslator: RecurrenceEvent;
   rematch: MatchDelta;
@@ -863,6 +906,7 @@ export type Mutation = {
   resyncFhirConnection: Scalars['JSON']['output'];
   revokeFhirConnection: Scalars['Boolean']['output'];
   savePatientIntake: Patient;
+  selectSecondOpinionCenter: SecondOpinionRequest;
   skipEvent: SurveillanceEvent;
   submitFeedback: SurvivorshipFeedback;
   submitJournalEntry: JournalEntry;
@@ -871,6 +915,7 @@ export type Mutation = {
   subscribeFinancialProgram: Scalars['Boolean']['output'];
   translateTreatment: TreatmentTranslation;
   updateAppealOutcome: AppealLetter;
+  updateAssistanceApplication: LogisticsAssistanceApplication;
   updateCareTeamMember: CareTeamMember;
   updateCascadeStep: RecurrenceEvent;
   updateDenialStatus: InsuranceDenial;
@@ -913,6 +958,11 @@ export type MutationAddOrderNoteArgs = {
 
 export type MutationAssessRegulatoryPathwayArgs = {
   input: PathwayAssessmentInput;
+};
+
+
+export type MutationAssessTrialLogisticsArgs = {
+  matchId: Scalars['String']['input'];
 };
 
 
@@ -1013,6 +1063,11 @@ export type MutationGenerateLomnArgs = {
 };
 
 
+export type MutationGenerateLogisticsPlanArgs = {
+  matchId: Scalars['String']['input'];
+};
+
+
 export type MutationGeneratePeerReviewPrepArgs = {
   denialId: Scalars['String']['input'];
 };
@@ -1037,6 +1092,11 @@ export type MutationMarkEventCompleteArgs = {
 
 export type MutationMatchFinancialProgramsArgs = {
   input: FinancialProfileInput;
+};
+
+
+export type MutationRecordSecondOpinionOutcomeArgs = {
+  input: RecordSecondOpinionOutcomeInput;
 };
 
 
@@ -1099,6 +1159,11 @@ export type MutationSavePatientIntakeArgs = {
 };
 
 
+export type MutationSelectSecondOpinionCenterArgs = {
+  input: SelectCenterInput;
+};
+
+
 export type MutationSkipEventArgs = {
   input: SkipEventInput;
 };
@@ -1140,6 +1205,11 @@ export type MutationTranslateTreatmentArgs = {
 
 export type MutationUpdateAppealOutcomeArgs = {
   input: UpdateAppealOutcomeInput;
+};
+
+
+export type MutationUpdateAssistanceApplicationArgs = {
+  input: UpdateAssistanceApplicationInput;
 };
 
 
@@ -1461,6 +1531,8 @@ export type Query = {
   appealRights: AppealRights;
   appealStrategy: AppealStrategy;
   appointmentPrep?: Maybe<AppointmentPrep>;
+  assistanceApplications: Array<LogisticsAssistanceApplication>;
+  assistancePrograms: Array<AssistanceProgramMatch>;
   careTeam: Array<CareTeamMember>;
   conversationGuide: ConversationGuide;
   ctdnaHistory: Array<CtdnaResult>;
@@ -1512,6 +1584,9 @@ export type Query = {
   regulatoryDocuments: Array<RegulatoryDocument>;
   reportPdf: ReportPdfResult;
   routeSymptom: SymptomRouting;
+  secondOpinionCenters: Array<SecondOpinionCenter>;
+  secondOpinionEvaluation: SecondOpinionEvaluation;
+  secondOpinionRequest?: Maybe<SecondOpinionRequest>;
   secondOpinionResources: Array<SecondOpinionResource>;
   sequencingBrief: Scalars['String']['output'];
   sequencingExplanation: SequencingExplanation;
@@ -1524,6 +1599,8 @@ export type Query = {
   survivorshipPlan?: Maybe<SurvivorshipPlan>;
   testRecommendation: TestRecommendation;
   trial?: Maybe<Trial>;
+  trialLogisticsAssessment?: Maybe<TrialLogisticsAssessment>;
+  trialLogisticsAssessments: Array<TrialLogisticsAssessment>;
   trials: Array<Trial>;
   waitingContent: WaitingContent;
 };
@@ -1705,6 +1782,12 @@ export type QueryRouteSymptomArgs = {
 };
 
 
+export type QuerySecondOpinionCentersArgs = {
+  subspecialty?: InputMaybe<Scalars['String']['input']>;
+  virtual?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+
 export type QuerySequencingBriefArgs = {
   insurer?: InputMaybe<Scalars['String']['input']>;
   providerIds: Array<Scalars['String']['input']>;
@@ -1728,6 +1811,11 @@ export type QueryTrialArgs = {
 };
 
 
+export type QueryTrialLogisticsAssessmentArgs = {
+  matchId: Scalars['String']['input'];
+};
+
+
 export type QueryTrialsArgs = {
   cancerType?: InputMaybe<Scalars['String']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -1746,6 +1834,11 @@ export type ReceptorStatus = {
   er?: Maybe<ReceptorDetail>;
   her2?: Maybe<ReceptorDetail>;
   pr?: Maybe<ReceptorDetail>;
+};
+
+export type RecordSecondOpinionOutcomeInput = {
+  outcome: Scalars['String']['input'];
+  outcomeSummary?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type RecurrenceEvent = {
@@ -1832,6 +1925,59 @@ export type ScpDiff = {
   summary: Scalars['String']['output'];
 };
 
+export type SecondOpinionCenter = {
+  __typename?: 'SecondOpinionCenter';
+  acceptsInsurance: Array<Scalars['String']['output']>;
+  address?: Maybe<Scalars['String']['output']>;
+  averageWaitDays?: Maybe<Scalars['Int']['output']>;
+  city?: Maybe<Scalars['String']['output']>;
+  coordinator?: Maybe<Scalars['String']['output']>;
+  distance?: Maybe<Scalars['Float']['output']>;
+  estimatedCostInsured?: Maybe<Scalars['String']['output']>;
+  estimatedCostUninsured?: Maybe<Scalars['String']['output']>;
+  financialAssistance: Scalars['Boolean']['output'];
+  id: Scalars['String']['output'];
+  intakeFormUrl?: Maybe<Scalars['String']['output']>;
+  latitude?: Maybe<Scalars['Float']['output']>;
+  longitude?: Maybe<Scalars['Float']['output']>;
+  name: Scalars['String']['output'];
+  nciDesignation?: Maybe<Scalars['String']['output']>;
+  offersVirtual: Scalars['Boolean']['output'];
+  pathologyReReview: Scalars['Boolean']['output'];
+  phone?: Maybe<Scalars['String']['output']>;
+  state?: Maybe<Scalars['String']['output']>;
+  subspecialties: Array<Scalars['String']['output']>;
+  virtualPlatform?: Maybe<Scalars['String']['output']>;
+  website?: Maybe<Scalars['String']['output']>;
+};
+
+export type SecondOpinionEvaluation = {
+  __typename?: 'SecondOpinionEvaluation';
+  overallSeverity: Scalars['String']['output'];
+  recommended: Scalars['Boolean']['output'];
+  triggers: Array<SecondOpinionTriggerResult>;
+};
+
+export type SecondOpinionRequest = {
+  __typename?: 'SecondOpinionRequest';
+  appointmentDate?: Maybe<Scalars['String']['output']>;
+  centerId?: Maybe<Scalars['String']['output']>;
+  centerName?: Maybe<Scalars['String']['output']>;
+  clinicalSummary?: Maybe<Scalars['String']['output']>;
+  communicationGuide?: Maybe<Scalars['JSON']['output']>;
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['String']['output'];
+  isVirtual?: Maybe<Scalars['Boolean']['output']>;
+  outcome?: Maybe<Scalars['String']['output']>;
+  outcomeSummary?: Maybe<Scalars['String']['output']>;
+  patientId: Scalars['String']['output'];
+  questionsForReview: Array<Scalars['String']['output']>;
+  status: Scalars['String']['output'];
+  triggerReasons: Scalars['JSON']['output'];
+  triggerSeverity: Scalars['String']['output'];
+  updatedAt: Scalars['DateTime']['output'];
+};
+
 export type SecondOpinionResource = {
   __typename?: 'SecondOpinionResource';
   description: Scalars['String']['output'];
@@ -1845,6 +1991,21 @@ export type SecondOpinionTrigger = {
   __typename?: 'SecondOpinionTrigger';
   level: Scalars['String']['output'];
   reason: Scalars['String']['output'];
+};
+
+export type SecondOpinionTriggerResult = {
+  __typename?: 'SecondOpinionTriggerResult';
+  evidenceBase: Scalars['String']['output'];
+  id: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  rationale: Scalars['String']['output'];
+  severity: Scalars['String']['output'];
+};
+
+export type SelectCenterInput = {
+  appointmentDate?: InputMaybe<Scalars['String']['input']>;
+  centerId: Scalars['String']['input'];
+  isVirtual: Scalars['Boolean']['input'];
 };
 
 export type SequencingExplanation = {
@@ -2115,11 +2276,36 @@ export type Trial = {
   title: Scalars['String']['output'];
 };
 
+export type TrialLogisticsAssessment = {
+  __typename?: 'TrialLogisticsAssessment';
+  barriers: Array<Scalars['String']['output']>;
+  createdAt: Scalars['DateTime']['output'];
+  distanceMiles?: Maybe<Scalars['Float']['output']>;
+  estimatedCosts?: Maybe<Scalars['JSON']['output']>;
+  estimatedOutOfPocket?: Maybe<Scalars['Float']['output']>;
+  feasibilityScore: Scalars['String']['output'];
+  id: Scalars['String']['output'];
+  logisticsPlan?: Maybe<Scalars['String']['output']>;
+  logisticsPlanGeneratedAt?: Maybe<Scalars['String']['output']>;
+  matchId: Scalars['String']['output'];
+  matchedPrograms?: Maybe<Scalars['JSON']['output']>;
+  patientId: Scalars['String']['output'];
+  siteId?: Maybe<Scalars['String']['output']>;
+  updatedAt: Scalars['DateTime']['output'];
+};
+
 export type UpdateAppealOutcomeInput = {
   appealId: Scalars['String']['input'];
   outcome: Scalars['String']['input'];
   outcomeDate?: InputMaybe<Scalars['String']['input']>;
   outcomeDetails?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdateAssistanceApplicationInput = {
+  assessmentId: Scalars['String']['input'];
+  notes?: InputMaybe<Scalars['String']['input']>;
+  programKey: Scalars['String']['input'];
+  status: Scalars['String']['input'];
 };
 
 export type UpdateCareTeamMemberInput = {
@@ -2457,6 +2643,49 @@ export type RematchMutationVariables = Exact<{ [key: string]: never; }>;
 
 export type RematchMutation = { __typename?: 'Mutation', rematch: { __typename?: 'MatchDelta', totalBefore: number, totalAfter: number, newMatches: Array<{ __typename?: 'MatchDeltaEntry', trialId: string, nctId: string, title: string, newScore?: number | null, genomicBasis?: string | null }>, improvedMatches: Array<{ __typename?: 'MatchDeltaEntry', trialId: string, nctId: string, title: string, oldScore?: number | null, newScore?: number | null, genomicBasis?: string | null }>, removedMatches: Array<{ __typename?: 'MatchDeltaEntry', trialId: string, nctId: string, title: string, oldScore?: number | null, reason?: string | null }> } };
 
+export type GetTrialLogisticsAssessmentQueryVariables = Exact<{
+  matchId: Scalars['String']['input'];
+}>;
+
+
+export type GetTrialLogisticsAssessmentQuery = { __typename?: 'Query', trialLogisticsAssessment?: { __typename?: 'TrialLogisticsAssessment', id: string, patientId: string, matchId: string, siteId?: string | null, distanceMiles?: number | null, estimatedCosts?: Record<string, unknown> | null, matchedPrograms?: Record<string, unknown> | null, estimatedOutOfPocket?: number | null, feasibilityScore: string, barriers: Array<string>, logisticsPlan?: string | null, logisticsPlanGeneratedAt?: string | null, createdAt: string, updatedAt: string } | null };
+
+export type GetTrialLogisticsAssessmentsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetTrialLogisticsAssessmentsQuery = { __typename?: 'Query', trialLogisticsAssessments: Array<{ __typename?: 'TrialLogisticsAssessment', id: string, patientId: string, matchId: string, distanceMiles?: number | null, estimatedOutOfPocket?: number | null, feasibilityScore: string, barriers: Array<string>, logisticsPlan?: string | null, createdAt: string }> };
+
+export type GetAssistanceProgramsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetAssistanceProgramsQuery = { __typename?: 'Query', assistancePrograms: Array<{ __typename?: 'AssistanceProgramMatch', key: string, name: string, provider: string, category: string, description: string, coverage: string, phone?: string | null, url?: string | null, eligibility: string, eligible: boolean, eligibleReason?: string | null }> };
+
+export type GetAssistanceApplicationsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetAssistanceApplicationsQuery = { __typename?: 'Query', assistanceApplications: Array<{ __typename?: 'LogisticsAssistanceApplication', id: string, patientId: string, assessmentId: string, programKey: string, programName: string, status: string, appliedAt?: string | null, statusUpdatedAt?: string | null, notes?: string | null, createdAt: string }> };
+
+export type AssessTrialLogisticsMutationVariables = Exact<{
+  matchId: Scalars['String']['input'];
+}>;
+
+
+export type AssessTrialLogisticsMutation = { __typename?: 'Mutation', assessTrialLogistics: { __typename?: 'TrialLogisticsAssessment', id: string, patientId: string, matchId: string, siteId?: string | null, distanceMiles?: number | null, estimatedCosts?: Record<string, unknown> | null, matchedPrograms?: Record<string, unknown> | null, estimatedOutOfPocket?: number | null, feasibilityScore: string, barriers: Array<string>, createdAt: string } };
+
+export type GenerateLogisticsPlanMutationVariables = Exact<{
+  matchId: Scalars['String']['input'];
+}>;
+
+
+export type GenerateLogisticsPlanMutation = { __typename?: 'Mutation', generateLogisticsPlan: Record<string, unknown> };
+
+export type UpdateAssistanceApplicationMutationVariables = Exact<{
+  input: UpdateAssistanceApplicationInput;
+}>;
+
+
+export type UpdateAssistanceApplicationMutation = { __typename?: 'Mutation', updateAssistanceApplication: { __typename?: 'LogisticsAssistanceApplication', id: string, programKey: string, programName: string, status: string, appliedAt?: string | null, statusUpdatedAt?: string | null, notes?: string | null } };
+
 export type GetManufacturingPartnersQueryVariables = Exact<{
   type?: InputMaybe<Scalars['String']['input']>;
   capability?: InputMaybe<Scalars['String']['input']>;
@@ -2776,6 +3005,53 @@ export type GenerateReportQueryVariables = Exact<{
 
 
 export type GenerateReportQuery = { __typename?: 'Query', generateReport?: Record<string, unknown> | null };
+
+export type GetSecondOpinionEvaluationQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetSecondOpinionEvaluationQuery = { __typename?: 'Query', secondOpinionEvaluation: { __typename?: 'SecondOpinionEvaluation', overallSeverity: string, recommended: boolean, triggers: Array<{ __typename?: 'SecondOpinionTriggerResult', id: string, name: string, severity: string, rationale: string, evidenceBase: string }> } };
+
+export type GetSecondOpinionRequestQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetSecondOpinionRequestQuery = { __typename?: 'Query', secondOpinionRequest?: { __typename?: 'SecondOpinionRequest', id: string, patientId: string, triggerReasons: Record<string, unknown>, triggerSeverity: string, status: string, centerId?: string | null, centerName?: string | null, isVirtual?: boolean | null, appointmentDate?: string | null, clinicalSummary?: string | null, questionsForReview: Array<string>, communicationGuide?: Record<string, unknown> | null, outcome?: string | null, outcomeSummary?: string | null, createdAt: string, updatedAt: string } | null };
+
+export type GetSecondOpinionCentersQueryVariables = Exact<{
+  virtual?: InputMaybe<Scalars['Boolean']['input']>;
+  subspecialty?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type GetSecondOpinionCentersQuery = { __typename?: 'Query', secondOpinionCenters: Array<{ __typename?: 'SecondOpinionCenter', id: string, name: string, nciDesignation?: string | null, subspecialties: Array<string>, offersVirtual: boolean, virtualPlatform?: string | null, averageWaitDays?: number | null, pathologyReReview: boolean, address?: string | null, city?: string | null, state?: string | null, distance?: number | null, acceptsInsurance: Array<string>, estimatedCostInsured?: string | null, estimatedCostUninsured?: string | null, financialAssistance: boolean, coordinator?: string | null, phone?: string | null, website?: string | null, intakeFormUrl?: string | null }> };
+
+export type CreateSecondOpinionRequestMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type CreateSecondOpinionRequestMutation = { __typename?: 'Mutation', createSecondOpinionRequest: { __typename?: 'SecondOpinionRequest', id: string, patientId: string, triggerReasons: Record<string, unknown>, triggerSeverity: string, status: string, createdAt: string } };
+
+export type GenerateRecordPacketMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GenerateRecordPacketMutation = { __typename?: 'Mutation', generateRecordPacket: Record<string, unknown> };
+
+export type GenerateCommunicationGuideMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GenerateCommunicationGuideMutation = { __typename?: 'Mutation', generateCommunicationGuide: { __typename?: 'CommunicationGuide', portalMessage: string, inPersonScript: string, recordsRequest: string, reassurance: string } };
+
+export type SelectSecondOpinionCenterMutationVariables = Exact<{
+  input: SelectCenterInput;
+}>;
+
+
+export type SelectSecondOpinionCenterMutation = { __typename?: 'Mutation', selectSecondOpinionCenter: { __typename?: 'SecondOpinionRequest', id: string, centerId?: string | null, centerName?: string | null, isVirtual?: boolean | null, appointmentDate?: string | null, status: string } };
+
+export type RecordSecondOpinionOutcomeMutationVariables = Exact<{
+  input: RecordSecondOpinionOutcomeInput;
+}>;
+
+
+export type RecordSecondOpinionOutcomeMutation = { __typename?: 'Mutation', recordSecondOpinionOutcome: { __typename?: 'SecondOpinionRequest', id: string, outcome?: string | null, outcomeSummary?: string | null, status: string } };
 
 export type GetProvidersQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -5084,6 +5360,328 @@ export function useRematchMutation(baseOptions?: Apollo.MutationHookOptions<Rema
 export type RematchMutationHookResult = ReturnType<typeof useRematchMutation>;
 export type RematchMutationResult = Apollo.MutationResult<RematchMutation>;
 export type RematchMutationOptions = Apollo.BaseMutationOptions<RematchMutation, RematchMutationVariables>;
+export const GetTrialLogisticsAssessmentDocument = gql`
+    query GetTrialLogisticsAssessment($matchId: String!) {
+  trialLogisticsAssessment(matchId: $matchId) {
+    id
+    patientId
+    matchId
+    siteId
+    distanceMiles
+    estimatedCosts
+    matchedPrograms
+    estimatedOutOfPocket
+    feasibilityScore
+    barriers
+    logisticsPlan
+    logisticsPlanGeneratedAt
+    createdAt
+    updatedAt
+  }
+}
+    `;
+
+/**
+ * __useGetTrialLogisticsAssessmentQuery__
+ *
+ * To run a query within a React component, call `useGetTrialLogisticsAssessmentQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetTrialLogisticsAssessmentQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetTrialLogisticsAssessmentQuery({
+ *   variables: {
+ *      matchId: // value for 'matchId'
+ *   },
+ * });
+ */
+export function useGetTrialLogisticsAssessmentQuery(baseOptions: Apollo.QueryHookOptions<GetTrialLogisticsAssessmentQuery, GetTrialLogisticsAssessmentQueryVariables> & ({ variables: GetTrialLogisticsAssessmentQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetTrialLogisticsAssessmentQuery, GetTrialLogisticsAssessmentQueryVariables>(GetTrialLogisticsAssessmentDocument, options);
+      }
+export function useGetTrialLogisticsAssessmentLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetTrialLogisticsAssessmentQuery, GetTrialLogisticsAssessmentQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetTrialLogisticsAssessmentQuery, GetTrialLogisticsAssessmentQueryVariables>(GetTrialLogisticsAssessmentDocument, options);
+        }
+// @ts-ignore
+export function useGetTrialLogisticsAssessmentSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetTrialLogisticsAssessmentQuery, GetTrialLogisticsAssessmentQueryVariables>): Apollo.UseSuspenseQueryResult<GetTrialLogisticsAssessmentQuery, GetTrialLogisticsAssessmentQueryVariables>;
+export function useGetTrialLogisticsAssessmentSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetTrialLogisticsAssessmentQuery, GetTrialLogisticsAssessmentQueryVariables>): Apollo.UseSuspenseQueryResult<GetTrialLogisticsAssessmentQuery | undefined, GetTrialLogisticsAssessmentQueryVariables>;
+export function useGetTrialLogisticsAssessmentSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetTrialLogisticsAssessmentQuery, GetTrialLogisticsAssessmentQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetTrialLogisticsAssessmentQuery, GetTrialLogisticsAssessmentQueryVariables>(GetTrialLogisticsAssessmentDocument, options);
+        }
+export type GetTrialLogisticsAssessmentQueryHookResult = ReturnType<typeof useGetTrialLogisticsAssessmentQuery>;
+export type GetTrialLogisticsAssessmentLazyQueryHookResult = ReturnType<typeof useGetTrialLogisticsAssessmentLazyQuery>;
+export type GetTrialLogisticsAssessmentSuspenseQueryHookResult = ReturnType<typeof useGetTrialLogisticsAssessmentSuspenseQuery>;
+export type GetTrialLogisticsAssessmentQueryResult = Apollo.QueryResult<GetTrialLogisticsAssessmentQuery, GetTrialLogisticsAssessmentQueryVariables>;
+export const GetTrialLogisticsAssessmentsDocument = gql`
+    query GetTrialLogisticsAssessments {
+  trialLogisticsAssessments {
+    id
+    patientId
+    matchId
+    distanceMiles
+    estimatedOutOfPocket
+    feasibilityScore
+    barriers
+    logisticsPlan
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useGetTrialLogisticsAssessmentsQuery__
+ *
+ * To run a query within a React component, call `useGetTrialLogisticsAssessmentsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetTrialLogisticsAssessmentsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetTrialLogisticsAssessmentsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetTrialLogisticsAssessmentsQuery(baseOptions?: Apollo.QueryHookOptions<GetTrialLogisticsAssessmentsQuery, GetTrialLogisticsAssessmentsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetTrialLogisticsAssessmentsQuery, GetTrialLogisticsAssessmentsQueryVariables>(GetTrialLogisticsAssessmentsDocument, options);
+      }
+export function useGetTrialLogisticsAssessmentsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetTrialLogisticsAssessmentsQuery, GetTrialLogisticsAssessmentsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetTrialLogisticsAssessmentsQuery, GetTrialLogisticsAssessmentsQueryVariables>(GetTrialLogisticsAssessmentsDocument, options);
+        }
+// @ts-ignore
+export function useGetTrialLogisticsAssessmentsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetTrialLogisticsAssessmentsQuery, GetTrialLogisticsAssessmentsQueryVariables>): Apollo.UseSuspenseQueryResult<GetTrialLogisticsAssessmentsQuery, GetTrialLogisticsAssessmentsQueryVariables>;
+export function useGetTrialLogisticsAssessmentsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetTrialLogisticsAssessmentsQuery, GetTrialLogisticsAssessmentsQueryVariables>): Apollo.UseSuspenseQueryResult<GetTrialLogisticsAssessmentsQuery | undefined, GetTrialLogisticsAssessmentsQueryVariables>;
+export function useGetTrialLogisticsAssessmentsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetTrialLogisticsAssessmentsQuery, GetTrialLogisticsAssessmentsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetTrialLogisticsAssessmentsQuery, GetTrialLogisticsAssessmentsQueryVariables>(GetTrialLogisticsAssessmentsDocument, options);
+        }
+export type GetTrialLogisticsAssessmentsQueryHookResult = ReturnType<typeof useGetTrialLogisticsAssessmentsQuery>;
+export type GetTrialLogisticsAssessmentsLazyQueryHookResult = ReturnType<typeof useGetTrialLogisticsAssessmentsLazyQuery>;
+export type GetTrialLogisticsAssessmentsSuspenseQueryHookResult = ReturnType<typeof useGetTrialLogisticsAssessmentsSuspenseQuery>;
+export type GetTrialLogisticsAssessmentsQueryResult = Apollo.QueryResult<GetTrialLogisticsAssessmentsQuery, GetTrialLogisticsAssessmentsQueryVariables>;
+export const GetAssistanceProgramsDocument = gql`
+    query GetAssistancePrograms {
+  assistancePrograms {
+    key
+    name
+    provider
+    category
+    description
+    coverage
+    phone
+    url
+    eligibility
+    eligible
+    eligibleReason
+  }
+}
+    `;
+
+/**
+ * __useGetAssistanceProgramsQuery__
+ *
+ * To run a query within a React component, call `useGetAssistanceProgramsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAssistanceProgramsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAssistanceProgramsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetAssistanceProgramsQuery(baseOptions?: Apollo.QueryHookOptions<GetAssistanceProgramsQuery, GetAssistanceProgramsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetAssistanceProgramsQuery, GetAssistanceProgramsQueryVariables>(GetAssistanceProgramsDocument, options);
+      }
+export function useGetAssistanceProgramsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAssistanceProgramsQuery, GetAssistanceProgramsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetAssistanceProgramsQuery, GetAssistanceProgramsQueryVariables>(GetAssistanceProgramsDocument, options);
+        }
+// @ts-ignore
+export function useGetAssistanceProgramsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetAssistanceProgramsQuery, GetAssistanceProgramsQueryVariables>): Apollo.UseSuspenseQueryResult<GetAssistanceProgramsQuery, GetAssistanceProgramsQueryVariables>;
+export function useGetAssistanceProgramsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetAssistanceProgramsQuery, GetAssistanceProgramsQueryVariables>): Apollo.UseSuspenseQueryResult<GetAssistanceProgramsQuery | undefined, GetAssistanceProgramsQueryVariables>;
+export function useGetAssistanceProgramsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetAssistanceProgramsQuery, GetAssistanceProgramsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetAssistanceProgramsQuery, GetAssistanceProgramsQueryVariables>(GetAssistanceProgramsDocument, options);
+        }
+export type GetAssistanceProgramsQueryHookResult = ReturnType<typeof useGetAssistanceProgramsQuery>;
+export type GetAssistanceProgramsLazyQueryHookResult = ReturnType<typeof useGetAssistanceProgramsLazyQuery>;
+export type GetAssistanceProgramsSuspenseQueryHookResult = ReturnType<typeof useGetAssistanceProgramsSuspenseQuery>;
+export type GetAssistanceProgramsQueryResult = Apollo.QueryResult<GetAssistanceProgramsQuery, GetAssistanceProgramsQueryVariables>;
+export const GetAssistanceApplicationsDocument = gql`
+    query GetAssistanceApplications {
+  assistanceApplications {
+    id
+    patientId
+    assessmentId
+    programKey
+    programName
+    status
+    appliedAt
+    statusUpdatedAt
+    notes
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useGetAssistanceApplicationsQuery__
+ *
+ * To run a query within a React component, call `useGetAssistanceApplicationsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAssistanceApplicationsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAssistanceApplicationsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetAssistanceApplicationsQuery(baseOptions?: Apollo.QueryHookOptions<GetAssistanceApplicationsQuery, GetAssistanceApplicationsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetAssistanceApplicationsQuery, GetAssistanceApplicationsQueryVariables>(GetAssistanceApplicationsDocument, options);
+      }
+export function useGetAssistanceApplicationsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAssistanceApplicationsQuery, GetAssistanceApplicationsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetAssistanceApplicationsQuery, GetAssistanceApplicationsQueryVariables>(GetAssistanceApplicationsDocument, options);
+        }
+// @ts-ignore
+export function useGetAssistanceApplicationsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetAssistanceApplicationsQuery, GetAssistanceApplicationsQueryVariables>): Apollo.UseSuspenseQueryResult<GetAssistanceApplicationsQuery, GetAssistanceApplicationsQueryVariables>;
+export function useGetAssistanceApplicationsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetAssistanceApplicationsQuery, GetAssistanceApplicationsQueryVariables>): Apollo.UseSuspenseQueryResult<GetAssistanceApplicationsQuery | undefined, GetAssistanceApplicationsQueryVariables>;
+export function useGetAssistanceApplicationsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetAssistanceApplicationsQuery, GetAssistanceApplicationsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetAssistanceApplicationsQuery, GetAssistanceApplicationsQueryVariables>(GetAssistanceApplicationsDocument, options);
+        }
+export type GetAssistanceApplicationsQueryHookResult = ReturnType<typeof useGetAssistanceApplicationsQuery>;
+export type GetAssistanceApplicationsLazyQueryHookResult = ReturnType<typeof useGetAssistanceApplicationsLazyQuery>;
+export type GetAssistanceApplicationsSuspenseQueryHookResult = ReturnType<typeof useGetAssistanceApplicationsSuspenseQuery>;
+export type GetAssistanceApplicationsQueryResult = Apollo.QueryResult<GetAssistanceApplicationsQuery, GetAssistanceApplicationsQueryVariables>;
+export const AssessTrialLogisticsDocument = gql`
+    mutation AssessTrialLogistics($matchId: String!) {
+  assessTrialLogistics(matchId: $matchId) {
+    id
+    patientId
+    matchId
+    siteId
+    distanceMiles
+    estimatedCosts
+    matchedPrograms
+    estimatedOutOfPocket
+    feasibilityScore
+    barriers
+    createdAt
+  }
+}
+    `;
+export type AssessTrialLogisticsMutationFn = Apollo.MutationFunction<AssessTrialLogisticsMutation, AssessTrialLogisticsMutationVariables>;
+
+/**
+ * __useAssessTrialLogisticsMutation__
+ *
+ * To run a mutation, you first call `useAssessTrialLogisticsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useAssessTrialLogisticsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [assessTrialLogisticsMutation, { data, loading, error }] = useAssessTrialLogisticsMutation({
+ *   variables: {
+ *      matchId: // value for 'matchId'
+ *   },
+ * });
+ */
+export function useAssessTrialLogisticsMutation(baseOptions?: Apollo.MutationHookOptions<AssessTrialLogisticsMutation, AssessTrialLogisticsMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<AssessTrialLogisticsMutation, AssessTrialLogisticsMutationVariables>(AssessTrialLogisticsDocument, options);
+      }
+export type AssessTrialLogisticsMutationHookResult = ReturnType<typeof useAssessTrialLogisticsMutation>;
+export type AssessTrialLogisticsMutationResult = Apollo.MutationResult<AssessTrialLogisticsMutation>;
+export type AssessTrialLogisticsMutationOptions = Apollo.BaseMutationOptions<AssessTrialLogisticsMutation, AssessTrialLogisticsMutationVariables>;
+export const GenerateLogisticsPlanDocument = gql`
+    mutation GenerateLogisticsPlan($matchId: String!) {
+  generateLogisticsPlan(matchId: $matchId)
+}
+    `;
+export type GenerateLogisticsPlanMutationFn = Apollo.MutationFunction<GenerateLogisticsPlanMutation, GenerateLogisticsPlanMutationVariables>;
+
+/**
+ * __useGenerateLogisticsPlanMutation__
+ *
+ * To run a mutation, you first call `useGenerateLogisticsPlanMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useGenerateLogisticsPlanMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [generateLogisticsPlanMutation, { data, loading, error }] = useGenerateLogisticsPlanMutation({
+ *   variables: {
+ *      matchId: // value for 'matchId'
+ *   },
+ * });
+ */
+export function useGenerateLogisticsPlanMutation(baseOptions?: Apollo.MutationHookOptions<GenerateLogisticsPlanMutation, GenerateLogisticsPlanMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<GenerateLogisticsPlanMutation, GenerateLogisticsPlanMutationVariables>(GenerateLogisticsPlanDocument, options);
+      }
+export type GenerateLogisticsPlanMutationHookResult = ReturnType<typeof useGenerateLogisticsPlanMutation>;
+export type GenerateLogisticsPlanMutationResult = Apollo.MutationResult<GenerateLogisticsPlanMutation>;
+export type GenerateLogisticsPlanMutationOptions = Apollo.BaseMutationOptions<GenerateLogisticsPlanMutation, GenerateLogisticsPlanMutationVariables>;
+export const UpdateAssistanceApplicationDocument = gql`
+    mutation UpdateAssistanceApplication($input: UpdateAssistanceApplicationInput!) {
+  updateAssistanceApplication(input: $input) {
+    id
+    programKey
+    programName
+    status
+    appliedAt
+    statusUpdatedAt
+    notes
+  }
+}
+    `;
+export type UpdateAssistanceApplicationMutationFn = Apollo.MutationFunction<UpdateAssistanceApplicationMutation, UpdateAssistanceApplicationMutationVariables>;
+
+/**
+ * __useUpdateAssistanceApplicationMutation__
+ *
+ * To run a mutation, you first call `useUpdateAssistanceApplicationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateAssistanceApplicationMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateAssistanceApplicationMutation, { data, loading, error }] = useUpdateAssistanceApplicationMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUpdateAssistanceApplicationMutation(baseOptions?: Apollo.MutationHookOptions<UpdateAssistanceApplicationMutation, UpdateAssistanceApplicationMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateAssistanceApplicationMutation, UpdateAssistanceApplicationMutationVariables>(UpdateAssistanceApplicationDocument, options);
+      }
+export type UpdateAssistanceApplicationMutationHookResult = ReturnType<typeof useUpdateAssistanceApplicationMutation>;
+export type UpdateAssistanceApplicationMutationResult = Apollo.MutationResult<UpdateAssistanceApplicationMutation>;
+export type UpdateAssistanceApplicationMutationOptions = Apollo.BaseMutationOptions<UpdateAssistanceApplicationMutation, UpdateAssistanceApplicationMutationVariables>;
 export const GetManufacturingPartnersDocument = gql`
     query GetManufacturingPartners($type: String, $capability: String) {
   manufacturingPartners(type: $type, capability: $capability) {
@@ -7332,6 +7930,352 @@ export type GenerateReportQueryHookResult = ReturnType<typeof useGenerateReportQ
 export type GenerateReportLazyQueryHookResult = ReturnType<typeof useGenerateReportLazyQuery>;
 export type GenerateReportSuspenseQueryHookResult = ReturnType<typeof useGenerateReportSuspenseQuery>;
 export type GenerateReportQueryResult = Apollo.QueryResult<GenerateReportQuery, GenerateReportQueryVariables>;
+export const GetSecondOpinionEvaluationDocument = gql`
+    query GetSecondOpinionEvaluation {
+  secondOpinionEvaluation {
+    triggers {
+      id
+      name
+      severity
+      rationale
+      evidenceBase
+    }
+    overallSeverity
+    recommended
+  }
+}
+    `;
+
+/**
+ * __useGetSecondOpinionEvaluationQuery__
+ *
+ * To run a query within a React component, call `useGetSecondOpinionEvaluationQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSecondOpinionEvaluationQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSecondOpinionEvaluationQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetSecondOpinionEvaluationQuery(baseOptions?: Apollo.QueryHookOptions<GetSecondOpinionEvaluationQuery, GetSecondOpinionEvaluationQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetSecondOpinionEvaluationQuery, GetSecondOpinionEvaluationQueryVariables>(GetSecondOpinionEvaluationDocument, options);
+      }
+export function useGetSecondOpinionEvaluationLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSecondOpinionEvaluationQuery, GetSecondOpinionEvaluationQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetSecondOpinionEvaluationQuery, GetSecondOpinionEvaluationQueryVariables>(GetSecondOpinionEvaluationDocument, options);
+        }
+// @ts-ignore
+export function useGetSecondOpinionEvaluationSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetSecondOpinionEvaluationQuery, GetSecondOpinionEvaluationQueryVariables>): Apollo.UseSuspenseQueryResult<GetSecondOpinionEvaluationQuery, GetSecondOpinionEvaluationQueryVariables>;
+export function useGetSecondOpinionEvaluationSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetSecondOpinionEvaluationQuery, GetSecondOpinionEvaluationQueryVariables>): Apollo.UseSuspenseQueryResult<GetSecondOpinionEvaluationQuery | undefined, GetSecondOpinionEvaluationQueryVariables>;
+export function useGetSecondOpinionEvaluationSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetSecondOpinionEvaluationQuery, GetSecondOpinionEvaluationQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetSecondOpinionEvaluationQuery, GetSecondOpinionEvaluationQueryVariables>(GetSecondOpinionEvaluationDocument, options);
+        }
+export type GetSecondOpinionEvaluationQueryHookResult = ReturnType<typeof useGetSecondOpinionEvaluationQuery>;
+export type GetSecondOpinionEvaluationLazyQueryHookResult = ReturnType<typeof useGetSecondOpinionEvaluationLazyQuery>;
+export type GetSecondOpinionEvaluationSuspenseQueryHookResult = ReturnType<typeof useGetSecondOpinionEvaluationSuspenseQuery>;
+export type GetSecondOpinionEvaluationQueryResult = Apollo.QueryResult<GetSecondOpinionEvaluationQuery, GetSecondOpinionEvaluationQueryVariables>;
+export const GetSecondOpinionRequestDocument = gql`
+    query GetSecondOpinionRequest {
+  secondOpinionRequest {
+    id
+    patientId
+    triggerReasons
+    triggerSeverity
+    status
+    centerId
+    centerName
+    isVirtual
+    appointmentDate
+    clinicalSummary
+    questionsForReview
+    communicationGuide
+    outcome
+    outcomeSummary
+    createdAt
+    updatedAt
+  }
+}
+    `;
+
+/**
+ * __useGetSecondOpinionRequestQuery__
+ *
+ * To run a query within a React component, call `useGetSecondOpinionRequestQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSecondOpinionRequestQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSecondOpinionRequestQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetSecondOpinionRequestQuery(baseOptions?: Apollo.QueryHookOptions<GetSecondOpinionRequestQuery, GetSecondOpinionRequestQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetSecondOpinionRequestQuery, GetSecondOpinionRequestQueryVariables>(GetSecondOpinionRequestDocument, options);
+      }
+export function useGetSecondOpinionRequestLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSecondOpinionRequestQuery, GetSecondOpinionRequestQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetSecondOpinionRequestQuery, GetSecondOpinionRequestQueryVariables>(GetSecondOpinionRequestDocument, options);
+        }
+// @ts-ignore
+export function useGetSecondOpinionRequestSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetSecondOpinionRequestQuery, GetSecondOpinionRequestQueryVariables>): Apollo.UseSuspenseQueryResult<GetSecondOpinionRequestQuery, GetSecondOpinionRequestQueryVariables>;
+export function useGetSecondOpinionRequestSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetSecondOpinionRequestQuery, GetSecondOpinionRequestQueryVariables>): Apollo.UseSuspenseQueryResult<GetSecondOpinionRequestQuery | undefined, GetSecondOpinionRequestQueryVariables>;
+export function useGetSecondOpinionRequestSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetSecondOpinionRequestQuery, GetSecondOpinionRequestQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetSecondOpinionRequestQuery, GetSecondOpinionRequestQueryVariables>(GetSecondOpinionRequestDocument, options);
+        }
+export type GetSecondOpinionRequestQueryHookResult = ReturnType<typeof useGetSecondOpinionRequestQuery>;
+export type GetSecondOpinionRequestLazyQueryHookResult = ReturnType<typeof useGetSecondOpinionRequestLazyQuery>;
+export type GetSecondOpinionRequestSuspenseQueryHookResult = ReturnType<typeof useGetSecondOpinionRequestSuspenseQuery>;
+export type GetSecondOpinionRequestQueryResult = Apollo.QueryResult<GetSecondOpinionRequestQuery, GetSecondOpinionRequestQueryVariables>;
+export const GetSecondOpinionCentersDocument = gql`
+    query GetSecondOpinionCenters($virtual: Boolean, $subspecialty: String) {
+  secondOpinionCenters(virtual: $virtual, subspecialty: $subspecialty) {
+    id
+    name
+    nciDesignation
+    subspecialties
+    offersVirtual
+    virtualPlatform
+    averageWaitDays
+    pathologyReReview
+    address
+    city
+    state
+    distance
+    acceptsInsurance
+    estimatedCostInsured
+    estimatedCostUninsured
+    financialAssistance
+    coordinator
+    phone
+    website
+    intakeFormUrl
+  }
+}
+    `;
+
+/**
+ * __useGetSecondOpinionCentersQuery__
+ *
+ * To run a query within a React component, call `useGetSecondOpinionCentersQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSecondOpinionCentersQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSecondOpinionCentersQuery({
+ *   variables: {
+ *      virtual: // value for 'virtual'
+ *      subspecialty: // value for 'subspecialty'
+ *   },
+ * });
+ */
+export function useGetSecondOpinionCentersQuery(baseOptions?: Apollo.QueryHookOptions<GetSecondOpinionCentersQuery, GetSecondOpinionCentersQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetSecondOpinionCentersQuery, GetSecondOpinionCentersQueryVariables>(GetSecondOpinionCentersDocument, options);
+      }
+export function useGetSecondOpinionCentersLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSecondOpinionCentersQuery, GetSecondOpinionCentersQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetSecondOpinionCentersQuery, GetSecondOpinionCentersQueryVariables>(GetSecondOpinionCentersDocument, options);
+        }
+// @ts-ignore
+export function useGetSecondOpinionCentersSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetSecondOpinionCentersQuery, GetSecondOpinionCentersQueryVariables>): Apollo.UseSuspenseQueryResult<GetSecondOpinionCentersQuery, GetSecondOpinionCentersQueryVariables>;
+export function useGetSecondOpinionCentersSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetSecondOpinionCentersQuery, GetSecondOpinionCentersQueryVariables>): Apollo.UseSuspenseQueryResult<GetSecondOpinionCentersQuery | undefined, GetSecondOpinionCentersQueryVariables>;
+export function useGetSecondOpinionCentersSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetSecondOpinionCentersQuery, GetSecondOpinionCentersQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetSecondOpinionCentersQuery, GetSecondOpinionCentersQueryVariables>(GetSecondOpinionCentersDocument, options);
+        }
+export type GetSecondOpinionCentersQueryHookResult = ReturnType<typeof useGetSecondOpinionCentersQuery>;
+export type GetSecondOpinionCentersLazyQueryHookResult = ReturnType<typeof useGetSecondOpinionCentersLazyQuery>;
+export type GetSecondOpinionCentersSuspenseQueryHookResult = ReturnType<typeof useGetSecondOpinionCentersSuspenseQuery>;
+export type GetSecondOpinionCentersQueryResult = Apollo.QueryResult<GetSecondOpinionCentersQuery, GetSecondOpinionCentersQueryVariables>;
+export const CreateSecondOpinionRequestDocument = gql`
+    mutation CreateSecondOpinionRequest {
+  createSecondOpinionRequest {
+    id
+    patientId
+    triggerReasons
+    triggerSeverity
+    status
+    createdAt
+  }
+}
+    `;
+export type CreateSecondOpinionRequestMutationFn = Apollo.MutationFunction<CreateSecondOpinionRequestMutation, CreateSecondOpinionRequestMutationVariables>;
+
+/**
+ * __useCreateSecondOpinionRequestMutation__
+ *
+ * To run a mutation, you first call `useCreateSecondOpinionRequestMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateSecondOpinionRequestMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createSecondOpinionRequestMutation, { data, loading, error }] = useCreateSecondOpinionRequestMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useCreateSecondOpinionRequestMutation(baseOptions?: Apollo.MutationHookOptions<CreateSecondOpinionRequestMutation, CreateSecondOpinionRequestMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateSecondOpinionRequestMutation, CreateSecondOpinionRequestMutationVariables>(CreateSecondOpinionRequestDocument, options);
+      }
+export type CreateSecondOpinionRequestMutationHookResult = ReturnType<typeof useCreateSecondOpinionRequestMutation>;
+export type CreateSecondOpinionRequestMutationResult = Apollo.MutationResult<CreateSecondOpinionRequestMutation>;
+export type CreateSecondOpinionRequestMutationOptions = Apollo.BaseMutationOptions<CreateSecondOpinionRequestMutation, CreateSecondOpinionRequestMutationVariables>;
+export const GenerateRecordPacketDocument = gql`
+    mutation GenerateRecordPacket {
+  generateRecordPacket
+}
+    `;
+export type GenerateRecordPacketMutationFn = Apollo.MutationFunction<GenerateRecordPacketMutation, GenerateRecordPacketMutationVariables>;
+
+/**
+ * __useGenerateRecordPacketMutation__
+ *
+ * To run a mutation, you first call `useGenerateRecordPacketMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useGenerateRecordPacketMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [generateRecordPacketMutation, { data, loading, error }] = useGenerateRecordPacketMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGenerateRecordPacketMutation(baseOptions?: Apollo.MutationHookOptions<GenerateRecordPacketMutation, GenerateRecordPacketMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<GenerateRecordPacketMutation, GenerateRecordPacketMutationVariables>(GenerateRecordPacketDocument, options);
+      }
+export type GenerateRecordPacketMutationHookResult = ReturnType<typeof useGenerateRecordPacketMutation>;
+export type GenerateRecordPacketMutationResult = Apollo.MutationResult<GenerateRecordPacketMutation>;
+export type GenerateRecordPacketMutationOptions = Apollo.BaseMutationOptions<GenerateRecordPacketMutation, GenerateRecordPacketMutationVariables>;
+export const GenerateCommunicationGuideDocument = gql`
+    mutation GenerateCommunicationGuide {
+  generateCommunicationGuide {
+    portalMessage
+    inPersonScript
+    recordsRequest
+    reassurance
+  }
+}
+    `;
+export type GenerateCommunicationGuideMutationFn = Apollo.MutationFunction<GenerateCommunicationGuideMutation, GenerateCommunicationGuideMutationVariables>;
+
+/**
+ * __useGenerateCommunicationGuideMutation__
+ *
+ * To run a mutation, you first call `useGenerateCommunicationGuideMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useGenerateCommunicationGuideMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [generateCommunicationGuideMutation, { data, loading, error }] = useGenerateCommunicationGuideMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGenerateCommunicationGuideMutation(baseOptions?: Apollo.MutationHookOptions<GenerateCommunicationGuideMutation, GenerateCommunicationGuideMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<GenerateCommunicationGuideMutation, GenerateCommunicationGuideMutationVariables>(GenerateCommunicationGuideDocument, options);
+      }
+export type GenerateCommunicationGuideMutationHookResult = ReturnType<typeof useGenerateCommunicationGuideMutation>;
+export type GenerateCommunicationGuideMutationResult = Apollo.MutationResult<GenerateCommunicationGuideMutation>;
+export type GenerateCommunicationGuideMutationOptions = Apollo.BaseMutationOptions<GenerateCommunicationGuideMutation, GenerateCommunicationGuideMutationVariables>;
+export const SelectSecondOpinionCenterDocument = gql`
+    mutation SelectSecondOpinionCenter($input: SelectCenterInput!) {
+  selectSecondOpinionCenter(input: $input) {
+    id
+    centerId
+    centerName
+    isVirtual
+    appointmentDate
+    status
+  }
+}
+    `;
+export type SelectSecondOpinionCenterMutationFn = Apollo.MutationFunction<SelectSecondOpinionCenterMutation, SelectSecondOpinionCenterMutationVariables>;
+
+/**
+ * __useSelectSecondOpinionCenterMutation__
+ *
+ * To run a mutation, you first call `useSelectSecondOpinionCenterMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSelectSecondOpinionCenterMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [selectSecondOpinionCenterMutation, { data, loading, error }] = useSelectSecondOpinionCenterMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useSelectSecondOpinionCenterMutation(baseOptions?: Apollo.MutationHookOptions<SelectSecondOpinionCenterMutation, SelectSecondOpinionCenterMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SelectSecondOpinionCenterMutation, SelectSecondOpinionCenterMutationVariables>(SelectSecondOpinionCenterDocument, options);
+      }
+export type SelectSecondOpinionCenterMutationHookResult = ReturnType<typeof useSelectSecondOpinionCenterMutation>;
+export type SelectSecondOpinionCenterMutationResult = Apollo.MutationResult<SelectSecondOpinionCenterMutation>;
+export type SelectSecondOpinionCenterMutationOptions = Apollo.BaseMutationOptions<SelectSecondOpinionCenterMutation, SelectSecondOpinionCenterMutationVariables>;
+export const RecordSecondOpinionOutcomeDocument = gql`
+    mutation RecordSecondOpinionOutcome($input: RecordSecondOpinionOutcomeInput!) {
+  recordSecondOpinionOutcome(input: $input) {
+    id
+    outcome
+    outcomeSummary
+    status
+  }
+}
+    `;
+export type RecordSecondOpinionOutcomeMutationFn = Apollo.MutationFunction<RecordSecondOpinionOutcomeMutation, RecordSecondOpinionOutcomeMutationVariables>;
+
+/**
+ * __useRecordSecondOpinionOutcomeMutation__
+ *
+ * To run a mutation, you first call `useRecordSecondOpinionOutcomeMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRecordSecondOpinionOutcomeMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [recordSecondOpinionOutcomeMutation, { data, loading, error }] = useRecordSecondOpinionOutcomeMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useRecordSecondOpinionOutcomeMutation(baseOptions?: Apollo.MutationHookOptions<RecordSecondOpinionOutcomeMutation, RecordSecondOpinionOutcomeMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RecordSecondOpinionOutcomeMutation, RecordSecondOpinionOutcomeMutationVariables>(RecordSecondOpinionOutcomeDocument, options);
+      }
+export type RecordSecondOpinionOutcomeMutationHookResult = ReturnType<typeof useRecordSecondOpinionOutcomeMutation>;
+export type RecordSecondOpinionOutcomeMutationResult = Apollo.MutationResult<RecordSecondOpinionOutcomeMutation>;
+export type RecordSecondOpinionOutcomeMutationOptions = Apollo.BaseMutationOptions<RecordSecondOpinionOutcomeMutation, RecordSecondOpinionOutcomeMutationVariables>;
 export const GetProvidersDocument = gql`
     query GetProviders {
   sequencingProviders {

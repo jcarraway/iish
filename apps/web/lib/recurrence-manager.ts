@@ -341,55 +341,46 @@ Compare these profiles and identify clinically meaningful changes.`,
   return comparison;
 }
 
-export function getSecondOpinionResources(_patientId: string): SecondOpinionResource[] {
+export async function getSecondOpinionResources(_patientId: string): Promise<SecondOpinionResource[]> {
+  // Query seeded SecondOpinionCenter table for real center data
+  const centers = await prisma.secondOpinionCenter.findMany({
+    where: { isActive: true, offersVirtual: true },
+    orderBy: { name: 'asc' },
+    take: 6,
+  });
+
+  if (centers.length > 0) {
+    return centers.map((c: any) => ({
+      name: c.name,
+      type: c.nciDesignation === 'comprehensive' ? 'nci_designated' : 'nci_designated',
+      description: `${c.nciDesignation === 'comprehensive' ? 'NCI Comprehensive' : 'NCI Designated'} Cancer Center in ${c.city}, ${c.state}. ${c.virtualPlatform ? `Virtual consultations via ${c.virtualPlatform}.` : 'Virtual consultations available.'} ${c.pathologyReReview ? 'Offers pathology re-review.' : ''}`.trim(),
+      url: c.website ? `https://${c.website.replace(/^https?:\/\//, '')}` : '',
+      virtual: c.offersVirtual,
+    }));
+  }
+
+  // Fallback if no centers seeded
   return [
     {
       name: 'Memorial Sloan Kettering Cancer Center',
       type: 'nci_designated',
-      description:
-        'World-renowned cancer center offering second opinions for complex cases. Virtual consultations available.',
+      description: 'World-renowned cancer center offering second opinions for complex cases. Virtual consultations available.',
       url: 'https://www.mskcc.org/experience/become-patient/second-opinion',
       virtual: true,
     },
     {
       name: 'Dana-Farber Cancer Institute',
       type: 'nci_designated',
-      description:
-        'NCI-designated comprehensive cancer center. Expert second opinions for recurrent cancer, including novel treatment approaches.',
+      description: 'NCI-designated comprehensive cancer center. Expert second opinions for recurrent cancer.',
       url: 'https://www.dana-farber.org/for-patients-and-families/becoming-a-patient/second-opinions',
       virtual: true,
     },
     {
       name: 'MD Anderson Cancer Center',
       type: 'nci_designated',
-      description:
-        'Top-ranked cancer hospital with extensive clinical trial portfolio. myMDAnderson portal for remote second opinions.',
+      description: 'Top-ranked cancer hospital with extensive clinical trial portfolio. myMDAnderson portal for remote second opinions.',
       url: 'https://www.mdanderson.org/patients-family/becoming-our-patient/second-opinion.html',
       virtual: true,
-    },
-    {
-      name: 'Cleveland Clinic Cancer Center',
-      type: 'nci_designated',
-      description:
-        'Comprehensive cancer program with MyConsult online second opinion service. Results typically within 7 business days.',
-      url: 'https://my.clevelandclinic.org/online-services/myconsult',
-      virtual: true,
-    },
-    {
-      name: 'Mayo Clinic Cancer Center',
-      type: 'nci_designated',
-      description:
-        'Integrated team approach. Second opinion consultations with multidisciplinary cancer specialists.',
-      url: 'https://www.mayoclinic.org/departments-centers/cancer-center',
-      virtual: true,
-    },
-    {
-      name: 'National Cancer Institute',
-      type: 'government',
-      description:
-        'NCI Cancer Information Service — connect with NCI-designated centers near you for second opinions.',
-      url: 'https://www.cancer.gov/about-cancer/treatment/cam/patient/second-opinions',
-      virtual: false,
     },
   ];
 }

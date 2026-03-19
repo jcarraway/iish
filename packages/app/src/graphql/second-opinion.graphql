@@ -1,0 +1,103 @@
+query GetSecondOpinionEvaluation {
+  secondOpinionEvaluation {
+    triggers {
+      id
+      name
+      severity
+      rationale
+      evidenceBase
+    }
+    overallSeverity
+    recommended
+  }
+}
+
+query GetSecondOpinionRequest {
+  secondOpinionRequest {
+    id
+    patientId
+    triggerReasons
+    triggerSeverity
+    status
+    centerId
+    centerName
+    isVirtual
+    appointmentDate
+    clinicalSummary
+    questionsForReview
+    communicationGuide
+    outcome
+    outcomeSummary
+    createdAt
+    updatedAt
+  }
+}
+
+query GetSecondOpinionCenters($virtual: Boolean, $subspecialty: String) {
+  secondOpinionCenters(virtual: $virtual, subspecialty: $subspecialty) {
+    id
+    name
+    nciDesignation
+    subspecialties
+    offersVirtual
+    virtualPlatform
+    averageWaitDays
+    pathologyReReview
+    address
+    city
+    state
+    distance
+    acceptsInsurance
+    estimatedCostInsured
+    estimatedCostUninsured
+    financialAssistance
+    coordinator
+    phone
+    website
+    intakeFormUrl
+  }
+}
+
+mutation CreateSecondOpinionRequest {
+  createSecondOpinionRequest {
+    id
+    patientId
+    triggerReasons
+    triggerSeverity
+    status
+    createdAt
+  }
+}
+
+mutation GenerateRecordPacket {
+  generateRecordPacket
+}
+
+mutation GenerateCommunicationGuide {
+  generateCommunicationGuide {
+    portalMessage
+    inPersonScript
+    recordsRequest
+    reassurance
+  }
+}
+
+mutation SelectSecondOpinionCenter($input: SelectCenterInput!) {
+  selectSecondOpinionCenter(input: $input) {
+    id
+    centerId
+    centerName
+    isVirtual
+    appointmentDate
+    status
+  }
+}
+
+mutation RecordSecondOpinionOutcome($input: RecordSecondOpinionOutcomeInput!) {
+  recordSecondOpinionOutcome(input: $input) {
+    id
+    outcome
+    outcomeSummary
+    status
+  }
+}

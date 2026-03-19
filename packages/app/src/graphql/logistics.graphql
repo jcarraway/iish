@@ -1,0 +1,95 @@
+query GetTrialLogisticsAssessment($matchId: String!) {
+  trialLogisticsAssessment(matchId: $matchId) {
+    id
+    patientId
+    matchId
+    siteId
+    distanceMiles
+    estimatedCosts
+    matchedPrograms
+    estimatedOutOfPocket
+    feasibilityScore
+    barriers
+    logisticsPlan
+    logisticsPlanGeneratedAt
+    createdAt
+    updatedAt
+  }
+}
+
+query GetTrialLogisticsAssessments {
+  trialLogisticsAssessments {
+    id
+    patientId
+    matchId
+    distanceMiles
+    estimatedOutOfPocket
+    feasibilityScore
+    barriers
+    logisticsPlan
+    createdAt
+  }
+}
+
+query GetAssistancePrograms {
+  assistancePrograms {
+    key
+    name
+    provider
+    category
+    description
+    coverage
+    phone
+    url
+    eligibility
+    eligible
+    eligibleReason
+  }
+}
+
+query GetAssistanceApplications {
+  assistanceApplications {
+    id
+    patientId
+    assessmentId
+    programKey
+    programName
+    status
+    appliedAt
+    statusUpdatedAt
+    notes
+    createdAt
+  }
+}
+
+mutation AssessTrialLogistics($matchId: String!) {
+  assessTrialLogistics(matchId: $matchId) {
+    id
+    patientId
+    matchId
+    siteId
+    distanceMiles
+    estimatedCosts
+    matchedPrograms
+    estimatedOutOfPocket
+    feasibilityScore
+    barriers
+    createdAt
+  }
+}
+
+mutation GenerateLogisticsPlan($matchId: String!) {
+  generateLogisticsPlan(matchId: $matchId)
+}
+
+mutation UpdateAssistanceApplication($input: UpdateAssistanceApplicationInput!) {
+  updateAssistanceApplication(input: $input) {
+    id
+    programKey
+    programName
+    status
+    appliedAt
+    statusUpdatedAt
+    notes
+  }
+}
