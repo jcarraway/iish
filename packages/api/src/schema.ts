@@ -1378,6 +1378,108 @@ export const typeDefs = `#graphql
   }
 
   # ============================================================================
+  # Learn — Educational Content
+  # ============================================================================
+
+  type Article {
+    id: String!
+    slug: String!
+    type: String!
+    title: String!
+    metaTitle: String!
+    metaDescription: String!
+    patientSummary: String!
+    keyTakeaways: [String!]!
+    patientContent: [ArticleSection!]!
+    clinicalContent: [ArticleSection!]
+    actionItems: [ArticleActionItem!]
+    keyStatistics: [KeyStatistic!]
+    references: JSON
+    cancerTypes: [String!]!
+    breastSubtypes: [String!]!
+    biomarkers: [String!]!
+    treatmentClasses: [String!]!
+    journeyStages: [String!]!
+    audienceLevel: String!
+    category: String!
+    primaryKeyword: String!
+    secondaryKeywords: [String!]!
+    relatedArticleSlugs: [String!]!
+    glossaryTerms: [String!]!
+    status: String!
+    viewCount: Int!
+    publishedAt: String
+    createdAt: DateTime!
+  }
+
+  type ArticleSection {
+    heading: String!
+    body: String!
+  }
+
+  type ArticleActionItem {
+    text: String!
+    link: String
+  }
+
+  type KeyStatistic {
+    label: String!
+    value: String!
+    source: String
+  }
+
+  type GlossaryTerm {
+    id: String!
+    term: String!
+    slug: String!
+    shortDefinition: String!
+    fullDefinition: String
+    fullArticleSlug: String
+    aliases: [String!]!
+    category: String!
+  }
+
+  type ArticlePersonalizedContext {
+    content: String!
+    generatedAt: String!
+  }
+
+  type ReadingPlanItem {
+    articleSlug: String!
+    articleTitle: String!
+    reason: String!
+    priority: String!
+  }
+
+  type ReadingPlan {
+    readNow: [ReadingPlanItem!]!
+    readSoon: [ReadingPlanItem!]!
+    whenReady: [ReadingPlanItem!]!
+  }
+
+  type ArticleCategoryResult {
+    articles: [Article!]!
+    label: String!
+    description: String!
+  }
+
+  input ArticleFilters {
+    category: String
+    cancerTypes: [String!]
+    breastSubtypes: [String!]
+    journeyStages: [String!]
+    audienceLevel: String
+  }
+
+  input GenerateArticleInput {
+    type: String!
+    topic: String!
+    primaryKeyword: String!
+    cancerType: String
+    category: String!
+  }
+
+  # ============================================================================
   # Queries
   # ============================================================================
 
@@ -1501,6 +1603,17 @@ export const typeDefs = `#graphql
     secondOpinionEvaluation: SecondOpinionEvaluation!
     secondOpinionRequest: SecondOpinionRequest
     secondOpinionCenters(virtual: Boolean, subspecialty: String): [SecondOpinionCenter!]!
+
+    # Learn (public — no auth required)
+    article(slug: String!): Article
+    articles(filters: ArticleFilters): [Article!]!
+    articlesByCategory(category: String!): ArticleCategoryResult!
+    searchArticles(query: String!, filters: ArticleFilters): [Article!]!
+    glossaryTerms(category: String): [GlossaryTerm!]!
+    glossaryTerm(slug: String!): GlossaryTerm
+
+    # Learn (authenticated)
+    readingPlan: ReadingPlan
   }
 
   # ============================================================================
@@ -1873,5 +1986,11 @@ export const typeDefs = `#graphql
     generateCommunicationGuide: CommunicationGuide!
     selectSecondOpinionCenter(input: SelectCenterInput!): SecondOpinionRequest!
     recordSecondOpinionOutcome(input: RecordSecondOpinionOutcomeInput!): SecondOpinionRequest!
+
+    # Learn
+    generateArticle(input: GenerateArticleInput!): Article!
+    publishArticle(articleId: String!): Article!
+    generatePersonalizedContext(slug: String!): ArticlePersonalizedContext!
+    generateReadingPlan: ReadingPlan!
   }
 `;

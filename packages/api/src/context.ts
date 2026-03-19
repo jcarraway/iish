@@ -164,6 +164,22 @@ export interface GraphQLContext {
     updateAssistanceApplication: (patientId: string, assessmentId: string, programKey: string, status: string, notes?: string) => Promise<any>;
     getAssistanceApplications: (patientId: string) => Promise<any[]>;
 
+    // Learn
+    getArticle: (slug: string) => Promise<any>;
+    getArticles: (filters?: any) => Promise<any[]>;
+    getArticlesByCategory: (category: string) => Promise<any>;
+    searchArticles: (query: string, filters?: any) => Promise<any[]>;
+    getGlossaryTerms: (category?: string) => Promise<any[]>;
+    getGlossaryTerm: (slug: string) => Promise<any>;
+    generateArticle: (spec: any) => Promise<any>;
+    publishArticle: (id: string) => Promise<any>;
+    generatePersonalizedContext: (patientId: string, slug: string) => Promise<any>;
+    generateReadingPlan: (patientId: string) => Promise<any>;
+    getArticleForSeo: (slug: string) => Promise<any>;
+    getAllPublishedSlugs: () => Promise<any[]>;
+    generateArticleBatch: (specs: any[]) => Promise<any[]>;
+    getRelatedArticles: (slug: string, limit?: number) => Promise<any[]>;
+
     // Second Opinion
     evaluateSecondOpinionTriggers: (patientId: string) => Promise<any>;
     createSecondOpinionRequest: (patientId: string) => Promise<any>;

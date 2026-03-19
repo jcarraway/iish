@@ -1,0 +1,204 @@
+# ============================================================================
+# Learn — Public Queries
+# ============================================================================
+
+query GetArticle($slug: String!) {
+  article(slug: $slug) {
+    id
+    slug
+    type
+    title
+    metaTitle
+    metaDescription
+    patientSummary
+    keyTakeaways
+    patientContent {
+      heading
+      body
+    }
+    clinicalContent {
+      heading
+      body
+    }
+    actionItems {
+      text
+      link
+    }
+    keyStatistics {
+      label
+      value
+      source
+    }
+    references
+    cancerTypes
+    breastSubtypes
+    biomarkers
+    treatmentClasses
+    journeyStages
+    audienceLevel
+    category
+    primaryKeyword
+    secondaryKeywords
+    relatedArticleSlugs
+    glossaryTerms
+    viewCount
+    publishedAt
+    createdAt
+  }
+}
+
+query GetArticles($filters: ArticleFilters) {
+  articles(filters: $filters) {
+    id
+    slug
+    type
+    title
+    patientSummary
+    keyTakeaways
+    cancerTypes
+    breastSubtypes
+    journeyStages
+    audienceLevel
+    category
+    viewCount
+    publishedAt
+  }
+}
+
+query GetArticlesByCategory($category: String!) {
+  articlesByCategory(category: $category) {
+    label
+    description
+    articles {
+      id
+      slug
+      type
+      title
+      patientSummary
+      keyTakeaways
+      journeyStages
+      audienceLevel
+      viewCount
+      publishedAt
+    }
+  }
+}
+
+query SearchArticles($query: String!, $filters: ArticleFilters) {
+  searchArticles(query: $query, filters: $filters) {
+    id
+    slug
+    type
+    title
+    patientSummary
+    category
+    publishedAt
+  }
+}
+
+query GetGlossaryTerms($category: String) {
+  glossaryTerms(category: $category) {
+    id
+    term
+    slug
+    shortDefinition
+    fullDefinition
+    fullArticleSlug
+    aliases
+    category
+  }
+}
+
+query GetGlossaryTerm($slug: String!) {
+  glossaryTerm(slug: $slug) {
+    id
+    term
+    slug
+    shortDefinition
+    fullDefinition
+    fullArticleSlug
+    aliases
+    category
+  }
+}
+
+# ============================================================================
+# Learn — Authenticated Queries
+# ============================================================================
+
+query GetReadingPlan {
+  readingPlan {
+    readNow {
+      articleSlug
+      articleTitle
+      reason
+      priority
+    }
+    readSoon {
+      articleSlug
+      articleTitle
+      reason
+      priority
+    }
+    whenReady {
+      articleSlug
+      articleTitle
+      reason
+      priority
+    }
+  }
+}
+
+# ============================================================================
+# Learn — Mutations
+# ============================================================================
+
+mutation GenerateArticle($input: GenerateArticleInput!) {
+  generateArticle(input: $input) {
+    id
+    slug
+    title
+    status
+    category
+    createdAt
+  }
+}
+
+mutation PublishArticle($articleId: String!) {
+  publishArticle(articleId: $articleId) {
+    id
+    slug
+    status
+    publishedAt
+  }
+}
+
+mutation GeneratePersonalizedContext($slug: String!) {
+  generatePersonalizedContext(slug: $slug) {
+    content
+    generatedAt
+  }
+}
+
+mutation GenerateReadingPlan {
+  generateReadingPlan {
+    readNow {
+      articleSlug
+      articleTitle
+      reason
+      priority
+    }
+    readSoon {
+      articleSlug
+      articleTitle
+      reason
+      priority
+    }
+    whenReady {
+      articleSlug
+      articleTitle
+      reason
+      priority
+    }
+  }
+}

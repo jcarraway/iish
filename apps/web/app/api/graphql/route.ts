@@ -131,6 +131,22 @@ import {
   selectCenter as _selectCenter,
   recordSecondOpinionOutcome as _recordSecondOpinionOutcome,
 } from '@/lib/second-opinion-manager';
+import {
+  getArticle as _getArticle,
+  getArticles as _getArticles,
+  getArticlesByCategory as _getArticlesByCategory,
+  searchArticles as _searchArticles,
+  getGlossaryTerms as _getGlossaryTerms,
+  getGlossaryTerm as _getGlossaryTerm,
+  generateArticle as _generateArticle,
+  publishArticle as _publishArticle,
+  generatePersonalizedContext as _generatePersonalizedContext,
+  generateReadingPlan as _generateReadingPlan,
+  getArticleForSeo as _getArticleForSeo,
+  getAllPublishedSlugs as _getAllPublishedSlugs,
+  generateArticleBatch as _generateArticleBatch,
+  getRelatedArticles as _getRelatedArticles,
+} from '@/lib/learn-manager';
 
 // ============================================================================
 // Adapter functions — bridge resolver signatures to actual lib functions
@@ -1327,6 +1343,22 @@ const handler = startServerAndCreateNextHandler<NextRequest, GraphQLContext>(ser
         generateLogisticsPlan: generateLogisticsPlanAdapter,
         updateAssistanceApplication: updateAssistanceApplicationAdapter,
         getAssistanceApplications: getAssistanceApplicationsAdapter,
+
+        // Learn
+        getArticle: _getArticle,
+        getArticles: _getArticles,
+        getArticlesByCategory: _getArticlesByCategory,
+        searchArticles: _searchArticles,
+        getGlossaryTerms: _getGlossaryTerms,
+        getGlossaryTerm: _getGlossaryTerm,
+        generateArticle: _generateArticle,
+        publishArticle: _publishArticle,
+        generatePersonalizedContext: _generatePersonalizedContext,
+        generateReadingPlan: _generateReadingPlan,
+        getArticleForSeo: _getArticleForSeo,
+        getAllPublishedSlugs: _getAllPublishedSlugs,
+        generateArticleBatch: _generateArticleBatch,
+        getRelatedArticles: _getRelatedArticles,
 
         // Second Opinion
         evaluateSecondOpinionTriggers: evaluateSecondOpinionTriggersAdapter,

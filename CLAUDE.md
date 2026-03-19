@@ -12,18 +12,18 @@ oncovax/
 │   ├── web/                    # Next.js 15.0.0, React 19.0.0, Tailwind CSS 3.4
 │   │   ├── app/                # App Router — pages + 88 API route files + cron endpoint
 │   │   ├── components/         # 3 web-only components (DocumentUploader, AdministrationSiteCard, AdministrationSiteMap)
-│   │   └── lib/                # 50 library files (see below)
+│   │   └── lib/                # 51 library files (see below)
 │   └── mobile/                 # Expo SDK 54, React Native 0.76.9, Dripsy + Solito
-│       ├── app/                # Expo Router — 92 route files across 21 directories
+│       ├── app/                # Expo Router — 98 route files across 24 directories
 │       └── lib/                # apollo.ts (GraphQL client), auth.ts (SecureStore guard)
 ├── docker-compose.yml          # Local dev: postgres:15-alpine + redis:7-alpine
 ├── packages/
 │   ├── ui/                     # Thin RN + Solito re-exports (@oncovax/ui)
-│   ├── app/                    # 89 shared screens, 24 Dripsy components, theme, 133+ generated hooks (@oncovax/app)
-│   │   └── src/{screens[89],components[24],providers,theme,graphql,generated,utils,index}.ts
-│   ├── api/                    # Apollo Server schema (99+ types, 62Q, 69M) + 24 resolver files (@oncovax/api)
+│   ├── app/                    # 94 shared screens, 24 Dripsy components, theme, 144+ generated hooks (@oncovax/app)
+│   │   └── src/{screens[94],components[24],providers,theme,graphql,generated,utils,index}.ts
+│   ├── api/                    # Apollo Server schema (108+ types, 69Q, 73M) + 25 resolver files (@oncovax/api)
 │   │   └── src/{schema,resolvers[24 files],context,index}.ts
-│   ├── db/                     # Prisma 7 + PostgreSQL (40 models)
+│   ├── db/                     # Prisma 7 + PostgreSQL (43 models)
 │   │   ├── prisma/schema.prisma
 │   │   └── prisma.config.ts    # defineConfig — url goes HERE, not in schema
 │   ├── shared/                 # Types (720+ lines), Zod schemas, constants, auth
@@ -34,7 +34,7 @@ oncovax/
 │   └── neoantigen-pipeline/    # Rust workspace (3 crates + common)
 ├── infrastructure/
 │   └── terraform/              # AWS VPC, S3, NATS, ECR, Batch
-└── scripts/                    # 11 seed/sync scripts
+└── scripts/                    # 12 seed/sync scripts
 ```
 
 ## Critical Implementation Patterns
@@ -76,9 +76,9 @@ export async function POST(req: NextRequest) {
 
 ### UI: Dripsy + Solito (Cross-Platform, Screen Migration Complete)
 - **Shared components:** 22 Dripsy components in `packages/app/src/components/` — cross-platform ready
-- **Shared screens:** 89 screens in `packages/app/src/screens/` — 46 migratable (D3-D6) + 4 survivorship (S1) + 2 surveillance (S2) + 3 journal/effects (S3) + 1 lifestyle (S4) + 2 care team (S5) + 2 ctDNA (S6) + 1 notifications (S7) + 8 recurrence (S8) + 5 fertility + 5 advocate + 5 logistics + 5 second opinion
-- **Web pages:** All migratable pages are thin re-exports: `'use client'; export { XxxScreen as default } from '@oncovax/app';`
-- **Mobile routes:** All 89 screens wired via Expo Router — 92 route files across 21 directories
+- **Shared screens:** 94 screens in `packages/app/src/screens/` — 46 migratable (D3-D6) + 4 survivorship (S1) + 2 surveillance (S2) + 3 journal/effects (S3) + 1 lifestyle (S4) + 2 care team (S5) + 2 ctDNA (S6) + 1 notifications (S7) + 8 recurrence (S8) + 5 fertility + 5 advocate + 5 logistics + 5 second opinion + 6 learn (L1)
+- **Web pages:** Most pages are thin re-exports: `'use client'; export { XxxScreen as default } from '@oncovax/app';`. Exception: `/learn/[category]/[slug]/page.tsx` is a server component with `generateMetadata` + `generateStaticParams` + JSON-LD that renders a client component wrapper.
+- **Mobile routes:** All 94 screens wired via Expo Router — 98 route files across 24 directories
 - **Mobile tabs:** 5-tab layout (Home, Matches, Sequencing, Pipeline, More) with Ionicons
 - **Mobile auth:** `useProtectedRoute()` hook — SecureStore token check + redirect to `/auth` modal
 - **Web-only components (3):** `DocumentUploader` (File API), `AdministrationSiteCard`, `AdministrationSiteMap` (Mapbox) — kept in `apps/web/components/`
@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
 ### AI: Anthropic Claude
 - Model: `claude-opus-4-20250514` (hardcoded in `apps/web/lib/ai.ts`)
 - Package: `@anthropic-ai/sdk@0.39.0`
-- Used for: document extraction, eligibility parsing, trial matching, treatment translation, genomic interpretation, report generation, regulatory document drafting, SCP generation, surveillance result extraction, lifestyle recommendation generation, symptom routing, appointment prep, ctDNA interpretation, fertility discussion guides, appeal letter generation, peer review prep, logistics plan generation, record packet assembly, communication guide generation
+- Used for: document extraction, eligibility parsing, trial matching, treatment translation, genomic interpretation, report generation, regulatory document drafting, SCP generation, surveillance result extraction, lifestyle recommendation generation, symptom routing, appointment prep, ctDNA interpretation, fertility discussion guides, appeal letter generation, peer review prep, logistics plan generation, record packet assembly, communication guide generation, article generation, personalized article context, reading plan generation
 
 ## What's Built (Phases 1-4)
 
@@ -149,9 +149,12 @@ export async function POST(req: NextRequest) {
 **Access Gap — SECOND (complete):**
 - 2 Prisma models (SecondOpinionCenter, SecondOpinionRequest), 1 lib file (second-opinion-manager.ts: 8 functions — evaluateSecondOpinionTriggers with 8 deterministic rules, createSecondOpinionRequest, getSecondOpinionRequest, getSecondOpinionCenters with Haversine + filters, generateRecordPacket + generateCommunicationGuide via Claude + Redis cache, selectCenter, recordSecondOpinionOutcome), 1 seed script (30 NCI centers — 14 comprehensive + 16 designated). GraphQL: 5 types + 2 inputs + 3 queries + 5 mutations, 1 resolver file (second-opinion.ts), 8 context signatures, 8 route handler adapters. 8 operations in second-opinion.graphql. 5 shared screens (SecondOpinionDashboard with trigger cards + status timeline, SecondOpinionCenters with NCI badges + virtual filters, SecondOpinionPacket with Claude clinical summary + questions, SecondOpinionCommunication with 4 template sections, SecondOpinionOutcome with empowering messaging). 5 web pages + 5 mobile routes under `/second-opinion/`. MoreScreen integration. recurrence-manager.ts updated to query DB. **8 deterministic trigger rules, 30 NCI center directory, Claude record packets + communication guides, collaborative tone.**
 
+**LEARN — L1: Foundation + Launch Corpus (complete):**
+- 3 Prisma models (Article with ~30 fields including SEO/taxonomy/cross-linking, GlossaryTerm, ArticlePersonalization), 1 lib file (learn-manager.ts: 14 functions — getArticle with view count increment, getArticles with taxonomy filters, getArticlesByCategory, searchArticles with PostgreSQL ILIKE, getRelatedArticles, getGlossaryTerms/Term, generateArticle via Claude structured JSON, generateArticleBatch, publishArticle, generatePersonalizedContext via Claude + Redis 7-day cache, generateReadingPlan via Claude + Redis 7-day cache, getArticleForSeo, getAllPublishedSlugs), 1 seed script (25 articles across 8 categories + 50 glossary terms via Claude). GraphQL: 9 types (Article, ArticleSection, ArticleActionItem, KeyStatistic, GlossaryTerm, ArticlePersonalizedContext, ReadingPlanItem, ReadingPlan, ArticleCategoryResult) + 2 inputs + 7 queries (5 public + 2 authenticated) + 4 mutations, 1 resolver file (learn.ts), 14 context signatures, 14 route handler adapters. 11 operations in learn.graphql. 6 shared screens (LearnHubScreen with search + featured carousel + category grid + personalized reading plan, LearnCategoryScreen with audience filter, LearnArticleScreen with patient summary + content sections + collapsible clinical detail + action items + statistics + references + personalized context + glossary tooltips, LearnSearchScreen with debounced search + category filter, LearnGlossaryScreen with alphabetical sections + category filter, LearnGlossaryTermScreen). 7 web pages + sitemap route + 6 mobile routes under `/learn/`. **First public (unauthenticated) queries. First SSR/SSG page with generateMetadata + generateStaticParams + JSON-LD structured data. First XML sitemap route. SEO-optimized article reader with personalization for logged-in users.**
+
 ## What's NOT Built Yet
 
-**Cross-cutting:** INTEL (research intelligence), LEARN (educational content/SEO), VISUAL (30 visualizations), CARE (care commerce), COOL (cold capping), ENGINE (opportunity detection).
+**Cross-cutting:** INTEL (research intelligence), VISUAL (30 visualizations), CARE (care commerce), COOL (cold capping), ENGINE (opportunity detection).
 
 **Access gap:** PALLIATIVE, PEERS.
 

@@ -1,2 +1,2 @@
 'use client';
-export { LearnScreen as default } from '@oncovax/app';
+export { LearnHubScreen as default } from '@oncovax/app';
