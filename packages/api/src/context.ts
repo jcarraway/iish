@@ -132,6 +132,28 @@ export interface GraphQLContext {
     getRecurrenceEvents: (patientId: string) => Promise<any[]>;
     generateGenomicComparison: (patientId: string, recurrenceEventId: string) => Promise<any>;
     getSecondOpinionResources: (patientId: string) => Promise<any[]>;
+
+    // Fertility
+    assessFertilityRisk: (patientId: string) => Promise<any>;
+    getFertilityAssessment: (patientId: string) => Promise<any>;
+    getPreservationOptions: (patientId: string) => Promise<any[]>;
+    getFertilityProviders: (patientId: string, filters?: any) => Promise<any[]>;
+    getFertilityFinancialPrograms: (patientId: string) => Promise<any[]>;
+    generateFertilityDiscussionGuide: (patientId: string) => Promise<any>;
+    requestFertilityReferral: (assessmentId: string, providerId: string) => Promise<any>;
+    updateFertilityOutcome: (assessmentId: string, input: any) => Promise<any>;
+
+    // Insurance Advocate
+    createDenial: (patientId: string, input: any) => Promise<any>;
+    getDenials: (patientId: string) => Promise<any[]>;
+    getDenial: (denialId: string) => Promise<any>;
+    updateDenialStatus: (denialId: string, status: string) => Promise<any>;
+    generateAppealLetter: (denialId: string) => Promise<any>;
+    getAppealLetter: (appealId: string) => Promise<any>;
+    updateAppealOutcome: (appealId: string, input: any) => Promise<any>;
+    getAppealStrategy: (denialCategory: string) => any;
+    getAppealRights: (state?: string) => any;
+    generatePeerReviewPrep: (denialId: string) => Promise<any>;
   };
 }
 

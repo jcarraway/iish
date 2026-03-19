@@ -1085,6 +1085,164 @@ export const typeDefs = `#graphql
   }
 
   # ============================================================================
+  # Fertility
+  # ============================================================================
+
+  type FertilityAssessment {
+    id: String!
+    patientId: String!
+    gonadotoxicityRisk: String!
+    riskFactors: [FertilityRiskFactor!]!
+    preservationWindowDays: Int
+    windowStatus: String!
+    recommendation: String!
+    recommendationRationale: String
+    optionsPresented: JSON
+    referralRequested: Boolean!
+    referralRequestedAt: String
+    providerId: String
+    preservationPursued: Boolean
+    preservationMethod: String
+    preservationCompleted: Boolean
+    createdAt: DateTime!
+  }
+
+  type FertilityRiskFactor {
+    agent: String!
+    risk: String!
+    amenorrheaRate: String
+  }
+
+  type PreservationOption {
+    key: String!
+    label: String!
+    timing: String!
+    cost: String!
+    successRate: String!
+    contraindications: [String!]!
+    erPositiveNote: String
+    available: Boolean!
+  }
+
+  type FertilityProvider {
+    id: String!
+    name: String!
+    type: String!
+    address: String!
+    city: String!
+    state: String!
+    zipCode: String!
+    latitude: Float
+    longitude: Float
+    distance: Float
+    servicesOffered: [String!]!
+    oncologyExperience: Boolean!
+    randomStartProtocol: Boolean!
+    letrozoleProtocol: Boolean!
+    weekendAvailability: Boolean!
+    livestrongPartner: Boolean!
+    phone: String
+    urgentPhone: String
+    website: String
+    oncofertilityCoordinator: String
+  }
+
+  type FertilityFinancialProgram {
+    name: String!
+    organization: String!
+    url: String!
+    description: String!
+    eligibility: String!
+    maxBenefit: String!
+    eligible: Boolean!
+  }
+
+  type FertilityDiscussionGuide {
+    openingStatement: String!
+    questions: [String!]!
+    keyFacts: [String!]!
+    timelineNotes: [String!]!
+    generatedAt: String!
+  }
+
+  # ============================================================================
+  # Insurance Advocate
+  # ============================================================================
+
+  type InsuranceDenial {
+    id: String!
+    patientId: String!
+    deniedService: String!
+    serviceCategory: String!
+    denialDate: String!
+    insurerName: String!
+    planType: String
+    claimNumber: String
+    denialReason: String!
+    denialReasonCode: String
+    denialCategory: String!
+    appealDeadline: String
+    status: String!
+    appealLetters: [AppealLetter!]!
+    createdAt: DateTime!
+  }
+
+  type AppealLetter {
+    id: String!
+    denialId: String!
+    appealLevel: String!
+    letterContent: String!
+    supportingDocuments: [String!]!
+    patientSummary: String
+    generatedAt: String!
+    submittedAt: String
+    outcome: String
+    outcomeDate: String
+    outcomeDetails: String
+  }
+
+  type AppealStrategy {
+    name: String!
+    levels: [String!]!
+    successRates: JSON!
+    supportingEvidence: [String!]!
+  }
+
+  type AppealRights {
+    acaRights: AcaRights!
+    stateProtections: StateProtection
+  }
+
+  type AcaRights {
+    internalAppealDays: Int!
+    urgentInternalHours: Int!
+    externalReviewAvailable: Boolean!
+    externalReviewDays: Int!
+    continuationOfCoverage: Boolean!
+  }
+
+  type StateProtection {
+    fertilityMandate: Boolean!
+    clinicalTrialCoverage: Boolean!
+    stepTherapyProtection: Boolean!
+    cancerSpecific: String!
+  }
+
+  type PeerReviewPrep {
+    keyPoints: [String!]!
+    anticipatedArguments: [PeerReviewArgument!]!
+    guidelines: [String!]!
+    reviewerQuestions: [String!]!
+    tips: [String!]!
+    generatedAt: String!
+  }
+
+  type PeerReviewArgument {
+    argument: String!
+    rebuttal: String!
+  }
+
+  # ============================================================================
   # Queries
   # ============================================================================
 
@@ -1184,6 +1342,19 @@ export const typeDefs = `#graphql
     # FHIR
     healthSystems(search: String): [HealthSystem!]!
     fhirConnections: [FhirConnection!]!
+
+    # Fertility
+    fertilityAssessment: FertilityAssessment
+    preservationOptions: [PreservationOption!]!
+    fertilityProviders(filters: String): [FertilityProvider!]!
+    fertilityFinancialPrograms: [FertilityFinancialProgram!]!
+
+    # Insurance Advocate
+    insuranceDenials: [InsuranceDenial!]!
+    insuranceDenial(id: String!): InsuranceDenial
+    appealLetter(id: String!): AppealLetter
+    appealStrategy(denialCategory: String!): AppealStrategy!
+    appealRights(state: String): AppealRights!
   }
 
   # ============================================================================
@@ -1374,6 +1545,42 @@ export const typeDefs = `#graphql
     value: Boolean!
   }
 
+  input RequestFertilityReferralInput {
+    assessmentId: String!
+    providerId: String!
+  }
+
+  input UpdateFertilityOutcomeInput {
+    assessmentId: String!
+    preservationPursued: Boolean
+    preservationMethod: String
+    preservationCompleted: Boolean
+  }
+
+  input CreateDenialInput {
+    deniedService: String!
+    serviceCategory: String!
+    denialDate: String!
+    insurerName: String!
+    planType: String
+    claimNumber: String
+    denialReason: String!
+    denialReasonCode: String
+    denialCategory: String!
+  }
+
+  input UpdateAppealOutcomeInput {
+    appealId: String!
+    outcome: String!
+    outcomeDate: String
+    outcomeDetails: String
+  }
+
+  input UpdateDenialStatusInput {
+    denialId: String!
+    status: String!
+  }
+
   input MonitoringReportInput {
     orderId: String!
     reportType: String!
@@ -1492,6 +1699,19 @@ export const typeDefs = `#graphql
     updateCascadeStep(input: UpdateCascadeStepInput!): RecurrenceEvent!
     regenerateTranslator(recurrenceEventId: String!): RecurrenceEvent!
     archiveSurvivorshipPlan: Boolean!
+
+    # Fertility
+    assessFertilityRisk: FertilityAssessment!
+    generateFertilityDiscussionGuide: FertilityDiscussionGuide!
+    requestFertilityReferral(input: RequestFertilityReferralInput!): FertilityAssessment!
+    updateFertilityOutcome(input: UpdateFertilityOutcomeInput!): FertilityAssessment!
+
+    # Insurance Advocate
+    createInsuranceDenial(input: CreateDenialInput!): InsuranceDenial!
+    generateAppealLetter(denialId: String!): AppealLetter!
+    updateAppealOutcome(input: UpdateAppealOutcomeInput!): AppealLetter!
+    updateDenialStatus(input: UpdateDenialStatusInput!): InsuranceDenial!
+    generatePeerReviewPrep(denialId: String!): PeerReviewPrep!
 
     # Uploads
     requestGeneralUploadUrl(filename: String!, contentType: String!, bucket: String): UploadUrlResult!

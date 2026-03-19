@@ -1,0 +1,118 @@
+query GetFertilityAssessment {
+  fertilityAssessment {
+    id
+    patientId
+    gonadotoxicityRisk
+    riskFactors {
+      agent
+      risk
+      amenorrheaRate
+    }
+    preservationWindowDays
+    windowStatus
+    recommendation
+    recommendationRationale
+    optionsPresented
+    referralRequested
+    referralRequestedAt
+    providerId
+    preservationPursued
+    preservationMethod
+    preservationCompleted
+    createdAt
+  }
+}
+
+query GetPreservationOptions {
+  preservationOptions {
+    key
+    label
+    timing
+    cost
+    successRate
+    contraindications
+    erPositiveNote
+    available
+  }
+}
+
+query GetFertilityProviders($filters: String) {
+  fertilityProviders(filters: $filters) {
+    id
+    name
+    type
+    address
+    city
+    state
+    zipCode
+    distance
+    servicesOffered
+    oncologyExperience
+    randomStartProtocol
+    letrozoleProtocol
+    weekendAvailability
+    livestrongPartner
+    phone
+    urgentPhone
+    website
+    oncofertilityCoordinator
+  }
+}
+
+query GetFertilityFinancialPrograms {
+  fertilityFinancialPrograms {
+    name
+    organization
+    url
+    description
+    eligibility
+    maxBenefit
+    eligible
+  }
+}
+
+mutation AssessFertilityRisk {
+  assessFertilityRisk {
+    id
+    patientId
+    gonadotoxicityRisk
+    riskFactors {
+      agent
+      risk
+      amenorrheaRate
+    }
+    preservationWindowDays
+    windowStatus
+    recommendation
+    recommendationRationale
+    createdAt
+  }
+}
+
+mutation GenerateFertilityDiscussionGuide {
+  generateFertilityDiscussionGuide {
+    openingStatement
+    questions
+    keyFacts
+    timelineNotes
+    generatedAt
+  }
+}
+
+mutation RequestFertilityReferral($input: RequestFertilityReferralInput!) {
+  requestFertilityReferral(input: $input) {
+    id
+    referralRequested
+    referralRequestedAt
+    providerId
+  }
+}
+
+mutation UpdateFertilityOutcome($input: UpdateFertilityOutcomeInput!) {
+  updateFertilityOutcome(input: $input) {
+    id
+    preservationPursued
+    preservationMethod
+    preservationCompleted
+  }
+}

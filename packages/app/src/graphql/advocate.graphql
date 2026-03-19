@@ -1,0 +1,156 @@
+query GetInsuranceDenials {
+  insuranceDenials {
+    id
+    patientId
+    deniedService
+    serviceCategory
+    denialDate
+    insurerName
+    planType
+    claimNumber
+    denialReason
+    denialCategory
+    appealDeadline
+    status
+    appealLetters {
+      id
+      appealLevel
+      generatedAt
+      submittedAt
+      outcome
+    }
+    createdAt
+  }
+}
+
+query GetInsuranceDenial($id: String!) {
+  insuranceDenial(id: $id) {
+    id
+    patientId
+    deniedService
+    serviceCategory
+    denialDate
+    insurerName
+    planType
+    claimNumber
+    denialReason
+    denialReasonCode
+    denialCategory
+    appealDeadline
+    status
+    appealLetters {
+      id
+      denialId
+      appealLevel
+      letterContent
+      supportingDocuments
+      patientSummary
+      generatedAt
+      submittedAt
+      outcome
+      outcomeDate
+      outcomeDetails
+    }
+    createdAt
+  }
+}
+
+query GetAppealLetter($id: String!) {
+  appealLetter(id: $id) {
+    id
+    denialId
+    appealLevel
+    letterContent
+    supportingDocuments
+    patientSummary
+    generatedAt
+    submittedAt
+    outcome
+    outcomeDate
+    outcomeDetails
+  }
+}
+
+query GetAppealStrategy($denialCategory: String!) {
+  appealStrategy(denialCategory: $denialCategory) {
+    name
+    levels
+    successRates
+    supportingEvidence
+  }
+}
+
+query GetAppealRights($state: String) {
+  appealRights(state: $state) {
+    acaRights {
+      internalAppealDays
+      urgentInternalHours
+      externalReviewAvailable
+      externalReviewDays
+      continuationOfCoverage
+    }
+    stateProtections {
+      fertilityMandate
+      clinicalTrialCoverage
+      stepTherapyProtection
+      cancerSpecific
+    }
+  }
+}
+
+mutation CreateInsuranceDenial($input: CreateDenialInput!) {
+  createInsuranceDenial(input: $input) {
+    id
+    deniedService
+    serviceCategory
+    denialDate
+    insurerName
+    denialReason
+    denialCategory
+    appealDeadline
+    status
+    createdAt
+  }
+}
+
+mutation GenerateAppealLetter($denialId: String!) {
+  generateAppealLetter(denialId: $denialId) {
+    id
+    denialId
+    appealLevel
+    letterContent
+    supportingDocuments
+    patientSummary
+    generatedAt
+  }
+}
+
+mutation UpdateAppealOutcome($input: UpdateAppealOutcomeInput!) {
+  updateAppealOutcome(input: $input) {
+    id
+    outcome
+    outcomeDate
+    outcomeDetails
+  }
+}
+
+mutation UpdateDenialStatus($input: UpdateDenialStatusInput!) {
+  updateDenialStatus(input: $input) {
+    id
+    status
+  }
+}
+
+mutation GeneratePeerReviewPrep($denialId: String!) {
+  generatePeerReviewPrep(denialId: $denialId) {
+    keyPoints
+    anticipatedArguments {
+      argument
+      rebuttal
+    }
+    guidelines
+    reviewerQuestions
+    tips
+    generatedAt
+  }
+}

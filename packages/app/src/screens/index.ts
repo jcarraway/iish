@@ -98,3 +98,17 @@ export { RecurrenceComparisonScreen } from './RecurrenceComparisonScreen';
 export { RecurrenceTrialsScreen } from './RecurrenceTrialsScreen';
 export { RecurrenceTreatmentScreen } from './RecurrenceTreatmentScreen';
 export { RecurrenceCascadeScreen } from './RecurrenceCascadeScreen';
+
+// Fertility module
+export { FertilityDashboardScreen } from './FertilityDashboardScreen';
+export { FertilityAssessmentScreen } from './FertilityAssessmentScreen';
+export { FertilityOptionsScreen } from './FertilityOptionsScreen';
+export { FertilityProvidersScreen } from './FertilityProvidersScreen';
+export { FertilityGuideScreen } from './FertilityGuideScreen';
+
+// Advocate — Insurance Appeals
+export { AdvocateDashboardScreen } from './AdvocateDashboardScreen';
+export { NewDenialScreen } from './NewDenialScreen';
+export { AppealDetailScreen } from './AppealDetailScreen';
+export { AppealRightsScreen } from './AppealRightsScreen';
+export { EscalationGuideScreen } from './EscalationGuideScreen';

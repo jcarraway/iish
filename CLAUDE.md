@@ -12,18 +12,18 @@ oncovax/
 │   ├── web/                    # Next.js 15.0.0, React 19.0.0, Tailwind CSS 3.4
 │   │   ├── app/                # App Router — pages + 88 API route files + cron endpoint
 │   │   ├── components/         # 3 web-only components (DocumentUploader, AdministrationSiteCard, AdministrationSiteMap)
-│   │   └── lib/                # 46 library files (see below)
+│   │   └── lib/                # 48 library files (see below)
 │   └── mobile/                 # Expo SDK 54, React Native 0.76.9, Dripsy + Solito
-│       ├── app/                # Expo Router — 55 route files across 15 directories
+│       ├── app/                # Expo Router — 82 route files across 17 directories
 │       └── lib/                # apollo.ts (GraphQL client), auth.ts (SecureStore guard)
 ├── docker-compose.yml          # Local dev: postgres:15-alpine + redis:7-alpine
 ├── packages/
 │   ├── ui/                     # Thin RN + Solito re-exports (@oncovax/ui)
-│   ├── app/                    # 69 shared screens, 24 Dripsy components, theme, 100+ generated hooks (@oncovax/app)
-│   │   └── src/{screens[69],components[24],providers,theme,graphql,generated,utils,index}.ts
-│   ├── api/                    # Apollo Server schema (81+ types, 46Q, 52M) + 20 resolver files (@oncovax/api)
-│   │   └── src/{schema,resolvers[20 files],context,index}.ts
-│   ├── db/                     # Prisma 7 + PostgreSQL (32 models)
+│   ├── app/                    # 79 shared screens, 24 Dripsy components, theme, 118+ generated hooks (@oncovax/app)
+│   │   └── src/{screens[79],components[24],providers,theme,graphql,generated,utils,index}.ts
+│   ├── api/                    # Apollo Server schema (95+ types, 55Q, 61M) + 22 resolver files (@oncovax/api)
+│   │   └── src/{schema,resolvers[22 files],context,index}.ts
+│   ├── db/                     # Prisma 7 + PostgreSQL (36 models)
 │   │   ├── prisma/schema.prisma
 │   │   └── prisma.config.ts    # defineConfig — url goes HERE, not in schema
 │   ├── shared/                 # Types (720+ lines), Zod schemas, constants, auth
@@ -34,7 +34,7 @@ oncovax/
 │   └── neoantigen-pipeline/    # Rust workspace (3 crates + common)
 ├── infrastructure/
 │   └── terraform/              # AWS VPC, S3, NATS, ECR, Batch
-└── scripts/                    # 8 seed/sync scripts
+└── scripts/                    # 9 seed/sync scripts
 ```
 
 ## Critical Implementation Patterns
@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
 ### AI: Anthropic Claude
 - Model: `claude-opus-4-20250514` (hardcoded in `apps/web/lib/ai.ts`)
 - Package: `@anthropic-ai/sdk@0.39.0`
-- Used for: document extraction, eligibility parsing, trial matching, treatment translation, genomic interpretation, report generation, regulatory document drafting, SCP generation, surveillance result extraction, lifestyle recommendation generation, symptom routing, appointment prep, ctDNA interpretation
+- Used for: document extraction, eligibility parsing, trial matching, treatment translation, genomic interpretation, report generation, regulatory document drafting, SCP generation, surveillance result extraction, lifestyle recommendation generation, symptom routing, appointment prep, ctDNA interpretation, fertility discussion guides, appeal letter generation, peer review prep
 
 ## What's Built (Phases 1-4)
 
@@ -137,11 +137,17 @@ export async function POST(req: NextRequest) {
 - *S7:* Notifications + polish + phase transitions. 3 Prisma models (NotificationLog, NotificationPreference, SurvivorshipFeedback) + archivedPlans field on SurvivorshipPlan. 1 new lib file (notification-manager.ts: 8 notification processors — surveillance reminders/overdue, journal reminders phase-adjusted, weekly summary, appointment prep, SCP annual review, lifestyle monthly, phase transitions — plus feedback CRUD, SCP annual refresh with diff, computePhase). scp-generator.ts updated with temporal context. Cron endpoint (apps/web/app/api/cron/survivorship/route.ts). 5 new GraphQL types + 2 inputs + 3 queries + 3 mutations, 6 resolvers, 6 route handler adapters. 1 shared component (FeedbackPrompt: 5-star rating + comment), 1 shared screen (NotificationSettingsScreen: 8 category toggles + quiet hours + timezone + history). Existing screens updated: SurviveDashboard (Notifications quick link), SCPReadingScreen (FeedbackPrompt), JournalHistoryScreen (conditional FeedbackPrompt ≥90 entries). **Proactive notification system + annual SCP refresh + phase transitions + user feedback collection.**
 - *S8:* Recurrence pathway — full cascade. 1 Prisma model (RecurrenceEvent with 18 fields including cascadeStatus JSON, patient relation, composite index). 1 new lib file (recurrence-manager.ts: 10 exported functions — reportRecurrence, createPreliminaryRecurrenceEvent, acknowledgeRecurrence, updateCascadeStep, regenerateTranslator, archiveSurvivorshipPlan, getRecurrenceEvent, getRecurrenceEvents, generateGenomicComparison, getSecondOpinionResources — plus 2 internal orchestrators: runRecurrenceCascade 11-step, runPartialCascade for ctDNA-triggered). ctdna-manager.ts modified to trigger preliminary recurrence event on detected result. 4 new GraphQL types (RecurrenceEvent, CascadeStatus, GenomicComparison, SecondOpinionResource) + 2 inputs + 4 queries + 5 mutations, 9 resolvers (recurrence.ts), 9 context signatures, 9 route handler adapters. 9 GraphQL operations in survivorship.graphql, codegen regenerated. 8 shared Dripsy screens (RecurrenceReport multi-step self-report, RecurrenceAcknowledge emotional landing, RecurrenceSupport crisis resources, RecurrenceSequencing re-sequencing education, RecurrenceComparison genomic comparison, RecurrenceTrials updated matches, RecurrenceTreatment translator regeneration, RecurrenceCascade 11-step timeline hub). SurviveDashboard updated with recurrence card + "Report a change" quick link. notification-manager.ts updated with recurrence notification processor (4 timed emails: 2h support, 4h trials, 24h sequencing, 48h financial). 8 web pages + 8 mobile routes under `/survive/recurrence/`. **Platform NEVER announces recurrence — only responds to what patient/doctor reports. Emotional support first, then clinical cascade.**
 
+**Access Gap — FERTILITY (complete):**
+- 2 Prisma models (FertilityAssessment, FertilityProvider), 1 lib file (fertility-manager.ts: 8 functions — assessFertilityRisk with deterministic agent classification + window calculation, getPreservationOptions filtered by sex/ER+/time, getFertilityProviders with Haversine sort + capability filters, getFertilityFinancialPrograms with eligibility matching, generateDiscussionGuide via Claude + Redis cache, requestFertilityReferral, updateFertilityOutcome), 1 seed script (30 oncofertility providers — 6 academic + 12 Livestrong + 12 independent). GraphQL: 5 types + 2 inputs + 4 queries + 4 mutations, 1 resolver file (fertility.ts), 8 context signatures, 8 route handler adapters. 8 operations in fertility.graphql. 5 shared screens (FertilityDashboard with risk alert + window countdown + quick actions + outcome tracking, FertilityAssessment with risk factors + ER+ considerations, FertilityOptions with comparison cards + GnRH note, FertilityProviders with filter pills + referral request, FertilityGuide with Claude discussion guide). 5 web pages + 5 mobile routes under `/fertility/`. Dashboard + MoreScreen integration. **Auto-assesses gonadotoxicity risk from treatment plan, countdown to preservation window, ER+ protocol awareness, oncofertility provider finder.**
+
+**Access Gap — ADVOCATE (complete):**
+- 2 Prisma models (InsuranceDenial, AppealLetter), 1 lib file (insurance-advocate.ts: 10 functions — createDenial, getDenials, getDenial, updateDenialStatus, generateAppealLetter via Claude with NCCN citations + [PHYSICIAN SIGNATURE REQUIRED], getAppealLetter, updateAppealOutcome with cascading status, getAppealStrategy with 3 strategy constants, getAppealRights with ACA + 11 state protections, generatePeerReviewPrep via Claude). GraphQL: 5 types + 3 inputs + 5 queries + 5 mutations, 1 resolver file (advocate.ts), 10 context signatures, 10 route handler adapters. 10 operations in advocate.graphql. 5 shared screens (AdvocateDashboard with active denials + deadline alerts + quick links, NewDenial structured form with auto-deadline, AppealDetail with letter display + status timeline + peer review prep, AppealRights with ACA + state protections + ERISA explanation, EscalationGuide with 3 strategy paths + success rates). 5 web pages + 5 mobile routes under `/advocate/`. Dashboard + MoreScreen integration. **AI-powered appeal letters citing NCCN guidelines, deadline tracking, escalation paths with success rates, state-specific protections.**
+
 ## What's NOT Built Yet
 
 **Cross-cutting:** INTEL (research intelligence), LEARN (educational content/SEO), VISUAL (30 visualizations), CARE (care commerce), COOL (cold capping), ENGINE (opportunity detection).
 
-**Access gap:** FERTILITY, SECOND, LOGISTICS, PALLIATIVE, ADVOCATE, PEERS.
+**Access gap:** SECOND, LOGISTICS, PALLIATIVE, PEERS.
 
 **Phase 0 — PREVENT:** Pre-diagnosis risk intelligence + prevention.
 

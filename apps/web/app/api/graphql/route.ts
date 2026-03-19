@@ -90,6 +90,28 @@ import {
 import { refreshAccessToken, encryptToken } from '@/lib/fhir/smart-auth';
 import { mapFhirToPatientProfile } from '@/lib/fhir/mapper';
 import type { PatientProfile } from '@oncovax/shared';
+import {
+  assessFertilityRisk as _assessFertilityRisk,
+  getFertilityAssessment as _getFertilityAssessment,
+  getPreservationOptions as _getPreservationOptions,
+  getFertilityProviders as _getFertilityProviders,
+  getFertilityFinancialPrograms as _getFertilityFinancialPrograms,
+  generateDiscussionGuide as _generateDiscussionGuide,
+  requestFertilityReferral as _requestFertilityReferral,
+  updateFertilityOutcome as _updateFertilityOutcome,
+} from '@/lib/fertility-manager';
+import {
+  createDenial as _createDenial,
+  getDenials as _getDenials,
+  getDenial as _getDenial,
+  updateDenialStatus as _updateDenialStatus,
+  generateAppealLetter as _generateAppealLetter,
+  getAppealLetter as _getAppealLetter,
+  updateAppealOutcome as _updateAppealOutcome,
+  getAppealStrategy as _getAppealStrategy,
+  getAppealRights as _getAppealRights,
+  generatePeerReviewPrep as _generatePeerReviewPrep,
+} from '@/lib/insurance-advocate';
 
 // ============================================================================
 // Adapter functions — bridge resolver signatures to actual lib functions
@@ -984,6 +1006,82 @@ async function getSecondOpinionResourcesAdapter(patientId: string) {
   return _getSecondOpinionResources(patientId);
 }
 
+// --- Fertility ---
+
+async function assessFertilityRiskAdapter(patientId: string) {
+  return _assessFertilityRisk(patientId);
+}
+
+async function getFertilityAssessmentAdapter(patientId: string) {
+  return _getFertilityAssessment(patientId);
+}
+
+async function getPreservationOptionsAdapter(patientId: string) {
+  return _getPreservationOptions(patientId);
+}
+
+async function getFertilityProvidersAdapter(patientId: string, filters?: any) {
+  return _getFertilityProviders(patientId, filters);
+}
+
+async function getFertilityFinancialProgramsAdapter(patientId: string) {
+  return _getFertilityFinancialPrograms(patientId);
+}
+
+async function generateDiscussionGuideAdapter(patientId: string) {
+  return _generateDiscussionGuide(patientId);
+}
+
+async function requestFertilityReferralAdapter(assessmentId: string, providerId: string) {
+  return _requestFertilityReferral(assessmentId, providerId);
+}
+
+async function updateFertilityOutcomeAdapter(assessmentId: string, input: any) {
+  return _updateFertilityOutcome(assessmentId, input);
+}
+
+// --- Insurance Advocate ---
+
+async function createDenialAdapter(patientId: string, input: any) {
+  return _createDenial(patientId, input);
+}
+
+async function getDenialsAdapter(patientId: string) {
+  return _getDenials(patientId);
+}
+
+async function getDenialAdapter(denialId: string) {
+  return _getDenial(denialId);
+}
+
+async function updateDenialStatusAdapter(denialId: string, status: string) {
+  return _updateDenialStatus(denialId, status);
+}
+
+async function generateAppealLetterAdapter(denialId: string) {
+  return _generateAppealLetter(denialId);
+}
+
+async function getAppealLetterAdapter(appealId: string) {
+  return _getAppealLetter(appealId);
+}
+
+async function updateAppealOutcomeAdapter(appealId: string, input: any) {
+  return _updateAppealOutcome(appealId, input);
+}
+
+function getAppealStrategyAdapter(denialCategory: string) {
+  return _getAppealStrategy(denialCategory);
+}
+
+function getAppealRightsAdapter(state?: string) {
+  return _getAppealRights(state);
+}
+
+async function generatePeerReviewPrepAdapter(denialId: string) {
+  return _generatePeerReviewPrep(denialId);
+}
+
 // ============================================================================
 // Apollo Server setup
 // ============================================================================
@@ -1115,6 +1213,28 @@ const handler = startServerAndCreateNextHandler<NextRequest, GraphQLContext>(ser
         getRecurrenceEvents: getRecurrenceEventsAdapter,
         generateGenomicComparison: generateGenomicComparisonAdapter,
         getSecondOpinionResources: getSecondOpinionResourcesAdapter,
+
+        // Fertility
+        assessFertilityRisk: assessFertilityRiskAdapter,
+        getFertilityAssessment: getFertilityAssessmentAdapter,
+        getPreservationOptions: getPreservationOptionsAdapter,
+        getFertilityProviders: getFertilityProvidersAdapter,
+        getFertilityFinancialPrograms: getFertilityFinancialProgramsAdapter,
+        generateFertilityDiscussionGuide: generateDiscussionGuideAdapter,
+        requestFertilityReferral: requestFertilityReferralAdapter,
+        updateFertilityOutcome: updateFertilityOutcomeAdapter,
+
+        // Insurance Advocate
+        createDenial: createDenialAdapter,
+        getDenials: getDenialsAdapter,
+        getDenial: getDenialAdapter,
+        updateDenialStatus: updateDenialStatusAdapter,
+        generateAppealLetter: generateAppealLetterAdapter,
+        getAppealLetter: getAppealLetterAdapter,
+        updateAppealOutcome: updateAppealOutcomeAdapter,
+        getAppealStrategy: getAppealStrategyAdapter,
+        getAppealRights: getAppealRightsAdapter,
+        generatePeerReviewPrep: generatePeerReviewPrepAdapter,
       },
     };
   },

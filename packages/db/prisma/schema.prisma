@@ -104,6 +104,8 @@ model Patient {
   notificationPreference  NotificationPreference?
   survivorshipFeedback    SurvivorshipFeedback[]
   recurrenceEvents        RecurrenceEvent[]
+  fertilityAssessments    FertilityAssessment[]
+  insuranceDenials        InsuranceDenial[]
 
   @@map("patients")
 }
@@ -864,4 +866,101 @@ model RecurrenceEvent {
 
   @@index([patientId, createdAt(sort: Desc)])
   @@map("recurrence_events")
+}
+
+model FertilityAssessment {
+  id                       String    @id @default(uuid()) @db.Uuid
+  patientId                String    @map("patient_id") @db.Uuid
+  gonadotoxicityRisk       String    @map("gonadotoxicity_risk") @db.VarChar(20)
+  riskFactors              Json      @map("risk_factors")
+  preservationWindowDays   Int?      @map("preservation_window_days")
+  windowStatus             String    @map("window_status") @db.VarChar(20)
+  recommendation           String    @map("recommendation") @db.VarChar(30)
+  recommendationRationale  String?   @map("recommendation_rationale")
+  optionsPresented         Json?     @map("options_presented")
+  referralRequested        Boolean   @default(false) @map("referral_requested")
+  referralRequestedAt      DateTime? @map("referral_requested_at")
+  providerId               String?   @map("provider_id") @db.Uuid
+  preservationPursued      Boolean?  @map("preservation_pursued")
+  preservationMethod       String?   @map("preservation_method") @db.VarChar(50)
+  preservationCompleted    Boolean?  @map("preservation_completed")
+  createdAt                DateTime  @default(now()) @map("created_at")
+  updatedAt                DateTime  @updatedAt @map("updated_at")
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId, createdAt(sort: Desc)])
+  @@map("fertility_assessments")
+}
+
+model FertilityProvider {
+  id                       String    @id @default(uuid()) @db.Uuid
+  name                     String    @db.VarChar(200)
+  type                     String    @db.VarChar(30)
+  address                  String
+  city                     String    @db.VarChar(100)
+  state                    String    @db.VarChar(2)
+  zipCode                  String    @map("zip_code") @db.VarChar(10)
+  latitude                 Float?
+  longitude                Float?
+  servicesOffered          String[]  @default([]) @map("services_offered")
+  oncologyExperience       Boolean   @default(false) @map("oncology_experience")
+  randomStartProtocol      Boolean   @default(false) @map("random_start_protocol")
+  letrozoleProtocol        Boolean   @default(false) @map("letrozole_protocol")
+  weekendAvailability      Boolean   @default(false) @map("weekend_availability")
+  acceptsInsurance         String[]  @default([]) @map("accepts_insurance")
+  livestrongPartner        Boolean   @default(false) @map("livestrong_partner")
+  phone                    String?
+  urgentPhone              String?   @map("urgent_phone")
+  website                  String?
+  oncofertilityCoordinator String?   @map("oncofertility_coordinator")
+  isActive                 Boolean   @default(true) @map("is_active")
+  createdAt                DateTime  @default(now()) @map("created_at")
+  updatedAt                DateTime  @updatedAt @map("updated_at")
+
+  @@map("fertility_providers")
+}
+
+model InsuranceDenial {
+  id                String    @id @default(uuid()) @db.Uuid
+  patientId         String    @map("patient_id") @db.Uuid
+  deniedService     String    @map("denied_service")
+  serviceCategory   String    @map("service_category") @db.VarChar(30)
+  denialDate        DateTime  @map("denial_date") @db.Date
+  insurerName       String    @map("insurer_name")
+  planType          String?   @map("plan_type") @db.VarChar(30)
+  claimNumber       String?   @map("claim_number") @db.VarChar(50)
+  denialReason      String    @map("denial_reason")
+  denialReasonCode  String?   @map("denial_reason_code") @db.VarChar(20)
+  denialCategory    String    @map("denial_category") @db.VarChar(30)
+  appealDeadline    DateTime? @map("appeal_deadline") @db.Date
+  status            String    @default("denied") @db.VarChar(20)
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  patient        Patient        @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  appealLetters  AppealLetter[]
+
+  @@index([patientId, createdAt(sort: Desc)])
+  @@map("insurance_denials")
+}
+
+model AppealLetter {
+  id                  String    @id @default(uuid()) @db.Uuid
+  denialId            String    @map("denial_id") @db.Uuid
+  appealLevel         String    @map("appeal_level") @db.VarChar(20)
+  letterContent       String    @map("letter_content")
+  supportingDocuments String[]  @default([]) @map("supporting_documents")
+  patientSummary      String?   @map("patient_summary")
+  generatedAt         DateTime  @default(now()) @map("generated_at")
+  submittedAt         DateTime? @map("submitted_at")
+  outcome             String?   @db.VarChar(20)
+  outcomeDate         DateTime? @map("outcome_date") @db.Date
+  outcomeDetails      String?   @map("outcome_details")
+  createdAt           DateTime  @default(now()) @map("created_at")
+
+  denial InsuranceDenial @relation(fields: [denialId], references: [id], onDelete: Cascade)
+
+  @@index([denialId])
+  @@map("appeal_letters")
 }

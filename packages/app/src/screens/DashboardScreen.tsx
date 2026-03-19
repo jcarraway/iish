@@ -10,6 +10,8 @@ import {
   useGetPipelineJobsQuery,
   useGetManufacturingOrdersQuery,
   useGetSurvivorshipPlanQuery,
+  useGetFertilityAssessmentQuery,
+  useGetInsuranceDenialsQuery,
 } from '../generated/graphql';
 
 interface CardProps {
@@ -58,8 +60,10 @@ export function DashboardScreen() {
   const { data: pipeData, loading: pl } = useGetPipelineJobsQuery({ errorPolicy: 'ignore' });
   const { data: mfgData, loading: mfl } = useGetManufacturingOrdersQuery({ errorPolicy: 'ignore' });
   const { data: surviveData, loading: svl } = useGetSurvivorshipPlanQuery({ errorPolicy: 'ignore' });
+  const { data: fertilityData, loading: ftl } = useGetFertilityAssessmentQuery({ errorPolicy: 'ignore' });
+  const { data: denialData, loading: dl } = useGetInsuranceDenialsQuery({ errorPolicy: 'ignore' });
 
-  const loading = ml || fl || fhl || sl || pl || mfl || svl;
+  const loading = ml || fl || fhl || sl || pl || mfl || svl || ftl || dl;
 
   if (loading) {
     return (
@@ -86,6 +90,14 @@ export function DashboardScreen() {
   const pipelineJobCount = pipeData?.pipelineJobs?.length ?? 0;
   const mfgOrderCount = mfgData?.manufacturingOrders?.length ?? 0;
   const survivorshipPlan = surviveData?.survivorshipPlan;
+  const fertilityAssessment = fertilityData?.fertilityAssessment;
+  const denials = denialData?.insuranceDenials ?? [];
+  const activeDenials = denials.filter((d: any) => d.status === 'denied' || d.status === 'submitted');
+  const urgentDeadline = denials.find((d: any) => {
+    if (!d.appealDeadline) return false;
+    const days = Math.ceil((new Date(d.appealDeadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    return days > 0 && days <= 30;
+  });
 
   if (!hasProfile) {
     return (
@@ -263,6 +275,54 @@ export function DashboardScreen() {
                   Treatment complete? Start your survivorship journey
                 </Text>
                 <Text sx={{ mt: '$1', fontSize: 12, color: 'blue600' }}>Begin transition →</Text>
+              </>
+            )}
+          </DashboardCard>
+
+          {/* Fertility Preservation */}
+          <DashboardCard href="/fertility" icon="🌸" iconBg="#FDF2F8" iconColor="pink600" title="Fertility">
+            {fertilityAssessment ? (
+              <>
+                <Text sx={{ mt: '$3', fontSize: 14, color: '$foreground', fontWeight: '500' }}>
+                  Risk: {fertilityAssessment.gonadotoxicityRisk}
+                </Text>
+                <Text sx={{ fontSize: 12, color: fertilityAssessment.windowStatus === 'closing' ? '#D97706' : '$mutedForeground' }}>
+                  {fertilityAssessment.windowStatus === 'closing'
+                    ? `${fertilityAssessment.preservationWindowDays} days remaining`
+                    : fertilityAssessment.windowStatus === 'closed'
+                      ? 'Window closed — options still available'
+                      : 'Window open'}
+                </Text>
+                <Text sx={{ mt: '$1', fontSize: 12, color: 'blue600' }}>View options →</Text>
+              </>
+            ) : (
+              <>
+                <Text sx={{ mt: '$3', fontSize: 14, color: '$mutedForeground' }}>
+                  Assess your fertility preservation options before treatment
+                </Text>
+                <Text sx={{ mt: '$1', fontSize: 12, color: 'blue600' }}>Learn more →</Text>
+              </>
+            )}
+          </DashboardCard>
+
+          {/* Insurance Advocate */}
+          <DashboardCard href="/advocate" icon="🛡️" iconBg="#EDE9FE" iconColor="violet600" title="Insurance Advocate">
+            {activeDenials.length > 0 ? (
+              <>
+                <Text sx={{ mt: '$3', fontSize: 24, fontWeight: 'bold', color: '$foreground' }}>
+                  {activeDenials.length}
+                </Text>
+                <Text sx={{ fontSize: 12, color: urgentDeadline ? '#D97706' : '$mutedForeground' }}>
+                  active denial{activeDenials.length !== 1 ? 's' : ''}
+                  {urgentDeadline ? ' · deadline approaching' : ''}
+                </Text>
+              </>
+            ) : (
+              <>
+                <Text sx={{ mt: '$3', fontSize: 14, color: '$mutedForeground' }}>
+                  Fight back against insurance denials with AI-powered appeals
+                </Text>
+                <Text sx={{ mt: '$1', fontSize: 12, color: 'blue600' }}>Get started →</Text>
               </>
             )}
           </DashboardCard>

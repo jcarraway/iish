@@ -18,6 +18,8 @@ import { monitoringResolvers } from './monitoring';
 import { fhirResolvers } from './fhir';
 import { survivorshipResolvers } from './survivorship';
 import { recurrenceResolvers } from './recurrence';
+import { fertilityResolvers } from './fertility';
+import { advocateResolvers } from './advocate';
 
 /**
  * Merge all resolver maps into a single object.
@@ -58,4 +60,6 @@ export const resolvers = mergeResolvers(
   fhirResolvers,
   survivorshipResolvers,
   recurrenceResolvers,
+  fertilityResolvers,
+  advocateResolvers,
 );

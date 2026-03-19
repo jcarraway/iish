@@ -10,6 +10,8 @@ const SECTIONS = [
   { label: 'Manufacturing', route: '/manufacture', icon: 'construct-outline' as const },
   { label: 'Translate', route: '/translate', icon: 'language-outline' as const },
   { label: 'Survivorship', route: '/survive', icon: 'heart-outline' as const },
+  { label: 'Fertility', route: '/fertility', icon: 'flower-outline' as const },
+  { label: 'Insurance', route: '/advocate', icon: 'shield-checkmark-outline' as const },
   { label: 'Records', route: '/dashboard/records', icon: 'document-text-outline' as const },
 ] as const;
 
