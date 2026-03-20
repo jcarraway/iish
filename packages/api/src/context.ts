@@ -197,6 +197,8 @@ export interface GraphQLContext {
     getSyncStates: () => Promise<any[]>;
     triggerIngestion: (sourceId: string) => Promise<any>;
     reclassifyItem: (itemId: string) => Promise<any>;
+    processQCQueue: (batchSize?: number) => Promise<any>;
+    migrateOldTaxonomy: () => Promise<any>;
   };
 }
 

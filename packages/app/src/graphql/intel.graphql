@@ -23,6 +23,8 @@ query GetResearchItems($filters: ResearchItemFilters) {
     patientSummary
     drugNames
     hypeScore
+    hypeFlags
+    retractionStatus
     classificationStatus
     createdAt
   }
@@ -67,8 +69,12 @@ query GetResearchItem($id: String!) {
     trialNctIds
     retractionStatus
     industrySponsored
+    sponsorName
+    authorCOI
     hypeScore
     hypeFlags
+    relatedItemIds
+    contradictedBy
     classificationStatus
     createdAt
   }
@@ -93,6 +99,8 @@ query SearchResearch($query: String!, $filters: ResearchItemFilters) {
     practiceImpact
     patientSummary
     drugNames
+    hypeFlags
+    retractionStatus
     classificationStatus
     createdAt
   }
@@ -128,5 +136,21 @@ mutation ReclassifyItem($itemId: String!) {
     practiceImpact
     patientSummary
     classificationStatus
+  }
+}
+
+mutation RunQCPipeline($batchSize: Int) {
+  runQCPipeline(batchSize: $batchSize) {
+    checked
+    retracted
+    contradictions
+    errors
+  }
+}
+
+mutation MigrateOldTaxonomy {
+  migrateOldTaxonomy {
+    practiceImpactUpdated
+    breastSubtypesUpdated
   }
 }

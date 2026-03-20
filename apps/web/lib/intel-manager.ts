@@ -4,10 +4,22 @@ import Anthropic from '@anthropic-ai/sdk';
 import {
   searchPubMed,
   fetchPubMedBatch,
+  fetchPubMedSingle,
   calculateContentHash,
   getJournalCredibility,
   PUBMED_SEARCH_TERMS,
+  fetchFDADrugApprovals,
+  fetchFDASafetyAlerts,
+  fetchPreprints,
+  fetchTrialUpdates,
+  fetchInstitutionNews,
+  fetchNIHGrants,
   type PubMedArticle,
+  type FDAItem,
+  type PreprintArticle,
+  type TrialUpdate,
+  type NewsItem,
+  type NIHGrant,
 } from './intel-sources';
 
 const anthropic = new Anthropic();
@@ -167,6 +179,375 @@ export async function ingestPubMedArticles(sinceDate?: Date) {
 }
 
 // ============================================================================
+// 3b. ingestFDAItems — FDA drug approvals + safety alerts
+// ============================================================================
+
+export async function ingestFDAItems(sinceDate?: Date) {
+  const syncState = await prisma.ingestionSyncState.findUnique({
+    where: { sourceId: 'fda' },
+  });
+
+  let effectiveDate: Date;
+  if (sinceDate) {
+    effectiveDate = sinceDate;
+  } else if (syncState?.lastItemDate) {
+    effectiveDate = new Date(syncState.lastItemDate.getTime() - 24 * 60 * 60 * 1000);
+  } else {
+    effectiveDate = new Date(Date.now() - 180 * 24 * 60 * 60 * 1000);
+  }
+
+  const approvals = await fetchFDADrugApprovals(effectiveDate);
+  const safetyAlerts = await fetchFDASafetyAlerts();
+  const allItems = [...approvals, ...safetyAlerts];
+
+  let ingested = 0;
+  let skipped = 0;
+  let errors = 0;
+  let latestDate: Date | null = null;
+
+  for (const item of allItems) {
+    try {
+      const rawContent = item.type === 'safety'
+        ? `[FDA SAFETY ALERT] ${item.content}`
+        : item.content;
+      const hash = calculateContentHash(item.title, rawContent);
+
+      const existing = await prisma.researchItem.findFirst({
+        where: { OR: [{ contentHash: hash }, { sourceType: 'fda', sourceItemId: item.id }] },
+      });
+      if (existing) { skipped++; continue; }
+
+      const pubDate = item.effectiveDate
+        ? new Date(item.effectiveDate.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3'))
+        : null;
+
+      await prisma.researchItem.create({
+        data: {
+          sourceType: 'fda',
+          sourceItemId: item.id,
+          sourceUrl: `https://api.fda.gov/drug/label.json?search=openfda.application_number:"${item.id}"`,
+          sourceCredibility: 'institutional',
+          title: item.title,
+          rawContent,
+          authors: [],
+          institutions: ['U.S. Food and Drug Administration'],
+          journalName: item.type === 'safety' ? 'FDA Safety Report' : 'FDA Drug Label',
+          doi: null,
+          publishedAt: pubDate && !isNaN(pubDate.getTime()) ? pubDate : null,
+          contentHash: hash,
+          classificationStatus: 'pending',
+          drugNames: [item.drugName, item.genericName].filter(Boolean),
+        },
+      });
+      ingested++;
+
+      if (pubDate && !isNaN(pubDate.getTime())) {
+        if (!latestDate || pubDate > latestDate) latestDate = pubDate;
+      }
+    } catch (err) {
+      console.error(`Error ingesting FDA item ${item.id}:`, err);
+      errors++;
+    }
+  }
+
+  await prisma.ingestionSyncState.upsert({
+    where: { sourceId: 'fda' },
+    create: { sourceId: 'fda', lastSyncAt: new Date(), lastItemDate: latestDate ?? effectiveDate, itemsIngestedTotal: ingested, itemsIngestedLastRun: ingested },
+    update: { lastSyncAt: new Date(), lastItemDate: latestDate ?? undefined, itemsIngestedTotal: { increment: ingested }, itemsIngestedLastRun: ingested },
+  });
+
+  return { ingested, skipped, errors };
+}
+
+// ============================================================================
+// 3c. ingestPreprints — bioRxiv + medRxiv preprints
+// ============================================================================
+
+export async function ingestPreprints(sinceDate?: Date) {
+  const syncState = await prisma.ingestionSyncState.findUnique({
+    where: { sourceId: 'preprints' },
+  });
+
+  let effectiveDate: Date;
+  if (sinceDate) {
+    effectiveDate = sinceDate;
+  } else if (syncState?.lastItemDate) {
+    effectiveDate = new Date(syncState.lastItemDate.getTime() - 24 * 60 * 60 * 1000);
+  } else {
+    effectiveDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  }
+
+  const articles = await fetchPreprints(effectiveDate);
+
+  let ingested = 0;
+  let skipped = 0;
+  let errors = 0;
+  let latestDate: Date | null = null;
+
+  for (const article of articles) {
+    try {
+      const hash = calculateContentHash(article.title, article.abstract);
+
+      const existing = await prisma.researchItem.findFirst({
+        where: { OR: [{ contentHash: hash }, { sourceType: 'preprint', sourceItemId: article.doi }] },
+      });
+      if (existing) { skipped++; continue; }
+
+      const pubDate = article.date ? new Date(article.date) : null;
+
+      await prisma.researchItem.create({
+        data: {
+          sourceType: 'preprint',
+          sourceItemId: article.doi,
+          sourceUrl: `https://doi.org/${article.doi}`,
+          sourceCredibility: 'preprint',
+          title: article.title,
+          rawContent: article.abstract,
+          authors: article.authors,
+          institutions: [],
+          journalName: article.server === 'biorxiv' ? 'bioRxiv' : 'medRxiv',
+          doi: article.doi,
+          publishedAt: pubDate && !isNaN(pubDate.getTime()) ? pubDate : null,
+          contentHash: hash,
+          classificationStatus: 'pending',
+        },
+      });
+      ingested++;
+
+      if (pubDate && !isNaN(pubDate.getTime())) {
+        if (!latestDate || pubDate > latestDate) latestDate = pubDate;
+      }
+    } catch (err) {
+      console.error(`Error ingesting preprint ${article.doi}:`, err);
+      errors++;
+    }
+  }
+
+  await prisma.ingestionSyncState.upsert({
+    where: { sourceId: 'preprints' },
+    create: { sourceId: 'preprints', lastSyncAt: new Date(), lastItemDate: latestDate ?? effectiveDate, itemsIngestedTotal: ingested, itemsIngestedLastRun: ingested },
+    update: { lastSyncAt: new Date(), lastItemDate: latestDate ?? undefined, itemsIngestedTotal: { increment: ingested }, itemsIngestedLastRun: ingested },
+  });
+
+  return { ingested, skipped, errors };
+}
+
+// ============================================================================
+// 3d. ingestTrialUpdates — ClinicalTrials.gov v2
+// ============================================================================
+
+export async function ingestTrialUpdates(sinceDate?: Date) {
+  const syncState = await prisma.ingestionSyncState.findUnique({
+    where: { sourceId: 'clinicaltrials' },
+  });
+
+  let effectiveDate: Date;
+  if (sinceDate) {
+    effectiveDate = sinceDate;
+  } else if (syncState?.lastItemDate) {
+    effectiveDate = new Date(syncState.lastItemDate.getTime() - 24 * 60 * 60 * 1000);
+  } else {
+    effectiveDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  }
+
+  const updates = await fetchTrialUpdates(effectiveDate);
+
+  let ingested = 0;
+  let skipped = 0;
+  let errors = 0;
+  let latestDate: Date | null = null;
+
+  for (const trial of updates) {
+    try {
+      const content = `${trial.briefSummary}\n\n${trial.detailedDescription}`.trim();
+      const hash = calculateContentHash(trial.briefTitle, content);
+
+      const existing = await prisma.researchItem.findFirst({
+        where: { OR: [{ contentHash: hash }, { sourceType: 'clinicaltrials', sourceItemId: trial.nctId }] },
+      });
+      if (existing) { skipped++; continue; }
+
+      const pubDate = trial.lastUpdateDate ? new Date(trial.lastUpdateDate) : null;
+
+      await prisma.researchItem.create({
+        data: {
+          sourceType: 'clinicaltrials',
+          sourceItemId: trial.nctId,
+          sourceUrl: `https://clinicaltrials.gov/study/${trial.nctId}`,
+          sourceCredibility: 'institutional',
+          title: `${trial.hasResults ? '[RESULTS] ' : ''}${trial.briefTitle}`,
+          rawContent: content,
+          authors: [],
+          institutions: trial.sponsor ? [trial.sponsor] : [],
+          journalName: 'ClinicalTrials.gov',
+          doi: null,
+          publishedAt: pubDate && !isNaN(pubDate.getTime()) ? pubDate : null,
+          contentHash: hash,
+          classificationStatus: 'pending',
+          trialNctIds: [trial.nctId],
+        },
+      });
+      ingested++;
+
+      if (pubDate && !isNaN(pubDate.getTime())) {
+        if (!latestDate || pubDate > latestDate) latestDate = pubDate;
+      }
+    } catch (err) {
+      console.error(`Error ingesting trial ${trial.nctId}:`, err);
+      errors++;
+    }
+  }
+
+  await prisma.ingestionSyncState.upsert({
+    where: { sourceId: 'clinicaltrials' },
+    create: { sourceId: 'clinicaltrials', lastSyncAt: new Date(), lastItemDate: latestDate ?? effectiveDate, itemsIngestedTotal: ingested, itemsIngestedLastRun: ingested },
+    update: { lastSyncAt: new Date(), lastItemDate: latestDate ?? undefined, itemsIngestedTotal: { increment: ingested }, itemsIngestedLastRun: ingested },
+  });
+
+  return { ingested, skipped, errors };
+}
+
+// ============================================================================
+// 3e. ingestInstitutionNews — Institutional newsroom RSS
+// ============================================================================
+
+export async function ingestInstitutionNews(sinceDate?: Date) {
+  const syncState = await prisma.ingestionSyncState.findUnique({
+    where: { sourceId: 'institutions' },
+  });
+
+  let effectiveDate: Date;
+  if (sinceDate) {
+    effectiveDate = sinceDate;
+  } else if (syncState?.lastItemDate) {
+    effectiveDate = new Date(syncState.lastItemDate.getTime() - 24 * 60 * 60 * 1000);
+  } else {
+    effectiveDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  }
+
+  const newsItems = await fetchInstitutionNews(effectiveDate);
+
+  let ingested = 0;
+  let skipped = 0;
+  let errors = 0;
+  let latestDate: Date | null = null;
+
+  for (const item of newsItems) {
+    try {
+      const hash = calculateContentHash(item.title, item.description);
+
+      const existing = await prisma.researchItem.findFirst({
+        where: { OR: [{ contentHash: hash }, { sourceType: 'institution', sourceItemId: item.guid }] },
+      });
+      if (existing) { skipped++; continue; }
+
+      const pubDate = item.pubDate ? new Date(item.pubDate) : null;
+
+      await prisma.researchItem.create({
+        data: {
+          sourceType: 'institution',
+          sourceItemId: item.guid,
+          sourceUrl: item.link,
+          sourceCredibility: 'institutional',
+          title: item.title,
+          rawContent: item.description,
+          authors: [],
+          institutions: [item.institution],
+          journalName: `${item.institution} News`,
+          doi: null,
+          publishedAt: pubDate && !isNaN(pubDate.getTime()) ? pubDate : null,
+          contentHash: hash,
+          classificationStatus: 'pending',
+        },
+      });
+      ingested++;
+
+      if (pubDate && !isNaN(pubDate.getTime())) {
+        if (!latestDate || pubDate > latestDate) latestDate = pubDate;
+      }
+    } catch (err) {
+      console.error(`Error ingesting news item ${item.guid}:`, err);
+      errors++;
+    }
+  }
+
+  await prisma.ingestionSyncState.upsert({
+    where: { sourceId: 'institutions' },
+    create: { sourceId: 'institutions', lastSyncAt: new Date(), lastItemDate: latestDate ?? effectiveDate, itemsIngestedTotal: ingested, itemsIngestedLastRun: ingested },
+    update: { lastSyncAt: new Date(), lastItemDate: latestDate ?? undefined, itemsIngestedTotal: { increment: ingested }, itemsIngestedLastRun: ingested },
+  });
+
+  return { ingested, skipped, errors };
+}
+
+// ============================================================================
+// 3f. ingestNIHGrants — NIH Reporter grants
+// ============================================================================
+
+export async function ingestNIHGrants(sinceDate?: Date) {
+  const syncState = await prisma.ingestionSyncState.findUnique({
+    where: { sourceId: 'nih_reporter' },
+  });
+
+  let effectiveDate: Date;
+  if (sinceDate) {
+    effectiveDate = sinceDate;
+  } else if (syncState?.lastItemDate) {
+    effectiveDate = new Date(syncState.lastItemDate.getTime() - 24 * 60 * 60 * 1000);
+  } else {
+    effectiveDate = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+  }
+
+  const grants = await fetchNIHGrants(effectiveDate);
+
+  let ingested = 0;
+  let skipped = 0;
+  let errors = 0;
+  let latestDate: Date | null = null;
+
+  for (const grant of grants) {
+    try {
+      const hash = calculateContentHash(grant.projectTitle, grant.abstractText);
+
+      const existing = await prisma.researchItem.findFirst({
+        where: { OR: [{ contentHash: hash }, { sourceType: 'nih_reporter', sourceItemId: grant.projectNum }] },
+      });
+      if (existing) { skipped++; continue; }
+
+      await prisma.researchItem.create({
+        data: {
+          sourceType: 'nih_reporter',
+          sourceItemId: grant.projectNum,
+          sourceUrl: `https://reporter.nih.gov/project-details/${grant.projectNum}`,
+          sourceCredibility: 'institutional',
+          title: grant.projectTitle,
+          rawContent: `PI: ${grant.piName}. Institution: ${grant.orgName}. Award: $${grant.awardAmount.toLocaleString()} (FY${grant.fiscalYear}).\n\n${grant.abstractText}`,
+          authors: grant.piName ? [grant.piName] : [],
+          institutions: grant.orgName ? [grant.orgName] : [],
+          journalName: 'NIH Reporter',
+          doi: null,
+          publishedAt: null,
+          contentHash: hash,
+          classificationStatus: 'pending',
+        },
+      });
+      ingested++;
+    } catch (err) {
+      console.error(`Error ingesting NIH grant ${grant.projectNum}:`, err);
+      errors++;
+    }
+  }
+
+  await prisma.ingestionSyncState.upsert({
+    where: { sourceId: 'nih_reporter' },
+    create: { sourceId: 'nih_reporter', lastSyncAt: new Date(), lastItemDate: latestDate ?? effectiveDate, itemsIngestedTotal: ingested, itemsIngestedLastRun: ingested },
+    update: { lastSyncAt: new Date(), lastItemDate: latestDate ?? undefined, itemsIngestedTotal: { increment: ingested }, itemsIngestedLastRun: ingested },
+  });
+
+  return { ingested, skipped, errors };
+}
+
+// ============================================================================
 // 4. classifyItem — Claude-powered research classification
 // ============================================================================
 
@@ -204,25 +585,31 @@ Return ONLY valid JSON with this exact structure:
   "treatmentStages": ["string"],
   "evidenceLevel": "string",
   "practiceImpact": "string",
+  "classificationConfidence": 0.0,
   "drugNames": ["string"],
   "trialNctIds": ["string"],
   "industrySponsored": null,
+  "sponsorName": null,
+  "authorCOI": null,
   "hypeScore": 0.0,
   "hypeFlags": ["string"]
 }
 
 ALLOWED VALUES:
-- cancerTypes: breast, lung, colorectal, pancreatic, melanoma, general_oncology
-- breastSubtypes: HER2+, ER+/PR+, TNBC, HR+/HER2-
+- cancerTypes: breast, lung, colorectal, pancreatic, melanoma, ovarian, cervical, endometrial, prostate, glioblastoma, multiple, pan_cancer, general_oncology
+- breastSubtypes: er_positive_her2_negative, her2_positive, her2_low, her2_ultralow, triple_negative, inflammatory, dcis, lobular, all_subtypes, not_specified
 - maturityTier: T1 (FDA approved/guideline change), T2 (phase 3 positive), T3 (phase 2 promising), T4 (preclinical/mouse), T5 (hypothesis/review)
-- domains: immunotherapy, targeted_therapy, chemotherapy, screening, biomarkers, survivorship, surgery, radiation, prevention, genomics
-- treatmentClasses: checkpoint_inhibitor, cancer_vaccine, CAR-T, ADC, targeted_small_molecule, hormone_therapy, monoclonal_antibody
-- treatmentStages: neoadjuvant, adjuvant, metastatic, maintenance, prevention
+- domains: treatment, detection, prevention, survivorship, quality_of_life, genetics, ai_technology, epidemiology, basic_science
+- treatmentClasses: immunotherapy, chemotherapy, adc, checkpoint_inhibitor, cancer_vaccine, CAR_T, targeted_small_molecule, monoclonal_antibody, serd, protac, cdk_inhibitor, pi3k_inhibitor, parp_inhibitor, her2_targeted, endocrine_therapy, radiation, surgery, cell_therapy, bispecific, molecular_glue, photodynamic, ctdna_monitoring, ai_screening, lifestyle, other
+- treatmentStages: screening, diagnosis, neoadjuvant, adjuvant, first_line_metastatic, second_line_plus, metastatic, maintenance, prevention, survivorship, recurrence, palliative
 - evidenceLevel: L1 (systematic review/meta-analysis), L2 (RCT), L3 (controlled study), L4 (case series), L5 (expert opinion), L6 (preclinical)
-- practiceImpact: practice_changing, informative, hypothesis_generating, confirmatory, incremental
+- practiceImpact: practice_changing, practice_informing, incremental, hypothesis_generating, negative, safety_alert
+- classificationConfidence: 0.0-1.0 (your confidence in the classification)
 - hypeScore: 0.0-1.0 (0=pure substance, 1=pure hype)
-- hypeFlags: overstated_conclusions, small_sample, no_control_group, conflicts_of_interest, press_release_language, surrogate_endpoints_only
+- hypeFlags: overstated_conclusions, small_sample, no_control_group, conflicts_of_interest, press_release_language, surrogate_endpoints_only, industry_practice_changing
 - industrySponsored: true, false, or null if cannot determine
+- sponsorName: string name of the sponsor/funder if identifiable, or null
+- authorCOI: string describing author conflicts of interest if mentioned (e.g. "consulting fees from Pfizer"), or null
 - drugNames: extract any drug names mentioned
 - trialNctIds: extract any NCT numbers mentioned`,
     messages: [
@@ -258,17 +645,23 @@ Classify this research article.`,
       treatmentStages: [],
       evidenceLevel: 'L5',
       practiceImpact: 'incremental',
+      classificationConfidence: 0.3,
       drugNames: [],
       trialNctIds: [],
       industrySponsored: null,
+      sponsorName: null,
+      authorCOI: null,
       hypeScore: 0.5,
       hypeFlags: [],
     };
   }
 
-  // Apply conservative classification rules post-hoc
+  // ========================================================================
+  // Apply conservative classification rules post-hoc (8 rules)
+  // ========================================================================
   const contentLower = ((item.rawContent ?? '') + ' ' + item.title).toLowerCase();
 
+  // Rule 1: Mouse/murine → T4 minimum
   if (
     contentLower.includes('mouse') ||
     contentLower.includes('murine') ||
@@ -280,6 +673,7 @@ Classify this research article.`,
     }
   }
 
+  // Rule 2: Preprint → L5 minimum
   if (
     item.sourceCredibility === 'preprint' ||
     contentLower.includes('biorxiv') ||
@@ -291,7 +685,7 @@ Classify this research article.`,
     }
   }
 
-  // T1 requires explicit FDA or guideline mention
+  // Rule 3: T1 requires explicit FDA or guideline mention
   if (classification.maturityTier === 'T1') {
     const hasFdaMention =
       contentLower.includes('fda approv') ||
@@ -301,6 +695,65 @@ Classify this research article.`,
       contentLower.includes('approved by the fda');
     if (!hasFdaMention) {
       classification.maturityTier = 'T2';
+    }
+  }
+
+  // Rule 4: T2 requires "phase 3" or "phase iii" mention
+  if (classification.maturityTier === 'T2') {
+    const hasPhase3 =
+      contentLower.includes('phase 3') ||
+      contentLower.includes('phase iii') ||
+      contentLower.includes('phase-3') ||
+      contentLower.includes('phase-iii');
+    if (!hasPhase3) {
+      classification.maturityTier = 'T3';
+    }
+  }
+
+  // Rule 5: Negative result signals → flag if not marked negative
+  const negativeSignals = [
+    'did not meet', 'no significant difference', 'failed to demonstrate',
+    'no benefit', 'not superior', 'negative trial', 'did not improve',
+    'no improvement', 'futility', 'terminated for futility',
+  ];
+  const hasNegativeSignal = negativeSignals.some(s => contentLower.includes(s));
+  if (hasNegativeSignal && classification.practiceImpact !== 'negative') {
+    classification.practiceImpact = 'negative';
+  }
+
+  // Rule 6: Safety alert signals → force safety_alert
+  const safetySignals = [
+    'black box warning', 'boxed warning', 'fda safety', 'safety alert',
+    'fda warning', 'withdrawn from market', 'suspended enrollment',
+    'serious adverse event', 'fatal adverse event',
+  ];
+  const hasSafetySignal = safetySignals.some(s => contentLower.includes(s));
+  if (hasSafetySignal) {
+    classification.practiceImpact = 'safety_alert';
+  }
+
+  // Rule 7: Small sample size (N<30) → add small_sample hype flag
+  const sampleMatch = contentLower.match(/\bn\s*=\s*(\d+)/);
+  if (sampleMatch) {
+    const n = parseInt(sampleMatch[1], 10);
+    if (n < 30) {
+      const flags: string[] = classification.hypeFlags ?? [];
+      if (!flags.includes('small_sample')) {
+        flags.push('small_sample');
+        classification.hypeFlags = flags;
+      }
+    }
+  }
+
+  // Rule 8: Industry-sponsored + practice_changing → boost hype + flag
+  if (classification.industrySponsored && classification.practiceImpact === 'practice_changing') {
+    const flags: string[] = classification.hypeFlags ?? [];
+    if (!flags.includes('industry_practice_changing')) {
+      flags.push('industry_practice_changing');
+      classification.hypeFlags = flags;
+    }
+    if ((classification.hypeScore ?? 0) < 0.4) {
+      classification.hypeScore = 0.4;
     }
   }
 
@@ -317,9 +770,12 @@ Classify this research article.`,
       treatmentStages: classification.treatmentStages ?? [],
       evidenceLevel: classification.evidenceLevel ?? 'L5',
       practiceImpact: classification.practiceImpact ?? 'incremental',
+      classificationConfidence: classification.classificationConfidence ?? null,
       drugNames: classification.drugNames ?? [],
       trialNctIds: classification.trialNctIds ?? [],
       industrySponsored: classification.industrySponsored ?? null,
+      sponsorName: classification.sponsorName ?? null,
+      authorCOI: classification.authorCOI ?? null,
       hypeScore: classification.hypeScore ?? null,
       hypeFlags: classification.hypeFlags ?? [],
       classificationStatus: 'classified',
@@ -437,12 +893,16 @@ Produce a structured clinician summary.`,
     };
   }
 
+  // Extract structured key endpoints from clinician summary
+  const keyEndpoints = extractKeyEndpoints(clinicianSummary.keyEndpoints ?? []);
+
   // Update item with summaries
   const updated = await prisma.researchItem.update({
     where: { id: itemId },
     data: {
       patientSummary,
       clinicianSummary,
+      keyEndpoints: keyEndpoints.length > 0 ? keyEndpoints : undefined,
       classificationStatus: 'complete',
       lastProcessedAt: new Date(),
     },
@@ -513,14 +973,22 @@ export async function processSummarizationQueue(batchSize = 10) {
 // ============================================================================
 
 export async function runIngestionCycle() {
-  const ingestionResult = await ingestPubMedArticles();
-  const classificationResult = await processClassificationQueue();
-  const summarizationResult = await processSummarizationQueue();
+  const pubmed = await ingestPubMedArticles();
+  const fda = await ingestFDAItems();
+  const preprints = await ingestPreprints();
+  const clinicaltrials = await ingestTrialUpdates();
+  const institutions = await ingestInstitutionNews();
+  const nih_reporter = await ingestNIHGrants();
+
+  const classification = await processClassificationQueue();
+  const summarization = await processSummarizationQueue();
+  const qc = await processQCQueue();
 
   return {
-    ingestion: ingestionResult,
-    classification: classificationResult,
-    summarization: summarizationResult,
+    ingestion: { pubmed, fda, preprints, clinicaltrials, institutions, nih_reporter },
+    classification,
+    summarization,
+    qc,
   };
 }
 
@@ -688,15 +1156,298 @@ export async function searchResearchItems(
 // ============================================================================
 
 export async function triggerIngestion(sourceId: string) {
-  if (sourceId === 'pubmed') {
-    return ingestPubMedArticles();
+  switch (sourceId) {
+    case 'pubmed': return ingestPubMedArticles();
+    case 'fda': return ingestFDAItems();
+    case 'preprints': return ingestPreprints();
+    case 'clinicaltrials': return ingestTrialUpdates();
+    case 'institutions': return ingestInstitutionNews();
+    case 'nih_reporter': return ingestNIHGrants();
+    default:
+      throw new Error(`Unknown source: ${sourceId}. Supported: pubmed, fda, preprints, clinicaltrials, institutions, nih_reporter`);
   }
-
-  throw new Error(`Unknown source: ${sourceId}. Currently supported: pubmed`);
 }
 
 // ============================================================================
-// 14. reclassifyItem — Clear caches and re-process
+// 14. extractKeyEndpoints — Parse HR/CI/p-value from endpoint strings
+// ============================================================================
+
+function extractKeyEndpoints(endpoints: string[]): Array<{
+  endpoint: string;
+  hr?: string;
+  ci?: string;
+  pValue?: string;
+  result?: string;
+}> {
+  return endpoints.map(ep => {
+    const parsed: { endpoint: string; hr?: string; ci?: string; pValue?: string; result?: string } = {
+      endpoint: ep,
+    };
+
+    // HR extraction: HR 0.72, HR=0.72, hazard ratio 0.72
+    const hrMatch = ep.match(/(?:HR|hazard ratio)[=:\s]*(\d+\.?\d*)/i);
+    if (hrMatch) parsed.hr = hrMatch[1];
+
+    // CI extraction: 95% CI 0.58-0.89, CI: 0.58 to 0.89
+    const ciMatch = ep.match(/(?:95%?\s*CI|confidence interval)[=:\s]*([\d.]+[\s-–]+[\d.]+)/i);
+    if (ciMatch) parsed.ci = ciMatch[1].replace(/\s+/g, '');
+
+    // p-value extraction: p=0.001, p<0.05, P value 0.03
+    const pMatch = ep.match(/p[\s-]*(?:value)?[=<:\s]*([\d.]+(?:e-?\d+)?)/i);
+    if (pMatch) parsed.pValue = pMatch[1];
+
+    // Result direction
+    if (/significant|positive|improved|superior|benefit/i.test(ep)) {
+      parsed.result = 'positive';
+    } else if (/no.?significant|negative|inferior|no.?benefit|failed/i.test(ep)) {
+      parsed.result = 'negative';
+    }
+
+    return parsed;
+  });
+}
+
+// ============================================================================
+// 15. checkRetractionStatus — PubMed + CrossRef retraction check
+// ============================================================================
+
+export async function checkRetractionStatus(itemId: string) {
+  const item = await prisma.researchItem.findUnique({ where: { id: itemId } });
+  if (!item) throw new Error('Research item not found');
+
+  let retractionStatus: 'none' | 'retracted' | 'expression_of_concern' | 'correction' = 'none';
+
+  // Check PubMed if sourceType is pubmed
+  if (item.sourceType === 'pubmed' && item.sourceItemId) {
+    try {
+      const article = await fetchPubMedSingle(item.sourceItemId);
+      if (article) {
+        const pubTypesLower = article.publicationType.map(t => t.toLowerCase());
+        if (pubTypesLower.some(t => t.includes('retracted publication'))) {
+          retractionStatus = 'retracted';
+        } else if (pubTypesLower.some(t => t.includes('expression of concern'))) {
+          retractionStatus = 'expression_of_concern';
+        } else if (pubTypesLower.some(t => t.includes('published erratum') || t.includes('correction'))) {
+          retractionStatus = 'correction';
+        }
+      }
+    } catch (err) {
+      console.error(`Error checking PubMed retraction for ${itemId}:`, err);
+    }
+  }
+
+  // Check CrossRef if DOI available and PubMed didn't flag it
+  if (retractionStatus === 'none' && item.doi) {
+    try {
+      const res = await fetch(`https://api.crossref.org/works/${encodeURIComponent(item.doi)}`, {
+        headers: { 'User-Agent': 'OncoVax/1.0 (mailto:support@oncovax.com)' },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const updates = data?.message?.['update-to'];
+        if (Array.isArray(updates) && updates.length > 0) {
+          const hasRetraction = updates.some((u: any) =>
+            u.label?.toLowerCase().includes('retraction') ||
+            u.type?.toLowerCase().includes('retraction')
+          );
+          if (hasRetraction) {
+            retractionStatus = 'retracted';
+          } else {
+            retractionStatus = 'correction';
+          }
+        }
+      }
+    } catch (err) {
+      console.error(`Error checking CrossRef for ${itemId}:`, err);
+    }
+  }
+
+  await prisma.researchItem.update({
+    where: { id: itemId },
+    data: { retractionStatus },
+  });
+
+  return retractionStatus;
+}
+
+// ============================================================================
+// 16. detectContradictions — Find conflicting items sharing drugs/trials
+// ============================================================================
+
+export async function detectContradictions(itemId: string) {
+  const item = await prisma.researchItem.findUnique({ where: { id: itemId } });
+  if (!item) throw new Error('Research item not found');
+
+  // Only check completed items with drug names or trial NCT IDs
+  if (item.drugNames.length === 0 && item.trialNctIds.length === 0) return [];
+
+  const orConditions: any[] = [];
+  if (item.drugNames.length > 0) {
+    orConditions.push({ drugNames: { hasSome: item.drugNames } });
+  }
+  if (item.trialNctIds.length > 0) {
+    orConditions.push({ trialNctIds: { hasSome: item.trialNctIds } });
+  }
+
+  const related = await prisma.researchItem.findMany({
+    where: {
+      id: { not: itemId },
+      classificationStatus: 'complete',
+      OR: orConditions,
+    },
+  });
+
+  const contradictions: string[] = [];
+
+  for (const other of related) {
+    // Check for contradicting practice impact
+    const isContradiction =
+      (item.practiceImpact === 'practice_changing' && other.practiceImpact === 'negative') ||
+      (item.practiceImpact === 'negative' && other.practiceImpact === 'practice_changing') ||
+      (item.practiceImpact === 'safety_alert' && other.practiceImpact === 'practice_changing');
+
+    if (isContradiction) {
+      contradictions.push(other.id);
+
+      // Update the other item's contradictedBy too
+      const otherContradictions = [...new Set([...(other.contradictedBy || []), itemId])];
+      await prisma.researchItem.update({
+        where: { id: other.id },
+        data: { contradictedBy: otherContradictions },
+      });
+    }
+
+    // Always add as related if sharing drug/trial
+    const otherRelated = [...new Set([...(other.relatedItemIds || []), itemId])];
+    await prisma.researchItem.update({
+      where: { id: other.id },
+      data: { relatedItemIds: otherRelated },
+    });
+  }
+
+  // Update this item
+  const relatedIds = related.map(r => r.id);
+  const uniqueRelated = [...new Set([...(item.relatedItemIds || []), ...relatedIds])];
+  const uniqueContradictions = [...new Set([...(item.contradictedBy || []), ...contradictions])];
+
+  await prisma.researchItem.update({
+    where: { id: itemId },
+    data: {
+      relatedItemIds: uniqueRelated,
+      contradictedBy: uniqueContradictions,
+    },
+  });
+
+  return contradictions;
+}
+
+// ============================================================================
+// 17. processQCQueue — Batch QC for completed items
+// ============================================================================
+
+export async function processQCQueue(batchSize = 10) {
+  const items = await prisma.researchItem.findMany({
+    where: {
+      classificationStatus: 'complete',
+      retractionStatus: null,
+    },
+    orderBy: { createdAt: 'asc' },
+    take: batchSize,
+  });
+
+  let checked = 0;
+  let retracted = 0;
+  let contradictions = 0;
+  let errors = 0;
+
+  for (const item of items) {
+    try {
+      const status = await checkRetractionStatus(item.id);
+      if (status !== 'none') retracted++;
+
+      const contras = await detectContradictions(item.id);
+      contradictions += contras.length;
+
+      checked++;
+    } catch (err) {
+      console.error(`Error in QC for item ${item.id}:`, err);
+      errors++;
+    }
+  }
+
+  return { checked, retracted, contradictions, errors };
+}
+
+// ============================================================================
+// 18. migrateOldTaxonomy — One-time idempotent migration of I1 values
+// ============================================================================
+
+export async function migrateOldTaxonomy() {
+  const results = {
+    practiceImpactUpdated: 0,
+    breastSubtypesUpdated: 0,
+  };
+
+  // practiceImpact: 'informative' → 'practice_informing'
+  const r1 = await prisma.researchItem.updateMany({
+    where: { practiceImpact: 'informative' },
+    data: { practiceImpact: 'practice_informing' },
+  });
+  results.practiceImpactUpdated += r1.count;
+
+  // practiceImpact: 'confirmatory' → 'incremental'
+  const r2 = await prisma.researchItem.updateMany({
+    where: { practiceImpact: 'confirmatory' },
+    data: { practiceImpact: 'incremental' },
+  });
+  results.practiceImpactUpdated += r2.count;
+
+  // Breast subtype renames — update array values
+  // HER2+ → her2_positive
+  const her2Items = await prisma.researchItem.findMany({
+    where: { breastSubtypes: { has: 'HER2+' } },
+  });
+  for (const item of her2Items) {
+    const updated = item.breastSubtypes.map((s: string) => s === 'HER2+' ? 'her2_positive' : s);
+    await prisma.researchItem.update({ where: { id: item.id }, data: { breastSubtypes: updated } });
+    results.breastSubtypesUpdated++;
+  }
+
+  // ER+/PR+ → er_positive_her2_negative
+  const erItems = await prisma.researchItem.findMany({
+    where: { breastSubtypes: { has: 'ER+/PR+' } },
+  });
+  for (const item of erItems) {
+    const updated = item.breastSubtypes.map((s: string) => s === 'ER+/PR+' ? 'er_positive_her2_negative' : s);
+    await prisma.researchItem.update({ where: { id: item.id }, data: { breastSubtypes: updated } });
+    results.breastSubtypesUpdated++;
+  }
+
+  // TNBC → triple_negative
+  const tnbcItems = await prisma.researchItem.findMany({
+    where: { breastSubtypes: { has: 'TNBC' } },
+  });
+  for (const item of tnbcItems) {
+    const updated = item.breastSubtypes.map((s: string) => s === 'TNBC' ? 'triple_negative' : s);
+    await prisma.researchItem.update({ where: { id: item.id }, data: { breastSubtypes: updated } });
+    results.breastSubtypesUpdated++;
+  }
+
+  // HR+/HER2- → er_positive_her2_negative
+  const hrItems = await prisma.researchItem.findMany({
+    where: { breastSubtypes: { has: 'HR+/HER2-' } },
+  });
+  for (const item of hrItems) {
+    const updated = item.breastSubtypes.map((s: string) => s === 'HR+/HER2-' ? 'er_positive_her2_negative' : s);
+    await prisma.researchItem.update({ where: { id: item.id }, data: { breastSubtypes: updated } });
+    results.breastSubtypesUpdated++;
+  }
+
+  return results;
+}
+
+// ============================================================================
+// 19. reclassifyItem — Clear caches and re-process
 // ============================================================================
 
 export async function reclassifyItem(itemId: string) {

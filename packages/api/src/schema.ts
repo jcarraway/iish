@@ -1513,8 +1513,12 @@ export const typeDefs = `#graphql
     trialNctIds: [String!]!
     retractionStatus: String
     industrySponsored: Boolean
+    sponsorName: String
+    authorCOI: String
     hypeScore: Float
     hypeFlags: [String!]!
+    relatedItemIds: [String!]!
+    contradictedBy: [String!]!
     classificationStatus: String!
     createdAt: DateTime!
   }
@@ -1544,6 +1548,33 @@ export const typeDefs = `#graphql
     summarized: Int!
     skipped: Int!
     errors: Int!
+  }
+
+  type SourceIngestionResult {
+    ingested: Int!
+    skipped: Int!
+    errors: Int!
+  }
+
+  type IngestionBreakdown {
+    pubmed: SourceIngestionResult!
+    fda: SourceIngestionResult!
+    preprints: SourceIngestionResult!
+    clinicaltrials: SourceIngestionResult!
+    institutions: SourceIngestionResult!
+    nih_reporter: SourceIngestionResult!
+  }
+
+  type QCResult {
+    checked: Int!
+    retracted: Int!
+    contradictions: Int!
+    errors: Int!
+  }
+
+  type TaxonomyMigrationResult {
+    practiceImpactUpdated: Int!
+    breastSubtypesUpdated: Int!
   }
 
   input ResearchItemFilters {
@@ -2084,5 +2115,7 @@ export const typeDefs = `#graphql
     # Intel — Research Intelligence
     triggerIngestion(sourceId: String!): IngestionCycleResult!
     reclassifyItem(itemId: String!): ResearchItem!
+    runQCPipeline(batchSize: Int): QCResult!
+    migrateOldTaxonomy: TaxonomyMigrationResult!
   }
 `;

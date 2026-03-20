@@ -44,5 +44,13 @@ export const intelResolvers = {
       requireAuth(ctx);
       return ctx.lib.reclassifyItem(args.itemId);
     },
+    runQCPipeline: async (_: any, args: { batchSize?: number }, ctx: ResolverContext) => {
+      requireAuth(ctx);
+      return ctx.lib.processQCQueue(args.batchSize ?? 10);
+    },
+    migrateOldTaxonomy: async (_: any, __: any, ctx: ResolverContext) => {
+      requireAuth(ctx);
+      return ctx.lib.migrateOldTaxonomy();
+    },
   },
 };

@@ -656,6 +656,16 @@ export type HrdBiomarker = {
   status: Scalars['String']['output'];
 };
 
+export type IngestionBreakdown = {
+  __typename?: 'IngestionBreakdown';
+  clinicaltrials: SourceIngestionResult;
+  fda: SourceIngestionResult;
+  institutions: SourceIngestionResult;
+  nih_reporter: SourceIngestionResult;
+  preprints: SourceIngestionResult;
+  pubmed: SourceIngestionResult;
+};
+
 export type IngestionCycleResult = {
   __typename?: 'IngestionCycleResult';
   classified: Scalars['Int']['output'];
@@ -1017,6 +1027,7 @@ export type Mutation = {
   logout: Scalars['Boolean']['output'];
   markEventComplete: SurveillanceEvent;
   matchFinancialPrograms: Array<FinancialMatch>;
+  migrateOldTaxonomy: TaxonomyMigrationResult;
   publishArticle: Article;
   reclassifyItem: ResearchItem;
   recordSecondOpinionOutcome: SecondOpinionRequest;
@@ -1032,6 +1043,7 @@ export type Mutation = {
   rescheduleEvent: SurveillanceEvent;
   resyncFhirConnection: Scalars['JSON']['output'];
   revokeFhirConnection: Scalars['Boolean']['output'];
+  runQCPipeline: QcResult;
   savePatientIntake: Patient;
   selectSecondOpinionCenter: SecondOpinionRequest;
   skipEvent: SurveillanceEvent;
@@ -1299,6 +1311,11 @@ export type MutationResyncFhirConnectionArgs = {
 
 export type MutationRevokeFhirConnectionArgs = {
   connectionId: Scalars['String']['input'];
+};
+
+
+export type MutationRunQcPipelineArgs = {
+  batchSize?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -1674,6 +1691,14 @@ export type PriorTreatment = {
   response?: Maybe<Scalars['String']['output']>;
   startDate?: Maybe<Scalars['String']['output']>;
   type: Scalars['String']['output'];
+};
+
+export type QcResult = {
+  __typename?: 'QCResult';
+  checked: Scalars['Int']['output'];
+  contradictions: Scalars['Int']['output'];
+  errors: Scalars['Int']['output'];
+  retracted: Scalars['Int']['output'];
 };
 
 export type Query = {
@@ -2145,6 +2170,7 @@ export type RescheduleEventInput = {
 
 export type ResearchItem = {
   __typename?: 'ResearchItem';
+  authorCOI?: Maybe<Scalars['String']['output']>;
   authors: Array<Scalars['String']['output']>;
   biomarkerRelevance: Array<Scalars['String']['output']>;
   breastSubtypes: Array<Scalars['String']['output']>;
@@ -2152,6 +2178,7 @@ export type ResearchItem = {
   classificationConfidence?: Maybe<Scalars['Float']['output']>;
   classificationStatus: Scalars['String']['output'];
   clinicianSummary?: Maybe<ClinicianSummary>;
+  contradictedBy: Array<Scalars['String']['output']>;
   createdAt: Scalars['DateTime']['output'];
   doi?: Maybe<Scalars['String']['output']>;
   domains: Array<Scalars['String']['output']>;
@@ -2169,11 +2196,13 @@ export type ResearchItem = {
   practiceImpact?: Maybe<Scalars['String']['output']>;
   publishedAt?: Maybe<Scalars['String']['output']>;
   rawContent?: Maybe<Scalars['String']['output']>;
+  relatedItemIds: Array<Scalars['String']['output']>;
   retractionStatus?: Maybe<Scalars['String']['output']>;
   sourceCredibility: Scalars['String']['output'];
   sourceItemId?: Maybe<Scalars['String']['output']>;
   sourceType: Scalars['String']['output'];
   sourceUrl?: Maybe<Scalars['String']['output']>;
+  sponsorName?: Maybe<Scalars['String']['output']>;
   title: Scalars['String']['output'];
   treatmentClasses: Array<Scalars['String']['output']>;
   treatmentStages: Array<Scalars['String']['output']>;
@@ -2359,6 +2388,13 @@ export type SkipEventInput = {
   reason: Scalars['String']['input'];
 };
 
+export type SourceIngestionResult = {
+  __typename?: 'SourceIngestionResult';
+  errors: Scalars['Int']['output'];
+  ingested: Scalars['Int']['output'];
+  skipped: Scalars['Int']['output'];
+};
+
 export type StateProtection = {
   __typename?: 'StateProtection';
   cancerSpecific: Scalars['String']['output'];
@@ -2461,6 +2497,12 @@ export type TalkingPoint = {
   __typename?: 'TalkingPoint';
   detail: Scalars['String']['output'];
   point: Scalars['String']['output'];
+};
+
+export type TaxonomyMigrationResult = {
+  __typename?: 'TaxonomyMigrationResult';
+  breastSubtypesUpdated: Scalars['Int']['output'];
+  practiceImpactUpdated: Scalars['Int']['output'];
 };
 
 export type TestRecommendation = {
@@ -2924,14 +2966,14 @@ export type GetResearchItemsQueryVariables = Exact<{
 }>;
 
 
-export type GetResearchItemsQuery = { __typename?: 'Query', researchItems: Array<{ __typename?: 'ResearchItem', id: string, sourceType: string, sourceUrl?: string | null, sourceCredibility: string, title: string, journalName?: string | null, doi?: string | null, publishedAt?: string | null, cancerTypes: Array<string>, breastSubtypes: Array<string>, maturityTier?: string | null, domains: Array<string>, treatmentClasses: Array<string>, biomarkerRelevance: Array<string>, evidenceLevel?: string | null, practiceImpact?: string | null, patientSummary?: string | null, drugNames: Array<string>, hypeScore?: number | null, classificationStatus: string, createdAt: string }> };
+export type GetResearchItemsQuery = { __typename?: 'Query', researchItems: Array<{ __typename?: 'ResearchItem', id: string, sourceType: string, sourceUrl?: string | null, sourceCredibility: string, title: string, journalName?: string | null, doi?: string | null, publishedAt?: string | null, cancerTypes: Array<string>, breastSubtypes: Array<string>, maturityTier?: string | null, domains: Array<string>, treatmentClasses: Array<string>, biomarkerRelevance: Array<string>, evidenceLevel?: string | null, practiceImpact?: string | null, patientSummary?: string | null, drugNames: Array<string>, hypeScore?: number | null, hypeFlags: Array<string>, retractionStatus?: string | null, classificationStatus: string, createdAt: string }> };
 
 export type GetResearchItemQueryVariables = Exact<{
   id: Scalars['String']['input'];
 }>;
 
 
-export type GetResearchItemQuery = { __typename?: 'Query', researchItem?: { __typename?: 'ResearchItem', id: string, sourceType: string, sourceItemId?: string | null, sourceUrl?: string | null, sourceCredibility: string, title: string, rawContent?: string | null, authors: Array<string>, institutions: Array<string>, journalName?: string | null, doi?: string | null, publishedAt?: string | null, cancerTypes: Array<string>, breastSubtypes: Array<string>, maturityTier?: string | null, domains: Array<string>, treatmentClasses: Array<string>, biomarkerRelevance: Array<string>, treatmentStages: Array<string>, evidenceLevel?: string | null, practiceImpact?: string | null, classificationConfidence?: number | null, patientSummary?: string | null, keyEndpoints?: Record<string, unknown> | null, drugNames: Array<string>, trialNctIds: Array<string>, retractionStatus?: string | null, industrySponsored?: boolean | null, hypeScore?: number | null, hypeFlags: Array<string>, classificationStatus: string, createdAt: string, clinicianSummary?: { __typename?: 'ClinicianSummary', headline: string, keyEndpoints: Array<string>, studyDesign: string, context: string, practiceImplication: string, limitations: Array<string>, grade: string } | null } | null };
+export type GetResearchItemQuery = { __typename?: 'Query', researchItem?: { __typename?: 'ResearchItem', id: string, sourceType: string, sourceItemId?: string | null, sourceUrl?: string | null, sourceCredibility: string, title: string, rawContent?: string | null, authors: Array<string>, institutions: Array<string>, journalName?: string | null, doi?: string | null, publishedAt?: string | null, cancerTypes: Array<string>, breastSubtypes: Array<string>, maturityTier?: string | null, domains: Array<string>, treatmentClasses: Array<string>, biomarkerRelevance: Array<string>, treatmentStages: Array<string>, evidenceLevel?: string | null, practiceImpact?: string | null, classificationConfidence?: number | null, patientSummary?: string | null, keyEndpoints?: Record<string, unknown> | null, drugNames: Array<string>, trialNctIds: Array<string>, retractionStatus?: string | null, industrySponsored?: boolean | null, sponsorName?: string | null, authorCOI?: string | null, hypeScore?: number | null, hypeFlags: Array<string>, relatedItemIds: Array<string>, contradictedBy: Array<string>, classificationStatus: string, createdAt: string, clinicianSummary?: { __typename?: 'ClinicianSummary', headline: string, keyEndpoints: Array<string>, studyDesign: string, context: string, practiceImplication: string, limitations: Array<string>, grade: string } | null } | null };
 
 export type SearchResearchQueryVariables = Exact<{
   query: Scalars['String']['input'];
@@ -2939,7 +2981,7 @@ export type SearchResearchQueryVariables = Exact<{
 }>;
 
 
-export type SearchResearchQuery = { __typename?: 'Query', searchResearch: Array<{ __typename?: 'ResearchItem', id: string, sourceType: string, sourceUrl?: string | null, sourceCredibility: string, title: string, journalName?: string | null, doi?: string | null, publishedAt?: string | null, cancerTypes: Array<string>, breastSubtypes: Array<string>, maturityTier?: string | null, domains: Array<string>, treatmentClasses: Array<string>, evidenceLevel?: string | null, practiceImpact?: string | null, patientSummary?: string | null, drugNames: Array<string>, classificationStatus: string, createdAt: string }> };
+export type SearchResearchQuery = { __typename?: 'Query', searchResearch: Array<{ __typename?: 'ResearchItem', id: string, sourceType: string, sourceUrl?: string | null, sourceCredibility: string, title: string, journalName?: string | null, doi?: string | null, publishedAt?: string | null, cancerTypes: Array<string>, breastSubtypes: Array<string>, maturityTier?: string | null, domains: Array<string>, treatmentClasses: Array<string>, evidenceLevel?: string | null, practiceImpact?: string | null, patientSummary?: string | null, drugNames: Array<string>, hypeFlags: Array<string>, retractionStatus?: string | null, classificationStatus: string, createdAt: string }> };
 
 export type GetIngestionSyncStatesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -2959,6 +3001,18 @@ export type ReclassifyItemMutationVariables = Exact<{
 
 
 export type ReclassifyItemMutation = { __typename?: 'Mutation', reclassifyItem: { __typename?: 'ResearchItem', id: string, maturityTier?: string | null, domains: Array<string>, evidenceLevel?: string | null, practiceImpact?: string | null, patientSummary?: string | null, classificationStatus: string } };
+
+export type RunQcPipelineMutationVariables = Exact<{
+  batchSize?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type RunQcPipelineMutation = { __typename?: 'Mutation', runQCPipeline: { __typename?: 'QCResult', checked: number, retracted: number, contradictions: number, errors: number } };
+
+export type MigrateOldTaxonomyMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type MigrateOldTaxonomyMutation = { __typename?: 'Mutation', migrateOldTaxonomy: { __typename?: 'TaxonomyMigrationResult', practiceImpactUpdated: number, breastSubtypesUpdated: number } };
 
 export type GetArticleQueryVariables = Exact<{
   slug: Scalars['String']['input'];
@@ -5773,6 +5827,8 @@ export const GetResearchItemsDocument = gql`
     patientSummary
     drugNames
     hypeScore
+    hypeFlags
+    retractionStatus
     classificationStatus
     createdAt
   }
@@ -5854,8 +5910,12 @@ export const GetResearchItemDocument = gql`
     trialNctIds
     retractionStatus
     industrySponsored
+    sponsorName
+    authorCOI
     hypeScore
     hypeFlags
+    relatedItemIds
+    contradictedBy
     classificationStatus
     createdAt
   }
@@ -5917,6 +5977,8 @@ export const SearchResearchDocument = gql`
     practiceImpact
     patientSummary
     drugNames
+    hypeFlags
+    retractionStatus
     classificationStatus
     createdAt
   }
@@ -6082,6 +6144,75 @@ export function useReclassifyItemMutation(baseOptions?: Apollo.MutationHookOptio
 export type ReclassifyItemMutationHookResult = ReturnType<typeof useReclassifyItemMutation>;
 export type ReclassifyItemMutationResult = Apollo.MutationResult<ReclassifyItemMutation>;
 export type ReclassifyItemMutationOptions = Apollo.BaseMutationOptions<ReclassifyItemMutation, ReclassifyItemMutationVariables>;
+export const RunQcPipelineDocument = gql`
+    mutation RunQCPipeline($batchSize: Int) {
+  runQCPipeline(batchSize: $batchSize) {
+    checked
+    retracted
+    contradictions
+    errors
+  }
+}
+    `;
+export type RunQcPipelineMutationFn = Apollo.MutationFunction<RunQcPipelineMutation, RunQcPipelineMutationVariables>;
+
+/**
+ * __useRunQcPipelineMutation__
+ *
+ * To run a mutation, you first call `useRunQcPipelineMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRunQcPipelineMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [runQcPipelineMutation, { data, loading, error }] = useRunQcPipelineMutation({
+ *   variables: {
+ *      batchSize: // value for 'batchSize'
+ *   },
+ * });
+ */
+export function useRunQcPipelineMutation(baseOptions?: Apollo.MutationHookOptions<RunQcPipelineMutation, RunQcPipelineMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RunQcPipelineMutation, RunQcPipelineMutationVariables>(RunQcPipelineDocument, options);
+      }
+export type RunQcPipelineMutationHookResult = ReturnType<typeof useRunQcPipelineMutation>;
+export type RunQcPipelineMutationResult = Apollo.MutationResult<RunQcPipelineMutation>;
+export type RunQcPipelineMutationOptions = Apollo.BaseMutationOptions<RunQcPipelineMutation, RunQcPipelineMutationVariables>;
+export const MigrateOldTaxonomyDocument = gql`
+    mutation MigrateOldTaxonomy {
+  migrateOldTaxonomy {
+    practiceImpactUpdated
+    breastSubtypesUpdated
+  }
+}
+    `;
+export type MigrateOldTaxonomyMutationFn = Apollo.MutationFunction<MigrateOldTaxonomyMutation, MigrateOldTaxonomyMutationVariables>;
+
+/**
+ * __useMigrateOldTaxonomyMutation__
+ *
+ * To run a mutation, you first call `useMigrateOldTaxonomyMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useMigrateOldTaxonomyMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [migrateOldTaxonomyMutation, { data, loading, error }] = useMigrateOldTaxonomyMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useMigrateOldTaxonomyMutation(baseOptions?: Apollo.MutationHookOptions<MigrateOldTaxonomyMutation, MigrateOldTaxonomyMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<MigrateOldTaxonomyMutation, MigrateOldTaxonomyMutationVariables>(MigrateOldTaxonomyDocument, options);
+      }
+export type MigrateOldTaxonomyMutationHookResult = ReturnType<typeof useMigrateOldTaxonomyMutation>;
+export type MigrateOldTaxonomyMutationResult = Apollo.MutationResult<MigrateOldTaxonomyMutation>;
+export type MigrateOldTaxonomyMutationOptions = Apollo.BaseMutationOptions<MigrateOldTaxonomyMutation, MigrateOldTaxonomyMutationVariables>;
 export const GetArticleDocument = gql`
     query GetArticle($slug: String!) {
   article(slug: $slug) {

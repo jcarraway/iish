@@ -362,6 +362,11 @@ export async function fetchPubMedBatch(
   return articles;
 }
 
+export async function fetchPubMedSingle(pmid: string): Promise<PubMedArticle | null> {
+  const batch = await fetchPubMedBatch([pmid]);
+  return batch.length > 0 ? batch[0] : null;
+}
+
 // --- Regex helpers ---
 
 function extractFirst(text: string, pattern: RegExp): string | null {
@@ -376,4 +381,425 @@ function extractAll(text: string, pattern: RegExp): string[] {
     results.push(match[1]);
   }
   return results;
+}
+
+// ============================================================================
+// FDA openFDA Client
+// ============================================================================
+
+export interface FDAItem {
+  id: string;
+  title: string;
+  content: string;
+  drugName: string;
+  genericName: string;
+  effectiveDate: string;
+  type: 'approval' | 'safety';
+  boxedWarning?: string;
+}
+
+const BREAST_CANCER_DRUGS = [
+  'trastuzumab', 'pertuzumab', 'ado-trastuzumab', 'fam-trastuzumab',
+  'palbociclib', 'ribociclib', 'abemaciclib', 'tamoxifen', 'letrozole',
+  'anastrozole', 'exemestane', 'fulvestrant', 'capecitabine', 'doxorubicin',
+  'cyclophosphamide', 'paclitaxel', 'docetaxel', 'carboplatin',
+  'pembrolizumab', 'atezolizumab', 'olaparib', 'talazoparib',
+  'sacituzumab', 'tucatinib', 'neratinib', 'alpelisib', 'everolimus',
+  'eribulin', 'vinorelbine', 'elacestrant', 'capivasertib',
+];
+
+export async function fetchFDADrugApprovals(sinceDate?: Date): Promise<FDAItem[]> {
+  const apiKey = process.env.OPENFDA_API_KEY;
+  const dateStr = sinceDate
+    ? `${sinceDate.getFullYear()}${String(sinceDate.getMonth() + 1).padStart(2, '0')}${String(sinceDate.getDate()).padStart(2, '0')}`
+    : '20200101';
+
+  const params = new URLSearchParams({
+    search: `indications_and_usage:"breast+cancer"+AND+effective_time:[${dateStr}+TO+*]`,
+    sort: 'effective_time:desc',
+    limit: '50',
+  });
+  if (apiKey) params.set('api_key', apiKey);
+
+  await sleep(500);
+
+  try {
+    const res = await fetch(`https://api.fda.gov/drug/label.json?${params}`);
+    if (!res.ok) return [];
+
+    const data = await res.json();
+    const results: FDAItem[] = [];
+
+    for (const result of data.results ?? []) {
+      const brandName = result.openfda?.brand_name?.[0] ?? 'Unknown';
+      const genericName = result.openfda?.generic_name?.[0] ?? '';
+      const indications = Array.isArray(result.indications_and_usage)
+        ? result.indications_and_usage.join(' ')
+        : (result.indications_and_usage ?? '');
+      const effectiveTime = result.effective_time ?? '';
+      const boxedWarning = Array.isArray(result.boxed_warning)
+        ? result.boxed_warning.join(' ')
+        : (result.boxed_warning ?? undefined);
+      const appNumber = result.openfda?.application_number?.[0] ?? result.id ?? `fda-${Date.now()}`;
+
+      results.push({
+        id: appNumber,
+        title: `FDA: ${brandName} (${genericName}) — Label Update`,
+        content: indications.slice(0, 5000),
+        drugName: brandName,
+        genericName,
+        effectiveDate: effectiveTime,
+        type: boxedWarning ? 'safety' : 'approval',
+        boxedWarning: boxedWarning || undefined,
+      });
+    }
+
+    return results;
+  } catch (err) {
+    console.error('FDA drug approvals fetch error:', err);
+    return [];
+  }
+}
+
+export async function fetchFDASafetyAlerts(drugNames?: string[]): Promise<FDAItem[]> {
+  const apiKey = process.env.OPENFDA_API_KEY;
+  const drugs = drugNames ?? BREAST_CANCER_DRUGS.slice(0, 10);
+  const results: FDAItem[] = [];
+
+  for (const drug of drugs) {
+    await sleep(500);
+
+    try {
+      const params = new URLSearchParams({
+        search: `patient.drug.openfda.brand_name:"${drug}"`,
+        sort: 'receivedate:desc',
+        limit: '5',
+      });
+      if (apiKey) params.set('api_key', apiKey);
+
+      const res = await fetch(`https://api.fda.gov/drug/event.json?${params}`);
+      if (!res.ok) continue;
+
+      const data = await res.json();
+
+      for (const event of (data.results ?? []).slice(0, 2)) {
+        const safetyId = event.safetyreportid ?? `fda-event-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        const reactions = (event.patient?.reaction ?? [])
+          .map((r: any) => r.reactionmeddrapt)
+          .filter(Boolean)
+          .join(', ');
+        const serious = event.serious === '1' ? '[SERIOUS] ' : '';
+
+        results.push({
+          id: safetyId,
+          title: `${serious}FDA Safety: ${drug} — Adverse Event Report`,
+          content: `Drug: ${drug}. Reactions: ${reactions || 'Not specified'}. Received: ${event.receivedate || 'Unknown'}.`,
+          drugName: drug,
+          genericName: drug,
+          effectiveDate: event.receivedate ?? '',
+          type: 'safety',
+        });
+      }
+    } catch (err) {
+      console.error(`FDA safety fetch error for ${drug}:`, err);
+    }
+  }
+
+  return results;
+}
+
+// ============================================================================
+// bioRxiv / medRxiv Client
+// ============================================================================
+
+export interface PreprintArticle {
+  doi: string;
+  title: string;
+  abstract: string;
+  authors: string[];
+  date: string;
+  server: 'biorxiv' | 'medrxiv';
+  category: string;
+}
+
+const BREAST_CANCER_KEYWORDS = [
+  'breast cancer', 'breast tumor', 'breast tumour', 'mammary',
+  'triple negative', 'her2', 'brca', 'trastuzumab', 'mastectomy',
+  'ductal carcinoma', 'lobular carcinoma', 'breast oncology',
+];
+
+function matchesBreastCancer(text: string): boolean {
+  const lower = text.toLowerCase();
+  return BREAST_CANCER_KEYWORDS.some(kw => lower.includes(kw));
+}
+
+export async function fetchPreprints(sinceDate: Date): Promise<PreprintArticle[]> {
+  const results: PreprintArticle[] = [];
+  const startDate = formatDateYMD(sinceDate);
+  const endDate = formatDateYMD(new Date());
+
+  for (const server of ['biorxiv', 'medrxiv'] as const) {
+    await sleep(200);
+
+    try {
+      const url = `https://api.biorxiv.org/details/${server}/${startDate}/${endDate}/0/100`;
+      const res = await fetch(url);
+      if (!res.ok) continue;
+
+      const data = await res.json();
+      const collection = data.collection ?? [];
+
+      for (const item of collection) {
+        const title = item.title ?? '';
+        const abstract = item.abstract ?? '';
+
+        if (!matchesBreastCancer(title + ' ' + abstract)) continue;
+
+        const authorStr = item.authors ?? '';
+        const authors = authorStr
+          .split(';')
+          .map((a: string) => a.trim())
+          .filter(Boolean);
+
+        results.push({
+          doi: item.doi ?? '',
+          title,
+          abstract,
+          authors,
+          date: item.date ?? '',
+          server,
+          category: item.category ?? '',
+        });
+      }
+    } catch (err) {
+      console.error(`Preprint fetch error (${server}):`, err);
+    }
+  }
+
+  return results;
+}
+
+// ============================================================================
+// ClinicalTrials.gov v2 Client
+// ============================================================================
+
+export interface TrialUpdate {
+  nctId: string;
+  briefTitle: string;
+  briefSummary: string;
+  detailedDescription: string;
+  status: string;
+  phase: string;
+  hasResults: boolean;
+  lastUpdateDate: string;
+  sponsor: string;
+  conditions: string[];
+}
+
+export async function fetchTrialUpdates(sinceDate: Date): Promise<TrialUpdate[]> {
+  const dateStr = formatDateYMD(sinceDate);
+  const results: TrialUpdate[] = [];
+
+  await sleep(350);
+
+  try {
+    const params = new URLSearchParams({
+      'query.cond': 'breast cancer',
+      'filter.advanced': `AREA[LastUpdatePostDate]RANGE[${dateStr},MAX]`,
+      pageSize: '100',
+      format: 'json',
+    });
+
+    const res = await fetch(`https://clinicaltrials.gov/api/v2/studies?${params}`);
+    if (!res.ok) return [];
+
+    const data = await res.json();
+
+    for (const study of data.studies ?? []) {
+      const proto = study.protocolSection ?? {};
+      const ident = proto.identificationModule ?? {};
+      const status = proto.statusModule ?? {};
+      const design = proto.designModule ?? {};
+      const desc = proto.descriptionModule ?? {};
+      const sponsor = proto.sponsorCollaboratorsModule?.leadSponsor?.name ?? '';
+      const conditions = proto.conditionsModule?.conditions ?? [];
+      const hasResults = study.hasResults ?? false;
+      const lastUpdate = status.lastUpdatePostDateStruct?.date ?? '';
+
+      // Only include new registrations or results postings
+      const overallStatus = status.overallStatus ?? '';
+      const isNew = overallStatus === 'Not yet recruiting' || overallStatus === 'Recruiting';
+      if (!isNew && !hasResults) continue;
+
+      results.push({
+        nctId: ident.nctId ?? '',
+        briefTitle: ident.briefTitle ?? '',
+        briefSummary: desc.briefSummary ?? '',
+        detailedDescription: desc.detailedDescription ?? '',
+        status: overallStatus,
+        phase: (design.phases ?? []).join('/') || 'N/A',
+        hasResults,
+        lastUpdateDate: lastUpdate,
+        sponsor,
+        conditions,
+      });
+    }
+  } catch (err) {
+    console.error('ClinicalTrials.gov fetch error:', err);
+  }
+
+  return results;
+}
+
+// ============================================================================
+// Institutional Newsroom RSS Client
+// ============================================================================
+
+export interface NewsItem {
+  guid: string;
+  title: string;
+  description: string;
+  link: string;
+  pubDate: string;
+  institution: string;
+}
+
+const INSTITUTION_FEEDS: Array<{ name: string; url: string }> = [
+  { name: 'NCI', url: 'https://www.cancer.gov/news-events/cancer-currents/rss.xml' },
+  { name: 'MSK', url: 'https://www.mskcc.org/news/news-releases/rss.xml' },
+  { name: 'MD Anderson', url: 'https://www.mdanderson.org/newsroom.xml' },
+  { name: 'Dana-Farber', url: 'https://blog.dana-farber.org/insight/feed/' },
+  { name: 'Mayo Clinic', url: 'https://newsnetwork.mayoclinic.org/feed/' },
+  { name: 'Johns Hopkins', url: 'https://www.hopkinsmedicine.org/news/media/releases/rss' },
+  { name: 'Cleveland Clinic', url: 'https://newsroom.clevelandclinic.org/feed/' },
+];
+
+export async function fetchInstitutionNews(sinceDate: Date): Promise<NewsItem[]> {
+  const results: NewsItem[] = [];
+  const sinceMs = sinceDate.getTime();
+
+  for (const feed of INSTITUTION_FEEDS) {
+    await sleep(500);
+
+    try {
+      const res = await fetch(feed.url, {
+        headers: { 'User-Agent': 'OncoVax/1.0 (research-aggregator)' },
+      });
+      if (!res.ok) continue;
+
+      const xml = await res.text();
+
+      // Parse RSS <item> blocks
+      const itemBlocks = xml.match(/<item>[\s\S]*?<\/item>/gi) ?? [];
+
+      for (const block of itemBlocks) {
+        const title = stripTags(extractFirst(block, /<title>([\s\S]*?)<\/title>/) ?? '');
+        const description = stripTags(extractFirst(block, /<description>([\s\S]*?)<\/description>/) ?? '');
+        const link = extractFirst(block, /<link>([\s\S]*?)<\/link>/) ?? '';
+        const pubDateStr = extractFirst(block, /<pubDate>([\s\S]*?)<\/pubDate>/) ?? '';
+        const guid = extractFirst(block, /<guid[^>]*>([\s\S]*?)<\/guid>/) ?? link;
+
+        // Filter by date
+        if (pubDateStr) {
+          const pubDate = new Date(pubDateStr);
+          if (!isNaN(pubDate.getTime()) && pubDate.getTime() < sinceMs) continue;
+        }
+
+        // Filter by breast/cancer keywords
+        if (!matchesBreastCancer(title + ' ' + description)) continue;
+
+        results.push({
+          guid: guid || link || `${feed.name}-${Date.now()}`,
+          title,
+          description,
+          link,
+          pubDate: pubDateStr,
+          institution: feed.name,
+        });
+      }
+    } catch (err) {
+      console.error(`Institution news fetch error (${feed.name}):`, err);
+    }
+  }
+
+  return results;
+}
+
+// ============================================================================
+// NIH Reporter Client
+// ============================================================================
+
+export interface NIHGrant {
+  projectNum: string;
+  piName: string;
+  orgName: string;
+  projectTitle: string;
+  abstractText: string;
+  awardAmount: number;
+  fiscalYear: number;
+}
+
+export async function fetchNIHGrants(sinceDate?: Date): Promise<NIHGrant[]> {
+  await sleep(6000);
+
+  const fromDate = sinceDate
+    ? `${String(sinceDate.getMonth() + 1).padStart(2, '0')}/${String(sinceDate.getDate()).padStart(2, '0')}/${sinceDate.getFullYear()}`
+    : undefined;
+
+  try {
+    const body: any = {
+      criteria: {
+        advanced_text: 'breast cancer',
+        ...(fromDate ? { award_notice_date: { from_date: fromDate } } : {}),
+      },
+      limit: 50,
+      offset: 0,
+    };
+
+    const res = await fetch('https://api.reporter.nih.gov/v2/projects/search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    if (!res.ok) return [];
+
+    const data = await res.json();
+    const results: NIHGrant[] = [];
+
+    for (const project of data.results ?? []) {
+      const abstractText = project.abstract_text ?? project.phr_text ?? '';
+      if (!matchesBreastCancer(project.project_title + ' ' + abstractText)) continue;
+
+      const piNames = (project.principal_investigators ?? [])
+        .map((pi: any) => `${pi.first_name ?? ''} ${pi.last_name ?? ''}`.trim())
+        .filter(Boolean);
+
+      results.push({
+        projectNum: project.project_num ?? '',
+        piName: piNames.join(', ') || 'Unknown',
+        orgName: project.organization?.org_name ?? '',
+        projectTitle: project.project_title ?? '',
+        abstractText,
+        awardAmount: project.award_amount ?? 0,
+        fiscalYear: project.fiscal_year ?? new Date().getFullYear(),
+      });
+    }
+
+    return results;
+  } catch (err) {
+    console.error('NIH Reporter fetch error:', err);
+    return [];
+  }
+}
+
+// ============================================================================
+// Shared Date Helper
+// ============================================================================
+
+function formatDateYMD(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
 }

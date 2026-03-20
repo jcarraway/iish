@@ -17,16 +17,17 @@ const MATURITY_TIERS = [
 ];
 
 const DOMAIN_OPTIONS = [
-  'immunotherapy', 'targeted_therapy', 'biomarkers', 'genomics',
-  'survivorship', 'screening', 'surgery', 'prevention',
+  'treatment', 'detection', 'prevention', 'survivorship',
+  'quality_of_life', 'genetics', 'ai_technology', 'epidemiology', 'basic_science',
 ];
 
 const IMPACT_OPTIONS = [
   { key: 'practice_changing', label: 'Practice-Changing', color: '#DC2626' },
-  { key: 'informative', label: 'Informative', color: '#2563EB' },
+  { key: 'practice_informing', label: 'Practice-Informing', color: '#2563EB' },
+  { key: 'incremental', label: 'Incremental', color: '#059669' },
   { key: 'hypothesis_generating', label: 'Hypothesis', color: '#7C3AED' },
-  { key: 'confirmatory', label: 'Confirmatory', color: '#059669' },
-  { key: 'incremental', label: 'Incremental', color: '#6B7280' },
+  { key: 'negative', label: 'Negative', color: '#991B1B' },
+  { key: 'safety_alert', label: 'Safety Alert', color: '#B91C1C' },
 ];
 
 function getTierStyle(tier: string | null | undefined) {
@@ -37,6 +38,15 @@ function getTierStyle(tier: string | null | undefined) {
 function getImpactStyle(impact: string | null | undefined) {
   return IMPACT_OPTIONS.find(i => i.key === impact);
 }
+
+const SOURCE_BADGES: Record<string, { label: string; color: string; bg: string }> = {
+  pubmed: { label: 'PubMed', color: '#374151', bg: '#F3F4F6' },
+  fda: { label: 'FDA', color: '#166534', bg: '#DCFCE7' },
+  preprint: { label: 'Preprint', color: '#92400E', bg: '#FEF3C7' },
+  clinicaltrials: { label: 'Trial', color: '#0D9488', bg: '#CCFBF1' },
+  institution: { label: 'News', color: '#6B21A8', bg: '#F3E8FF' },
+  nih_reporter: { label: 'NIH', color: '#166534', bg: '#DCFCE7' },
+};
 
 // ============================================================================
 // Screen
@@ -237,12 +247,12 @@ export function IntelFeedScreen() {
               return (
                 <Link key={item.id} href={`/intel/${item.id}`}>
                   <View sx={{
-                    borderWidth: 1,
-                    borderColor: '$border',
+                    borderWidth: item.practiceImpact === 'safety_alert' ? 2 : 1,
+                    borderColor: item.practiceImpact === 'safety_alert' ? '#DC2626' : (item.retractionStatus === 'retracted' ? '#DC2626' : '$border'),
                     borderRadius: 12,
                     p: '$4',
                   }}>
-                    {/* Top row: tier + impact badges */}
+                    {/* Top row: tier + impact + retraction badges */}
                     <View sx={{ flexDirection: 'row', gap: '$2', flexWrap: 'wrap', mb: '$2' }}>
                       <View sx={{ backgroundColor: tier.bg, borderRadius: 12, px: '$2', py: 2 }}>
                         <Text sx={{ fontSize: 11, fontWeight: '700', color: tier.color }}>{tier.key}</Text>
@@ -254,9 +264,40 @@ export function IntelFeedScreen() {
                           </Text>
                         </View>
                       )}
+                      {item.retractionStatus === 'retracted' && (
+                        <View sx={{ backgroundColor: '#FEE2E2', borderRadius: 12, px: '$2', py: 2 }}>
+                          <Text sx={{ fontSize: 11, fontWeight: '700', color: '#DC2626' }}>RETRACTED</Text>
+                        </View>
+                      )}
+                      {item.retractionStatus === 'expression_of_concern' && (
+                        <View sx={{ backgroundColor: '#FEF3C7', borderRadius: 12, px: '$2', py: 2 }}>
+                          <Text sx={{ fontSize: 11, fontWeight: '700', color: '#92400E' }}>CONCERN</Text>
+                        </View>
+                      )}
                       {item.sourceCredibility === 'tier1_journal' && (
                         <View sx={{ backgroundColor: '#FEF3C7', borderRadius: 12, px: '$2', py: 2 }}>
                           <Text sx={{ fontSize: 11, fontWeight: '600', color: '#92400E' }}>Top Journal</Text>
+                        </View>
+                      )}
+                      {/* Source type badge */}
+                      {(() => {
+                        const sb = SOURCE_BADGES[item.sourceType as string];
+                        return sb ? (
+                          <View sx={{ backgroundColor: sb.bg, borderRadius: 12, px: '$2', py: 2 }}>
+                            <Text sx={{ fontSize: 11, fontWeight: '600', color: sb.color }}>{sb.label}</Text>
+                          </View>
+                        ) : null;
+                      })()}
+                      {/* Preprint warning */}
+                      {item.sourceType === 'preprint' && (
+                        <View sx={{ backgroundColor: '#FEF3C7', borderRadius: 12, px: '$2', py: 2, borderWidth: 1, borderColor: '#F59E0B' }}>
+                          <Text sx={{ fontSize: 11, fontWeight: '700', color: '#92400E' }}>NOT PEER-REVIEWED</Text>
+                        </View>
+                      )}
+                      {/* FDA safety alert */}
+                      {item.sourceType === 'fda' && item.practiceImpact === 'safety_alert' && (
+                        <View sx={{ backgroundColor: '#FEE2E2', borderRadius: 12, px: '$2', py: 2 }}>
+                          <Text sx={{ fontSize: 11, fontWeight: '700', color: '#DC2626' }}>FDA ALERT</Text>
                         </View>
                       )}
                     </View>

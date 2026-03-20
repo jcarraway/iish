@@ -154,6 +154,8 @@ import {
   getSyncStates as _getSyncStates,
   triggerIngestion as _triggerIngestion,
   reclassifyItem as _reclassifyItem,
+  processQCQueue as _processQCQueue,
+  migrateOldTaxonomy as _migrateOldTaxonomy,
 } from '@/lib/intel-manager';
 
 // ============================================================================
@@ -1385,6 +1387,8 @@ const handler = startServerAndCreateNextHandler<NextRequest, GraphQLContext>(ser
         getSyncStates: _getSyncStates,
         triggerIngestion: _triggerIngestion,
         reclassifyItem: _reclassifyItem,
+        processQCQueue: _processQCQueue,
+        migrateOldTaxonomy: _migrateOldTaxonomy,
       },
     };
   },

@@ -1,26 +1,211 @@
-import { View, Text, ScrollView } from 'dripsy';
+import { useState } from 'react';
+import { View, Text, Pressable, ScrollView } from 'dripsy';
+import { ActivityIndicator } from 'react-native';
 import { Link } from 'solito/link';
+import { useGetIngestionSyncStatesQuery, useTriggerIngestionMutation } from '../generated/graphql';
+
+// ============================================================================
+// Source metadata
+// ============================================================================
+
+const SOURCE_INFO: Record<string, { name: string; description: string; badge: string; badgeColor: string; badgeBg: string }> = {
+  pubmed: {
+    name: 'PubMed',
+    description: 'Peer-reviewed biomedical literature from the National Library of Medicine. 11 breast cancer search terms.',
+    badge: 'Academic',
+    badgeColor: '#1E40AF',
+    badgeBg: '#DBEAFE',
+  },
+  fda: {
+    name: 'FDA openFDA',
+    description: 'Drug label updates and adverse event reports from the U.S. Food and Drug Administration.',
+    badge: 'Federal',
+    badgeColor: '#166534',
+    badgeBg: '#DCFCE7',
+  },
+  preprints: {
+    name: 'bioRxiv / medRxiv',
+    description: 'Pre-peer-review manuscripts from bioRxiv and medRxiv preprint servers.',
+    badge: 'Preprint',
+    badgeColor: '#92400E',
+    badgeBg: '#FEF3C7',
+  },
+  clinicaltrials: {
+    name: 'ClinicalTrials.gov',
+    description: 'New registrations and results postings from the federal clinical trials registry.',
+    badge: 'Federal',
+    badgeColor: '#166534',
+    badgeBg: '#DCFCE7',
+  },
+  institutions: {
+    name: 'Institutional Newsrooms',
+    description: 'Cancer research news from NCI, MSK, MD Anderson, Dana-Farber, Mayo, Hopkins, and Cleveland Clinic.',
+    badge: 'News',
+    badgeColor: '#6B21A8',
+    badgeBg: '#F3E8FF',
+  },
+  nih_reporter: {
+    name: 'NIH Reporter',
+    description: 'Funded research grants from the National Institutes of Health breast cancer portfolio.',
+    badge: 'Federal',
+    badgeColor: '#166534',
+    badgeBg: '#DCFCE7',
+  },
+};
+
+function formatRelativeTime(dateStr: string | null | undefined): string {
+  if (!dateStr) return 'Never';
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return 'Unknown';
+  const diffMs = Date.now() - date.getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 1) return 'Just now';
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr < 24) return `${diffHr}h ago`;
+  const diffDays = Math.floor(diffHr / 24);
+  return `${diffDays}d ago`;
+}
+
+// ============================================================================
+// Screen
+// ============================================================================
 
 export function IntelSettingsScreen() {
+  const { data, loading, error, refetch } = useGetIngestionSyncStatesQuery();
+  const [triggerIngestion] = useTriggerIngestionMutation();
+  const [syncingSource, setSyncingSource] = useState<string | null>(null);
+
+  const handleSync = async (sourceId: string) => {
+    setSyncingSource(sourceId);
+    try {
+      await triggerIngestion({ variables: { sourceId } });
+      await refetch();
+    } catch (err) {
+      console.error(`Sync failed for ${sourceId}:`, err);
+    } finally {
+      setSyncingSource(null);
+    }
+  };
+
+  const syncStates = data?.ingestionSyncStates ?? [];
+  const allSourceIds = ['pubmed', 'fda', 'preprints', 'clinicaltrials', 'institutions', 'nih_reporter'];
+
   return (
     <ScrollView sx={{ flex: 1 }}>
       <View sx={{ mx: 'auto', maxWidth: 896, px: '$6', py: '$10', width: '100%' }}>
         <Text sx={{ fontSize: 28, fontWeight: 'bold', color: '$foreground' }}>
-          Research Settings
+          Ingestion Sources
         </Text>
         <Text sx={{ mt: '$2', fontSize: 14, color: '$mutedForeground' }}>
-          Configure your research intelligence preferences.
+          Manage research intelligence data sources. Each source feeds into the classify → summarize → QC pipeline.
         </Text>
 
-        <View sx={{ mt: '$8', p: '$6', borderWidth: 1, borderColor: '$border', borderRadius: 12, alignItems: 'center' }}>
-          <Text sx={{ fontSize: 16, fontWeight: '600', color: '$foreground' }}>Coming Soon</Text>
-          <Text sx={{ mt: '$2', fontSize: 14, color: '$mutedForeground', textAlign: 'center' }}>
-            Personalized research alerts, topic subscriptions, and notification preferences
-            will be available in a future update.
-          </Text>
-        </View>
+        {loading ? (
+          <View sx={{ mt: '$8', alignItems: 'center' }}>
+            <ActivityIndicator size="small" />
+            <Text sx={{ mt: '$2', fontSize: 14, color: '$mutedForeground' }}>Loading sources...</Text>
+          </View>
+        ) : error ? (
+          <View sx={{ mt: '$8', p: '$4', backgroundColor: '#FEF2F2', borderRadius: 8 }}>
+            <Text sx={{ fontSize: 14, color: '#DC2626' }}>Failed to load ingestion sources. Please sign in to manage sources.</Text>
+          </View>
+        ) : (
+          <View sx={{ mt: '$6', gap: '$4' }}>
+            {allSourceIds.map(sourceId => {
+              const info = SOURCE_INFO[sourceId] ?? { name: sourceId, description: '', badge: '?', badgeColor: '#6B7280', badgeBg: '#F3F4F6' };
+              const state = syncStates.find((s: any) => s.sourceId === sourceId);
+              const isSyncing = syncingSource === sourceId;
 
-        <View sx={{ mt: '$4' }}>
+              return (
+                <View key={sourceId} sx={{
+                  borderWidth: 1,
+                  borderColor: '$border',
+                  borderRadius: 12,
+                  p: '$4',
+                }}>
+                  {/* Header: name + badge */}
+                  <View sx={{ flexDirection: 'row', alignItems: 'center', gap: '$2', mb: '$2' }}>
+                    <Text sx={{ fontSize: 16, fontWeight: '700', color: '$foreground' }}>
+                      {info.name}
+                    </Text>
+                    <View sx={{ backgroundColor: info.badgeBg, borderRadius: 12, px: '$2', py: 2 }}>
+                      <Text sx={{ fontSize: 11, fontWeight: '600', color: info.badgeColor }}>
+                        {info.badge}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Description */}
+                  <Text sx={{ fontSize: 13, color: '$mutedForeground', lineHeight: 19, mb: '$3' }}>
+                    {info.description}
+                  </Text>
+
+                  {/* Stats row */}
+                  {state ? (
+                    <View sx={{ flexDirection: 'row', gap: '$4', flexWrap: 'wrap', mb: '$3' }}>
+                      <View>
+                        <Text sx={{ fontSize: 11, color: '$mutedForeground' }}>Last sync</Text>
+                        <Text sx={{ fontSize: 13, fontWeight: '600', color: '$foreground' }}>
+                          {formatRelativeTime(state.lastSyncAt)}
+                        </Text>
+                      </View>
+                      <View>
+                        <Text sx={{ fontSize: 11, color: '$mutedForeground' }}>Total ingested</Text>
+                        <Text sx={{ fontSize: 13, fontWeight: '600', color: '$foreground' }}>
+                          {state.itemsIngestedTotal}
+                        </Text>
+                      </View>
+                      <View>
+                        <Text sx={{ fontSize: 11, color: '$mutedForeground' }}>Last run</Text>
+                        <Text sx={{ fontSize: 13, fontWeight: '600', color: '$foreground' }}>
+                          +{state.itemsIngestedLastRun}
+                        </Text>
+                      </View>
+                    </View>
+                  ) : (
+                    <Text sx={{ fontSize: 13, color: '$mutedForeground', fontStyle: 'italic', mb: '$3' }}>
+                      Not yet synced
+                    </Text>
+                  )}
+
+                  {/* Last error */}
+                  {state?.lastError && (
+                    <Text sx={{ fontSize: 12, color: '#DC2626', mb: '$2' }}>
+                      Error: {state.lastError}
+                    </Text>
+                  )}
+
+                  {/* Sync button */}
+                  <Pressable
+                    onPress={() => handleSync(sourceId)}
+                    disabled={isSyncing || syncingSource !== null}
+                    sx={{
+                      backgroundColor: isSyncing ? '#E5E7EB' : '#7C3AED',
+                      borderRadius: 8,
+                      px: '$4',
+                      py: '$2',
+                      alignSelf: 'flex-start',
+                    }}
+                  >
+                    {isSyncing ? (
+                      <View sx={{ flexDirection: 'row', alignItems: 'center', gap: '$2' }}>
+                        <ActivityIndicator size="small" color="#6B7280" />
+                        <Text sx={{ fontSize: 13, fontWeight: '600', color: '#6B7280' }}>Syncing...</Text>
+                      </View>
+                    ) : (
+                      <Text sx={{ fontSize: 13, fontWeight: '600', color: syncingSource !== null ? '#9CA3AF' : 'white' }}>
+                        Sync Now
+                      </Text>
+                    )}
+                  </Pressable>
+                </View>
+              );
+            })}
+          </View>
+        )}
+
+        <View sx={{ mt: '$6' }}>
           <Link href="/intel">
             <Text sx={{ fontSize: 14, color: '#2563EB' }}>← Back to Research Feed</Text>
           </Link>

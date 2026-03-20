@@ -787,7 +787,7 @@
           sessions: [
             {
               id: "L1",
-              name: "Article system + glossary + admin",
+              name: "Foundation + launch corpus + SEO",
               weeks: "W1-2",
             },
             {
@@ -904,6 +904,12 @@
         "logistics:TL1": "complete",
         // Access Gap — Second Opinion complete
         "second:SO1": "complete",
+        // LEARN L1 — complete
+        "learn:L1": "complete",
+        // INTEL I1+I2+I3 — complete
+        "intel:I1": "complete",
+        "intel:I2": "complete",
+        "intel:I3": "complete",
       };
 
       const DEFAULT_NOTES = {
@@ -993,6 +999,18 @@
         // Access Gap — Second Opinion
         "second:SO1":
           "2 Prisma models (SecondOpinionCenter, SecondOpinionRequest). second-opinion-manager.ts: 8 functions (8 deterministic trigger rules, center finder with Haversine, Claude record packet + communication guide + Redis cache). 30 NCI centers seeded. recurrence-manager.ts updated to query DB. 5 screens + 5 web + 5 mobile routes. MoreScreen integration.",
+        // LEARN L1 — Foundation + Launch Corpus
+        "learn:L1":
+          "3 Prisma models (Article, GlossaryTerm, ArticlePersonalization). learn-manager.ts: 14 functions (article CRUD, taxonomy filters, ILIKE search, glossary, Claude article generation, personalized context, reading plan, SEO helpers). Seed: 25 articles + 50 glossary terms. 6 screens (Hub, Category, Article, Search, Glossary, GlossaryTerm). First public queries, first SSR/SSG page with JSON-LD, first XML sitemap. 7 web + 6 mobile routes.",
+        // INTEL I1 — Research Intelligence Foundation
+        "intel:I1":
+          "2 Prisma models (ResearchItem ~40 fields, IngestionSyncState). intel-sources.ts: PubMed E-utilities client (esearch + efetch, 30-journal credibility, SHA-256 dedup). intel-manager.ts: 14 functions (ingest, classify T1-T5 + evidence L1-L6, dual-audience summarize, queue processing, cron cycle, filtered queries, search). Cron endpoint. 4 screens (Feed, Detail, 2 stubs). 4 web + 4 mobile routes. First external API ingestion pipeline.",
+        // INTEL I2 — Classification Pipeline Refinement + QC
+        "intel:I2":
+          "2 new fields (sponsorName, authorCOI). intel-manager.ts expanded to 19 functions: full spec taxonomy (13 cancer types, 10 breast subtypes, 9 domains, 22+ treatment classes, 11 stages, 6 impacts), COI extraction, classificationConfidence, keyEndpoints (regex HR/CI/p-value), 8 post-hoc rules (up from 3), checkRetractionStatus (PubMed + CrossRef), detectContradictions, processQCQueue, migrateOldTaxonomy. +2 GraphQL types, +4 ResearchItem fields, +2 mutations. Feed: retraction badges + safety_alert borders. Detail: retraction banner, confidence %, COI section, structured endpoints, contradiction + related links.",
+        // INTEL I3 — Additional Sources + FDA Alerts
+        "intel:I3":
+          "5 new source fetchers in intel-sources.ts: FDA openFDA (drug labels + adverse events), bioRxiv/medRxiv preprints, ClinicalTrials.gov v2 (new registrations + results), institutional newsroom RSS (7 feeds: NCI, MSK, MD Anderson, Dana-Farber, Mayo, Hopkins, Cleveland), NIH Reporter grants. 5 new ingest functions in intel-manager.ts (24 functions total). runIngestionCycle expanded to 6 sequential sources. triggerIngestion supports all 6 sources. +2 GraphQL types (SourceIngestionResult, IngestionBreakdown). IntelSettingsScreen rewritten from stub to real source management UI (sync state, trigger buttons). Feed: source type badge pills, NOT PEER-REVIEWED badge for preprints, FDA ALERT badge. Detail: source-specific banners (preprint/FDA/trial/NIH), source-aware links. 6 ingestion sources total.",
       };
 
       let state = { statuses: {}, notes: {}, expanded: {}, filter: "all" };

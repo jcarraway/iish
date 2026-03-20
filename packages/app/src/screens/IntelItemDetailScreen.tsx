@@ -27,10 +27,11 @@ const EVIDENCE_INFO: Record<string, string> = {
 
 const IMPACT_INFO: Record<string, { label: string; color: string }> = {
   practice_changing: { label: 'Practice-Changing', color: '#DC2626' },
-  informative: { label: 'Informative', color: '#2563EB' },
+  practice_informing: { label: 'Practice-Informing', color: '#2563EB' },
+  incremental: { label: 'Incremental', color: '#059669' },
   hypothesis_generating: { label: 'Hypothesis-Generating', color: '#7C3AED' },
-  confirmatory: { label: 'Confirmatory', color: '#059669' },
-  incremental: { label: 'Incremental', color: '#6B7280' },
+  negative: { label: 'Negative Result', color: '#991B1B' },
+  safety_alert: { label: 'Safety Alert', color: '#B91C1C' },
 };
 
 // ============================================================================
@@ -44,6 +45,7 @@ interface Props {
 export function IntelItemDetailScreen({ id }: Props) {
   const { data, loading, error } = useGetResearchItemQuery({ variables: { id } });
   const [showClinician, setShowClinician] = useState(false);
+  const [showCOI, setShowCOI] = useState(false);
 
   if (loading) {
     return (
@@ -89,6 +91,68 @@ export function IntelItemDetailScreen({ id }: Props) {
           </Text>
         </View>
 
+        {/* Preprint banner */}
+        {item.sourceType === 'preprint' && (
+          <View sx={{ p: '$3', mb: '$3', backgroundColor: '#FEF3C7', borderRadius: 8, borderWidth: 2, borderColor: '#F59E0B' }}>
+            <Text sx={{ fontSize: 14, fontWeight: '700', color: '#92400E' }}>
+              This research has NOT been peer-reviewed. Treat findings as preliminary.
+            </Text>
+            <Text sx={{ mt: '$1', fontSize: 12, color: '#92400E' }}>
+              Source: {item.journalName || 'Preprint server'}
+            </Text>
+          </View>
+        )}
+
+        {/* FDA banner */}
+        {item.sourceType === 'fda' && (
+          <View sx={{ p: '$3', mb: '$3', backgroundColor: '#EFF6FF', borderRadius: 8, borderWidth: 1, borderColor: '#93C5FD' }}>
+            <Text sx={{ fontSize: 14, fontWeight: '600', color: '#1E40AF' }}>
+              FDA Source — Official regulatory information
+            </Text>
+          </View>
+        )}
+
+        {/* Clinical trial banner */}
+        {item.sourceType === 'clinicaltrials' && item.sourceItemId && (
+          <View sx={{ p: '$3', mb: '$3', backgroundColor: '#ECFDF5', borderRadius: 8, borderWidth: 1, borderColor: '#6EE7B7' }}>
+            <Text sx={{ fontSize: 14, fontWeight: '600', color: '#065F46' }}>
+              Clinical Trial: {item.sourceItemId}
+            </Text>
+          </View>
+        )}
+
+        {/* NIH grant banner */}
+        {item.sourceType === 'nih_reporter' && (
+          <View sx={{ p: '$3', mb: '$3', backgroundColor: '#ECFDF5', borderRadius: 8, borderWidth: 1, borderColor: '#6EE7B7' }}>
+            <Text sx={{ fontSize: 14, fontWeight: '600', color: '#065F46' }}>
+              NIH Funded Research
+            </Text>
+            {item.institutions?.length > 0 && (
+              <Text sx={{ mt: '$1', fontSize: 12, color: '#065F46' }}>
+                Institution: {(item.institutions as string[]).join(', ')}
+              </Text>
+            )}
+          </View>
+        )}
+
+        {/* Retraction banner */}
+        {(item.retractionStatus === 'retracted' || item.retractionStatus === 'expression_of_concern') && (
+          <View sx={{
+            p: '$3',
+            mb: '$3',
+            backgroundColor: item.retractionStatus === 'retracted' ? '#FEE2E2' : '#FEF3C7',
+            borderRadius: 8,
+            borderWidth: 2,
+            borderColor: item.retractionStatus === 'retracted' ? '#DC2626' : '#D97706',
+          }}>
+            <Text sx={{ fontSize: 14, fontWeight: '700', color: item.retractionStatus === 'retracted' ? '#DC2626' : '#92400E' }}>
+              {item.retractionStatus === 'retracted'
+                ? 'This article has been retracted. Its findings should not be relied upon.'
+                : 'An expression of concern has been issued for this article.'}
+            </Text>
+          </View>
+        )}
+
         {/* Badges */}
         <View sx={{ flexDirection: 'row', gap: '$2', flexWrap: 'wrap', mb: '$3' }}>
           <View sx={{ backgroundColor: tier.bg, borderRadius: 16, px: '$3', py: '$1' }}>
@@ -96,6 +160,13 @@ export function IntelItemDetailScreen({ id }: Props) {
               {item.maturityTier} · {tier.label}
             </Text>
           </View>
+          {item.classificationConfidence != null && (
+            <View sx={{ backgroundColor: '#F3F4F6', borderRadius: 16, px: '$3', py: '$1' }}>
+              <Text sx={{ fontSize: 12, fontWeight: '600', color: '#374151' }}>
+                {Math.round(item.classificationConfidence * 100)}% confidence
+              </Text>
+            </View>
+          )}
           {item.evidenceLevel && (
             <View sx={{ backgroundColor: '#F3F4F6', borderRadius: 16, px: '$3', py: '$1' }}>
               <Text sx={{ fontSize: 12, fontWeight: '600', color: '#374151' }}>
@@ -116,6 +187,13 @@ export function IntelItemDetailScreen({ id }: Props) {
             </View>
           )}
         </View>
+
+        {/* Sponsor name */}
+        {item.sponsorName && (
+          <Text sx={{ fontSize: 12, color: '#92400E', mb: '$2' }}>
+            Sponsor: {item.sponsorName}
+          </Text>
+        )}
 
         {/* Title */}
         <Text sx={{ fontSize: 22, fontWeight: 'bold', color: '$foreground', lineHeight: 30 }}>
@@ -283,11 +361,117 @@ export function IntelItemDetailScreen({ id }: Props) {
           </View>
         )}
 
+        {/* Conflicts of Interest */}
+        {item.authorCOI && (
+          <View sx={{ mt: '$5' }}>
+            <Pressable onPress={() => setShowCOI(!showCOI)}>
+              <View sx={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                p: '$3',
+                backgroundColor: '#FEF3C7',
+                borderRadius: 8,
+              }}>
+                <Text sx={{ fontSize: 13, fontWeight: '600', color: '#92400E' }}>Conflicts of Interest</Text>
+                <Text sx={{ fontSize: 13, color: '#92400E' }}>{showCOI ? '▲' : '▼'}</Text>
+              </View>
+            </Pressable>
+            {showCOI && (
+              <View sx={{ mt: '$1', p: '$3', borderWidth: 1, borderColor: '#FDE68A', borderRadius: 8 }}>
+                <Text sx={{ fontSize: 13, color: '#92400E', lineHeight: 20 }}>{item.authorCOI}</Text>
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* Structured Key Endpoints */}
+        {item.keyEndpoints && Array.isArray(item.keyEndpoints) && item.keyEndpoints.length > 0 && (
+          <View sx={{ mt: '$5' }}>
+            <Text sx={{ fontSize: 12, fontWeight: '600', color: '$mutedForeground', mb: '$2' }}>STRUCTURED ENDPOINTS</Text>
+            {(item.keyEndpoints as any[]).map((ep: any, i: number) => (
+              <View key={i} sx={{ p: '$2', mb: '$1', backgroundColor: '#F9FAFB', borderRadius: 8 }}>
+                <Text sx={{ fontSize: 13, color: '$foreground', lineHeight: 18 }}>{ep.endpoint}</Text>
+                <View sx={{ flexDirection: 'row', gap: '$2', mt: '$1', flexWrap: 'wrap' }}>
+                  {ep.hr && (
+                    <View sx={{ backgroundColor: '#DBEAFE', borderRadius: 8, px: '$2', py: 1 }}>
+                      <Text sx={{ fontSize: 10, color: '#1E40AF' }}>HR {ep.hr}</Text>
+                    </View>
+                  )}
+                  {ep.ci && (
+                    <View sx={{ backgroundColor: '#DBEAFE', borderRadius: 8, px: '$2', py: 1 }}>
+                      <Text sx={{ fontSize: 10, color: '#1E40AF' }}>95% CI {ep.ci}</Text>
+                    </View>
+                  )}
+                  {ep.pValue && (
+                    <View sx={{ backgroundColor: '#DBEAFE', borderRadius: 8, px: '$2', py: 1 }}>
+                      <Text sx={{ fontSize: 10, color: '#1E40AF' }}>p={ep.pValue}</Text>
+                    </View>
+                  )}
+                  {ep.result && (
+                    <View sx={{
+                      backgroundColor: ep.result === 'positive' ? '#DCFCE7' : '#FEE2E2',
+                      borderRadius: 8, px: '$2', py: 1,
+                    }}>
+                      <Text sx={{ fontSize: 10, color: ep.result === 'positive' ? '#166534' : '#991B1B' }}>
+                        {ep.result}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* Contradicting Research */}
+        {item.contradictedBy?.length > 0 && (
+          <View sx={{ mt: '$5', p: '$3', backgroundColor: '#FEF2F2', borderRadius: 8, borderWidth: 1, borderColor: '#FECACA' }}>
+            <Text sx={{ fontSize: 13, fontWeight: '600', color: '#991B1B', mb: '$1' }}>
+              Contradicting Research Found
+            </Text>
+            <Text sx={{ fontSize: 12, color: '#991B1B', lineHeight: 18 }}>
+              {item.contradictedBy.length} item{item.contradictedBy.length !== 1 ? 's' : ''} with conflicting findings have been identified.
+            </Text>
+            <View sx={{ mt: '$2', gap: '$1' }}>
+              {(item.contradictedBy as string[]).map((cid: string) => (
+                <Link key={cid} href={`/intel/${cid}`}>
+                  <Text sx={{ fontSize: 12, color: '#2563EB' }}>View contradicting item →</Text>
+                </Link>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* Related Research */}
+        {item.relatedItemIds?.length > 0 && (
+          <View sx={{ mt: '$4' }}>
+            <Text sx={{ fontSize: 12, fontWeight: '600', color: '$mutedForeground', mb: '$2' }}>
+              RELATED RESEARCH ({item.relatedItemIds.length})
+            </Text>
+            <View sx={{ gap: '$1' }}>
+              {(item.relatedItemIds as string[]).slice(0, 5).map((rid: string) => (
+                <Link key={rid} href={`/intel/${rid}`}>
+                  <Text sx={{ fontSize: 13, color: '#2563EB' }}>View related item →</Text>
+                </Link>
+              ))}
+            </View>
+          </View>
+        )}
+
         {/* Source links */}
         <View sx={{ mt: '$6', gap: '$2' }}>
           {item.sourceUrl && (
             <Pressable onPress={() => Linking.openURL(item.sourceUrl!)}>
-              <Text sx={{ fontSize: 14, color: '#2563EB' }}>View on PubMed →</Text>
+              <Text sx={{ fontSize: 14, color: '#2563EB' }}>
+                {item.sourceType === 'pubmed' ? 'View on PubMed' :
+                 item.sourceType === 'fda' ? 'View on openFDA' :
+                 item.sourceType === 'preprint' ? `View on ${item.journalName || 'preprint server'}` :
+                 item.sourceType === 'clinicaltrials' ? 'View on ClinicalTrials.gov' :
+                 item.sourceType === 'institution' ? 'View original article' :
+                 item.sourceType === 'nih_reporter' ? 'View on NIH Reporter' :
+                 'View source'} →
+              </Text>
             </Pressable>
           )}
           {item.doi && (
