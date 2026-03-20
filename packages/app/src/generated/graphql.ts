@@ -287,6 +287,49 @@ export type CommunicationGuide = {
   recordsRequest: Scalars['String']['output'];
 };
 
+export type CommunityInsight = {
+  __typename?: 'CommunityInsight';
+  averageRating?: Maybe<Scalars['Float']['output']>;
+  commonSideEffects: Array<CommunityInsightSideEffect>;
+  drugName: Scalars['String']['output'];
+  totalReports: Scalars['Int']['output'];
+  trialSummary?: Maybe<CommunityTrialSummary>;
+};
+
+export type CommunityInsightSideEffect = {
+  __typename?: 'CommunityInsightSideEffect';
+  averageOnset?: Maybe<Scalars['String']['output']>;
+  averageSeverity: Scalars['Float']['output'];
+  effect: Scalars['String']['output'];
+  reportedByPercent: Scalars['Float']['output'];
+  resolvedPercent: Scalars['Float']['output'];
+  topManagementTips: Array<Scalars['String']['output']>;
+};
+
+export type CommunityReport = {
+  __typename?: 'CommunityReport';
+  consentScope: Scalars['String']['output'];
+  createdAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  moderationStatus: Scalars['String']['output'];
+  narrative?: Maybe<Scalars['String']['output']>;
+  patientId: Scalars['String']['output'];
+  relatedDrug?: Maybe<Scalars['String']['output']>;
+  relatedItemId?: Maybe<Scalars['String']['output']>;
+  relatedTrialNctId?: Maybe<Scalars['String']['output']>;
+  reportType: Scalars['String']['output'];
+  structuredData: Scalars['JSON']['output'];
+  verified: Scalars['Boolean']['output'];
+};
+
+export type CommunityTrialSummary = {
+  __typename?: 'CommunityTrialSummary';
+  averageRating: Scalars['Float']['output'];
+  commonCons: Array<Scalars['String']['output']>;
+  commonPros: Array<Scalars['String']['output']>;
+  totalReports: Scalars['Int']['output'];
+};
+
 export type ConversationGuide = {
   __typename?: 'ConversationGuide';
   emailTemplate: Scalars['String']['output'];
@@ -327,6 +370,26 @@ export type CtdnaResult = {
   result: Scalars['String']['output'];
   testDate: Scalars['String']['output'];
   triggeredTrialRematch: Scalars['Boolean']['output'];
+};
+
+export type DigestItem = {
+  __typename?: 'DigestItem';
+  headline: Scalars['String']['output'];
+  itemId: Scalars['String']['output'];
+  maturityBadge: Scalars['String']['output'];
+  relevanceReason?: Maybe<Scalars['String']['output']>;
+  summary: Scalars['String']['output'];
+  viewUrl: Scalars['String']['output'];
+};
+
+export type DigestPreview = {
+  __typename?: 'DigestPreview';
+  communityHighlights: Array<DigestItem>;
+  landscapeHighlights: Array<DigestItem>;
+  personallyRelevant: Array<DigestItem>;
+  totalNewItems: Scalars['Int']['output'];
+  trialUpdates: Array<DigestItem>;
+  urgent: Array<DigestItem>;
 };
 
 export type DoctorQuestion = {
@@ -1042,6 +1105,7 @@ export type Mutation = {
   markItemViewed: Scalars['Boolean']['output'];
   matchFinancialPrograms: Array<FinancialMatch>;
   migrateOldTaxonomy: TaxonomyMigrationResult;
+  moderateCommunityReport: CommunityReport;
   publishArticle: Article;
   reclassifyItem: ResearchItem;
   recordSecondOpinionOutcome: SecondOpinionRequest;
@@ -1061,6 +1125,7 @@ export type Mutation = {
   savePatientIntake: Patient;
   selectSecondOpinionCenter: SecondOpinionRequest;
   skipEvent: SurveillanceEvent;
+  submitCommunityReport: CommunityReport;
   submitFeedback: SurvivorshipFeedback;
   submitJournalEntry: JournalEntry;
   submitMonitoringReport: MonitoringReport;
@@ -1073,6 +1138,7 @@ export type Mutation = {
   updateCareTeamMember: CareTeamMember;
   updateCascadeStep: RecurrenceEvent;
   updateDenialStatus: InsuranceDenial;
+  updateDigestPreferences: UserFeedConfig;
   updateFeedConfig: UserFeedConfig;
   updateFertilityOutcome: FertilityAssessment;
   updateManufacturingOrderStatus: ManufacturingOrder;
@@ -1276,6 +1342,12 @@ export type MutationMatchFinancialProgramsArgs = {
 };
 
 
+export type MutationModerateCommunityReportArgs = {
+  reportId: Scalars['String']['input'];
+  status: Scalars['String']['input'];
+};
+
+
 export type MutationPublishArticleArgs = {
   articleId: Scalars['String']['input'];
 };
@@ -1365,6 +1437,11 @@ export type MutationSkipEventArgs = {
 };
 
 
+export type MutationSubmitCommunityReportArgs = {
+  input: SubmitCommunityReportInput;
+};
+
+
 export type MutationSubmitFeedbackArgs = {
   input: SubmitFeedbackInput;
 };
@@ -1426,6 +1503,11 @@ export type MutationUpdateCascadeStepArgs = {
 
 export type MutationUpdateDenialStatusArgs = {
   input: UpdateDenialStatusInput;
+};
+
+
+export type MutationUpdateDigestPreferencesArgs = {
+  frequency?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -1539,6 +1621,7 @@ export type NotificationPreference = {
   phaseTransitions: Scalars['Boolean']['output'];
   quietHoursEnd?: Maybe<Scalars['String']['output']>;
   quietHoursStart?: Maybe<Scalars['String']['output']>;
+  researchAlerts: Scalars['Boolean']['output'];
   scpAnnualReview: Scalars['Boolean']['output'];
   surveillanceReminders: Scalars['Boolean']['output'];
   timezone: Scalars['String']['output'];
@@ -1773,8 +1856,12 @@ export type Query = {
   assistanceApplications: Array<LogisticsAssistanceApplication>;
   assistancePrograms: Array<AssistanceProgramMatch>;
   careTeam: Array<CareTeamMember>;
+  communityInsights?: Maybe<CommunityInsight>;
+  communityInsightsForItem?: Maybe<CommunityInsight>;
+  communityReports: Array<CommunityReport>;
   conversationGuide: ConversationGuide;
   ctdnaHistory: Array<CtdnaResult>;
+  digestPreview: DigestPreview;
   documents: Array<Document>;
   feedConfig: UserFeedConfig;
   fertilityAssessment?: Maybe<FertilityAssessment>;
@@ -1900,6 +1987,16 @@ export type QueryArticlesArgs = {
 
 export type QueryArticlesByCategoryArgs = {
   category: Scalars['String']['input'];
+};
+
+
+export type QueryCommunityInsightsArgs = {
+  drugName: Scalars['String']['input'];
+};
+
+
+export type QueryCommunityInsightsForItemArgs = {
+  itemId: Scalars['String']['input'];
 };
 
 
@@ -2474,6 +2571,16 @@ export type StateProtection = {
   stepTherapyProtection: Scalars['Boolean']['output'];
 };
 
+export type SubmitCommunityReportInput = {
+  consentScope: Scalars['String']['input'];
+  narrative?: InputMaybe<Scalars['String']['input']>;
+  relatedDrug?: InputMaybe<Scalars['String']['input']>;
+  relatedItemId?: InputMaybe<Scalars['String']['input']>;
+  relatedTrialNctId?: InputMaybe<Scalars['String']['input']>;
+  reportType: Scalars['String']['input'];
+  structuredData: Scalars['JSON']['input'];
+};
+
 export type SubmitFeedbackInput = {
   comment?: InputMaybe<Scalars['String']['input']>;
   context?: InputMaybe<Scalars['JSON']['input']>;
@@ -2720,6 +2827,7 @@ export type UpdateDenialStatusInput = {
 export type UpdateFeedConfigInput = {
   audienceType?: InputMaybe<Scalars['String']['input']>;
   contentDepth?: InputMaybe<Scalars['String']['input']>;
+  digestFrequency?: InputMaybe<Scalars['String']['input']>;
   showNegativeResults?: InputMaybe<Scalars['Boolean']['input']>;
   showPreclinical?: InputMaybe<Scalars['Boolean']['input']>;
 };
@@ -2768,6 +2876,7 @@ export type UserFeedConfig = {
   __typename?: 'UserFeedConfig';
   audienceType: Scalars['String']['output'];
   contentDepth: Scalars['String']['output'];
+  digestFrequency?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   showNegativeResults: Scalars['Boolean']['output'];
   showPreclinical: Scalars['Boolean']['output'];
@@ -3118,7 +3227,7 @@ export type GetPersonalizedNoteQuery = { __typename?: 'Query', personalizedNote:
 export type GetFeedConfigQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetFeedConfigQuery = { __typename?: 'Query', feedConfig: { __typename?: 'UserFeedConfig', id: string, audienceType: string, contentDepth: string, showPreclinical: boolean, showNegativeResults: boolean } };
+export type GetFeedConfigQuery = { __typename?: 'Query', feedConfig: { __typename?: 'UserFeedConfig', id: string, audienceType: string, contentDepth: string, showPreclinical: boolean, showNegativeResults: boolean, digestFrequency?: string | null } };
 
 export type MarkItemViewedMutationVariables = Exact<{
   itemId: Scalars['String']['input'];
@@ -3147,12 +3256,58 @@ export type UpdateFeedConfigMutationVariables = Exact<{
 }>;
 
 
-export type UpdateFeedConfigMutation = { __typename?: 'Mutation', updateFeedConfig: { __typename?: 'UserFeedConfig', id: string, audienceType: string, contentDepth: string, showPreclinical: boolean, showNegativeResults: boolean } };
+export type UpdateFeedConfigMutation = { __typename?: 'Mutation', updateFeedConfig: { __typename?: 'UserFeedConfig', id: string, audienceType: string, contentDepth: string, showPreclinical: boolean, showNegativeResults: boolean, digestFrequency?: string | null } };
 
 export type ComputeRelevanceScoresMutationVariables = Exact<{ [key: string]: never; }>;
 
 
 export type ComputeRelevanceScoresMutation = { __typename?: 'Mutation', computeRelevanceScores: number };
+
+export type GetCommunityReportsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetCommunityReportsQuery = { __typename?: 'Query', communityReports: Array<{ __typename?: 'CommunityReport', id: string, patientId: string, reportType: string, consentScope: string, structuredData: Record<string, unknown>, narrative?: string | null, moderationStatus: string, verified: boolean, relatedDrug?: string | null, relatedTrialNctId?: string | null, relatedItemId?: string | null, createdAt: string }> };
+
+export type GetCommunityInsightsQueryVariables = Exact<{
+  drugName: Scalars['String']['input'];
+}>;
+
+
+export type GetCommunityInsightsQuery = { __typename?: 'Query', communityInsights?: { __typename?: 'CommunityInsight', drugName: string, totalReports: number, averageRating?: number | null, commonSideEffects: Array<{ __typename?: 'CommunityInsightSideEffect', effect: string, reportedByPercent: number, averageSeverity: number, averageOnset?: string | null, resolvedPercent: number, topManagementTips: Array<string> }>, trialSummary?: { __typename?: 'CommunityTrialSummary', totalReports: number, averageRating: number, commonPros: Array<string>, commonCons: Array<string> } | null } | null };
+
+export type GetCommunityInsightsForItemQueryVariables = Exact<{
+  itemId: Scalars['String']['input'];
+}>;
+
+
+export type GetCommunityInsightsForItemQuery = { __typename?: 'Query', communityInsightsForItem?: { __typename?: 'CommunityInsight', drugName: string, totalReports: number, averageRating?: number | null, commonSideEffects: Array<{ __typename?: 'CommunityInsightSideEffect', effect: string, reportedByPercent: number, averageSeverity: number, averageOnset?: string | null, resolvedPercent: number, topManagementTips: Array<string> }>, trialSummary?: { __typename?: 'CommunityTrialSummary', totalReports: number, averageRating: number, commonPros: Array<string>, commonCons: Array<string> } | null } | null };
+
+export type GetDigestPreviewQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetDigestPreviewQuery = { __typename?: 'Query', digestPreview: { __typename?: 'DigestPreview', totalNewItems: number, urgent: Array<{ __typename?: 'DigestItem', itemId: string, headline: string, summary: string, maturityBadge: string, relevanceReason?: string | null, viewUrl: string }>, personallyRelevant: Array<{ __typename?: 'DigestItem', itemId: string, headline: string, summary: string, maturityBadge: string, relevanceReason?: string | null, viewUrl: string }>, landscapeHighlights: Array<{ __typename?: 'DigestItem', itemId: string, headline: string, summary: string, maturityBadge: string, relevanceReason?: string | null, viewUrl: string }>, communityHighlights: Array<{ __typename?: 'DigestItem', itemId: string, headline: string, summary: string, maturityBadge: string, relevanceReason?: string | null, viewUrl: string }>, trialUpdates: Array<{ __typename?: 'DigestItem', itemId: string, headline: string, summary: string, maturityBadge: string, relevanceReason?: string | null, viewUrl: string }> } };
+
+export type SubmitCommunityReportMutationVariables = Exact<{
+  input: SubmitCommunityReportInput;
+}>;
+
+
+export type SubmitCommunityReportMutation = { __typename?: 'Mutation', submitCommunityReport: { __typename?: 'CommunityReport', id: string, reportType: string, consentScope: string, structuredData: Record<string, unknown>, narrative?: string | null, moderationStatus: string, verified: boolean, relatedDrug?: string | null, relatedTrialNctId?: string | null, createdAt: string } };
+
+export type ModerateCommunityReportMutationVariables = Exact<{
+  reportId: Scalars['String']['input'];
+  status: Scalars['String']['input'];
+}>;
+
+
+export type ModerateCommunityReportMutation = { __typename?: 'Mutation', moderateCommunityReport: { __typename?: 'CommunityReport', id: string, moderationStatus: string } };
+
+export type UpdateDigestPreferencesMutationVariables = Exact<{
+  frequency?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type UpdateDigestPreferencesMutation = { __typename?: 'Mutation', updateDigestPreferences: { __typename?: 'UserFeedConfig', id: string, audienceType: string, contentDepth: string, showPreclinical: boolean, showNegativeResults: boolean, digestFrequency?: string | null } };
 
 export type GetArticleQueryVariables = Exact<{
   slug: Scalars['String']['input'];
@@ -6481,6 +6636,7 @@ export const GetFeedConfigDocument = gql`
     contentDepth
     showPreclinical
     showNegativeResults
+    digestFrequency
   }
 }
     `;
@@ -6621,6 +6777,7 @@ export const UpdateFeedConfigDocument = gql`
     contentDepth
     showPreclinical
     showNegativeResults
+    digestFrequency
   }
 }
     `;
@@ -6680,6 +6837,374 @@ export function useComputeRelevanceScoresMutation(baseOptions?: Apollo.MutationH
 export type ComputeRelevanceScoresMutationHookResult = ReturnType<typeof useComputeRelevanceScoresMutation>;
 export type ComputeRelevanceScoresMutationResult = Apollo.MutationResult<ComputeRelevanceScoresMutation>;
 export type ComputeRelevanceScoresMutationOptions = Apollo.BaseMutationOptions<ComputeRelevanceScoresMutation, ComputeRelevanceScoresMutationVariables>;
+export const GetCommunityReportsDocument = gql`
+    query GetCommunityReports {
+  communityReports {
+    id
+    patientId
+    reportType
+    consentScope
+    structuredData
+    narrative
+    moderationStatus
+    verified
+    relatedDrug
+    relatedTrialNctId
+    relatedItemId
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useGetCommunityReportsQuery__
+ *
+ * To run a query within a React component, call `useGetCommunityReportsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCommunityReportsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCommunityReportsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetCommunityReportsQuery(baseOptions?: Apollo.QueryHookOptions<GetCommunityReportsQuery, GetCommunityReportsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetCommunityReportsQuery, GetCommunityReportsQueryVariables>(GetCommunityReportsDocument, options);
+      }
+export function useGetCommunityReportsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCommunityReportsQuery, GetCommunityReportsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetCommunityReportsQuery, GetCommunityReportsQueryVariables>(GetCommunityReportsDocument, options);
+        }
+// @ts-ignore
+export function useGetCommunityReportsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetCommunityReportsQuery, GetCommunityReportsQueryVariables>): Apollo.UseSuspenseQueryResult<GetCommunityReportsQuery, GetCommunityReportsQueryVariables>;
+export function useGetCommunityReportsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetCommunityReportsQuery, GetCommunityReportsQueryVariables>): Apollo.UseSuspenseQueryResult<GetCommunityReportsQuery | undefined, GetCommunityReportsQueryVariables>;
+export function useGetCommunityReportsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetCommunityReportsQuery, GetCommunityReportsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetCommunityReportsQuery, GetCommunityReportsQueryVariables>(GetCommunityReportsDocument, options);
+        }
+export type GetCommunityReportsQueryHookResult = ReturnType<typeof useGetCommunityReportsQuery>;
+export type GetCommunityReportsLazyQueryHookResult = ReturnType<typeof useGetCommunityReportsLazyQuery>;
+export type GetCommunityReportsSuspenseQueryHookResult = ReturnType<typeof useGetCommunityReportsSuspenseQuery>;
+export type GetCommunityReportsQueryResult = Apollo.QueryResult<GetCommunityReportsQuery, GetCommunityReportsQueryVariables>;
+export const GetCommunityInsightsDocument = gql`
+    query GetCommunityInsights($drugName: String!) {
+  communityInsights(drugName: $drugName) {
+    drugName
+    totalReports
+    averageRating
+    commonSideEffects {
+      effect
+      reportedByPercent
+      averageSeverity
+      averageOnset
+      resolvedPercent
+      topManagementTips
+    }
+    trialSummary {
+      totalReports
+      averageRating
+      commonPros
+      commonCons
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetCommunityInsightsQuery__
+ *
+ * To run a query within a React component, call `useGetCommunityInsightsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCommunityInsightsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCommunityInsightsQuery({
+ *   variables: {
+ *      drugName: // value for 'drugName'
+ *   },
+ * });
+ */
+export function useGetCommunityInsightsQuery(baseOptions: Apollo.QueryHookOptions<GetCommunityInsightsQuery, GetCommunityInsightsQueryVariables> & ({ variables: GetCommunityInsightsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetCommunityInsightsQuery, GetCommunityInsightsQueryVariables>(GetCommunityInsightsDocument, options);
+      }
+export function useGetCommunityInsightsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCommunityInsightsQuery, GetCommunityInsightsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetCommunityInsightsQuery, GetCommunityInsightsQueryVariables>(GetCommunityInsightsDocument, options);
+        }
+// @ts-ignore
+export function useGetCommunityInsightsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetCommunityInsightsQuery, GetCommunityInsightsQueryVariables>): Apollo.UseSuspenseQueryResult<GetCommunityInsightsQuery, GetCommunityInsightsQueryVariables>;
+export function useGetCommunityInsightsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetCommunityInsightsQuery, GetCommunityInsightsQueryVariables>): Apollo.UseSuspenseQueryResult<GetCommunityInsightsQuery | undefined, GetCommunityInsightsQueryVariables>;
+export function useGetCommunityInsightsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetCommunityInsightsQuery, GetCommunityInsightsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetCommunityInsightsQuery, GetCommunityInsightsQueryVariables>(GetCommunityInsightsDocument, options);
+        }
+export type GetCommunityInsightsQueryHookResult = ReturnType<typeof useGetCommunityInsightsQuery>;
+export type GetCommunityInsightsLazyQueryHookResult = ReturnType<typeof useGetCommunityInsightsLazyQuery>;
+export type GetCommunityInsightsSuspenseQueryHookResult = ReturnType<typeof useGetCommunityInsightsSuspenseQuery>;
+export type GetCommunityInsightsQueryResult = Apollo.QueryResult<GetCommunityInsightsQuery, GetCommunityInsightsQueryVariables>;
+export const GetCommunityInsightsForItemDocument = gql`
+    query GetCommunityInsightsForItem($itemId: String!) {
+  communityInsightsForItem(itemId: $itemId) {
+    drugName
+    totalReports
+    averageRating
+    commonSideEffects {
+      effect
+      reportedByPercent
+      averageSeverity
+      averageOnset
+      resolvedPercent
+      topManagementTips
+    }
+    trialSummary {
+      totalReports
+      averageRating
+      commonPros
+      commonCons
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetCommunityInsightsForItemQuery__
+ *
+ * To run a query within a React component, call `useGetCommunityInsightsForItemQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCommunityInsightsForItemQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCommunityInsightsForItemQuery({
+ *   variables: {
+ *      itemId: // value for 'itemId'
+ *   },
+ * });
+ */
+export function useGetCommunityInsightsForItemQuery(baseOptions: Apollo.QueryHookOptions<GetCommunityInsightsForItemQuery, GetCommunityInsightsForItemQueryVariables> & ({ variables: GetCommunityInsightsForItemQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetCommunityInsightsForItemQuery, GetCommunityInsightsForItemQueryVariables>(GetCommunityInsightsForItemDocument, options);
+      }
+export function useGetCommunityInsightsForItemLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCommunityInsightsForItemQuery, GetCommunityInsightsForItemQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetCommunityInsightsForItemQuery, GetCommunityInsightsForItemQueryVariables>(GetCommunityInsightsForItemDocument, options);
+        }
+// @ts-ignore
+export function useGetCommunityInsightsForItemSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetCommunityInsightsForItemQuery, GetCommunityInsightsForItemQueryVariables>): Apollo.UseSuspenseQueryResult<GetCommunityInsightsForItemQuery, GetCommunityInsightsForItemQueryVariables>;
+export function useGetCommunityInsightsForItemSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetCommunityInsightsForItemQuery, GetCommunityInsightsForItemQueryVariables>): Apollo.UseSuspenseQueryResult<GetCommunityInsightsForItemQuery | undefined, GetCommunityInsightsForItemQueryVariables>;
+export function useGetCommunityInsightsForItemSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetCommunityInsightsForItemQuery, GetCommunityInsightsForItemQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetCommunityInsightsForItemQuery, GetCommunityInsightsForItemQueryVariables>(GetCommunityInsightsForItemDocument, options);
+        }
+export type GetCommunityInsightsForItemQueryHookResult = ReturnType<typeof useGetCommunityInsightsForItemQuery>;
+export type GetCommunityInsightsForItemLazyQueryHookResult = ReturnType<typeof useGetCommunityInsightsForItemLazyQuery>;
+export type GetCommunityInsightsForItemSuspenseQueryHookResult = ReturnType<typeof useGetCommunityInsightsForItemSuspenseQuery>;
+export type GetCommunityInsightsForItemQueryResult = Apollo.QueryResult<GetCommunityInsightsForItemQuery, GetCommunityInsightsForItemQueryVariables>;
+export const GetDigestPreviewDocument = gql`
+    query GetDigestPreview {
+  digestPreview {
+    urgent {
+      itemId
+      headline
+      summary
+      maturityBadge
+      relevanceReason
+      viewUrl
+    }
+    personallyRelevant {
+      itemId
+      headline
+      summary
+      maturityBadge
+      relevanceReason
+      viewUrl
+    }
+    landscapeHighlights {
+      itemId
+      headline
+      summary
+      maturityBadge
+      relevanceReason
+      viewUrl
+    }
+    communityHighlights {
+      itemId
+      headline
+      summary
+      maturityBadge
+      relevanceReason
+      viewUrl
+    }
+    trialUpdates {
+      itemId
+      headline
+      summary
+      maturityBadge
+      relevanceReason
+      viewUrl
+    }
+    totalNewItems
+  }
+}
+    `;
+
+/**
+ * __useGetDigestPreviewQuery__
+ *
+ * To run a query within a React component, call `useGetDigestPreviewQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetDigestPreviewQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetDigestPreviewQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetDigestPreviewQuery(baseOptions?: Apollo.QueryHookOptions<GetDigestPreviewQuery, GetDigestPreviewQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetDigestPreviewQuery, GetDigestPreviewQueryVariables>(GetDigestPreviewDocument, options);
+      }
+export function useGetDigestPreviewLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetDigestPreviewQuery, GetDigestPreviewQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetDigestPreviewQuery, GetDigestPreviewQueryVariables>(GetDigestPreviewDocument, options);
+        }
+// @ts-ignore
+export function useGetDigestPreviewSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetDigestPreviewQuery, GetDigestPreviewQueryVariables>): Apollo.UseSuspenseQueryResult<GetDigestPreviewQuery, GetDigestPreviewQueryVariables>;
+export function useGetDigestPreviewSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetDigestPreviewQuery, GetDigestPreviewQueryVariables>): Apollo.UseSuspenseQueryResult<GetDigestPreviewQuery | undefined, GetDigestPreviewQueryVariables>;
+export function useGetDigestPreviewSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetDigestPreviewQuery, GetDigestPreviewQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetDigestPreviewQuery, GetDigestPreviewQueryVariables>(GetDigestPreviewDocument, options);
+        }
+export type GetDigestPreviewQueryHookResult = ReturnType<typeof useGetDigestPreviewQuery>;
+export type GetDigestPreviewLazyQueryHookResult = ReturnType<typeof useGetDigestPreviewLazyQuery>;
+export type GetDigestPreviewSuspenseQueryHookResult = ReturnType<typeof useGetDigestPreviewSuspenseQuery>;
+export type GetDigestPreviewQueryResult = Apollo.QueryResult<GetDigestPreviewQuery, GetDigestPreviewQueryVariables>;
+export const SubmitCommunityReportDocument = gql`
+    mutation SubmitCommunityReport($input: SubmitCommunityReportInput!) {
+  submitCommunityReport(input: $input) {
+    id
+    reportType
+    consentScope
+    structuredData
+    narrative
+    moderationStatus
+    verified
+    relatedDrug
+    relatedTrialNctId
+    createdAt
+  }
+}
+    `;
+export type SubmitCommunityReportMutationFn = Apollo.MutationFunction<SubmitCommunityReportMutation, SubmitCommunityReportMutationVariables>;
+
+/**
+ * __useSubmitCommunityReportMutation__
+ *
+ * To run a mutation, you first call `useSubmitCommunityReportMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSubmitCommunityReportMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [submitCommunityReportMutation, { data, loading, error }] = useSubmitCommunityReportMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useSubmitCommunityReportMutation(baseOptions?: Apollo.MutationHookOptions<SubmitCommunityReportMutation, SubmitCommunityReportMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SubmitCommunityReportMutation, SubmitCommunityReportMutationVariables>(SubmitCommunityReportDocument, options);
+      }
+export type SubmitCommunityReportMutationHookResult = ReturnType<typeof useSubmitCommunityReportMutation>;
+export type SubmitCommunityReportMutationResult = Apollo.MutationResult<SubmitCommunityReportMutation>;
+export type SubmitCommunityReportMutationOptions = Apollo.BaseMutationOptions<SubmitCommunityReportMutation, SubmitCommunityReportMutationVariables>;
+export const ModerateCommunityReportDocument = gql`
+    mutation ModerateCommunityReport($reportId: String!, $status: String!) {
+  moderateCommunityReport(reportId: $reportId, status: $status) {
+    id
+    moderationStatus
+  }
+}
+    `;
+export type ModerateCommunityReportMutationFn = Apollo.MutationFunction<ModerateCommunityReportMutation, ModerateCommunityReportMutationVariables>;
+
+/**
+ * __useModerateCommunityReportMutation__
+ *
+ * To run a mutation, you first call `useModerateCommunityReportMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useModerateCommunityReportMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [moderateCommunityReportMutation, { data, loading, error }] = useModerateCommunityReportMutation({
+ *   variables: {
+ *      reportId: // value for 'reportId'
+ *      status: // value for 'status'
+ *   },
+ * });
+ */
+export function useModerateCommunityReportMutation(baseOptions?: Apollo.MutationHookOptions<ModerateCommunityReportMutation, ModerateCommunityReportMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ModerateCommunityReportMutation, ModerateCommunityReportMutationVariables>(ModerateCommunityReportDocument, options);
+      }
+export type ModerateCommunityReportMutationHookResult = ReturnType<typeof useModerateCommunityReportMutation>;
+export type ModerateCommunityReportMutationResult = Apollo.MutationResult<ModerateCommunityReportMutation>;
+export type ModerateCommunityReportMutationOptions = Apollo.BaseMutationOptions<ModerateCommunityReportMutation, ModerateCommunityReportMutationVariables>;
+export const UpdateDigestPreferencesDocument = gql`
+    mutation UpdateDigestPreferences($frequency: String) {
+  updateDigestPreferences(frequency: $frequency) {
+    id
+    audienceType
+    contentDepth
+    showPreclinical
+    showNegativeResults
+    digestFrequency
+  }
+}
+    `;
+export type UpdateDigestPreferencesMutationFn = Apollo.MutationFunction<UpdateDigestPreferencesMutation, UpdateDigestPreferencesMutationVariables>;
+
+/**
+ * __useUpdateDigestPreferencesMutation__
+ *
+ * To run a mutation, you first call `useUpdateDigestPreferencesMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateDigestPreferencesMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateDigestPreferencesMutation, { data, loading, error }] = useUpdateDigestPreferencesMutation({
+ *   variables: {
+ *      frequency: // value for 'frequency'
+ *   },
+ * });
+ */
+export function useUpdateDigestPreferencesMutation(baseOptions?: Apollo.MutationHookOptions<UpdateDigestPreferencesMutation, UpdateDigestPreferencesMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateDigestPreferencesMutation, UpdateDigestPreferencesMutationVariables>(UpdateDigestPreferencesDocument, options);
+      }
+export type UpdateDigestPreferencesMutationHookResult = ReturnType<typeof useUpdateDigestPreferencesMutation>;
+export type UpdateDigestPreferencesMutationResult = Apollo.MutationResult<UpdateDigestPreferencesMutation>;
+export type UpdateDigestPreferencesMutationOptions = Apollo.BaseMutationOptions<UpdateDigestPreferencesMutation, UpdateDigestPreferencesMutationVariables>;
 export const GetArticleDocument = gql`
     query GetArticle($slug: String!) {
   article(slug: $slug) {

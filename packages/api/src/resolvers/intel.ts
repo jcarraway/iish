@@ -38,6 +38,26 @@ export const intelResolvers = {
       const userId = requireAuth(ctx);
       return ctx.lib.getFeedConfig(userId);
     },
+
+    // Community Intelligence (I5)
+    communityReports: async (_: any, __: any, ctx: ResolverContext) => {
+      const userId = requireAuth(ctx);
+      const patient = await ctx.prisma.patient.findFirst({ where: { userId } });
+      if (!patient) return [];
+      return ctx.lib.getCommunityReports(patient.id);
+    },
+    communityInsights: async (_: any, args: { drugName: string }, ctx: ResolverContext) => {
+      requireAuth(ctx);
+      return ctx.lib.getCommunityInsights(args.drugName);
+    },
+    communityInsightsForItem: async (_: any, args: { itemId: string }, ctx: ResolverContext) => {
+      requireAuth(ctx);
+      return ctx.lib.getCommunityInsightsForItem(args.itemId);
+    },
+    digestPreview: async (_: any, __: any, ctx: ResolverContext) => {
+      const userId = requireAuth(ctx);
+      return ctx.lib.compileDigest(userId, 'weekly');
+    },
   },
   Mutation: {
     markItemViewed: async (_: any, args: { itemId: string }, ctx: ResolverContext) => {
@@ -84,6 +104,22 @@ export const intelResolvers = {
     migrateOldTaxonomy: async (_: any, __: any, ctx: ResolverContext) => {
       requireAuth(ctx);
       return ctx.lib.migrateOldTaxonomy();
+    },
+
+    // Community Intelligence (I5)
+    submitCommunityReport: async (_: any, args: { input: any }, ctx: ResolverContext) => {
+      const userId = requireAuth(ctx);
+      const patient = await ctx.prisma.patient.findFirst({ where: { userId } });
+      if (!patient) throw new Error('Patient not found');
+      return ctx.lib.submitCommunityReport(patient.id, args.input);
+    },
+    moderateCommunityReport: async (_: any, args: { reportId: string; status: string }, ctx: ResolverContext) => {
+      requireAuth(ctx);
+      return ctx.lib.moderateCommunityReport(args.reportId, args.status);
+    },
+    updateDigestPreferences: async (_: any, args: { frequency?: string | null }, ctx: ResolverContext) => {
+      const userId = requireAuth(ctx);
+      return ctx.lib.updateDigestPreferences(userId, args.frequency ?? null);
     },
   },
 };

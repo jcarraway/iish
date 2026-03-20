@@ -278,6 +278,56 @@ export function IntelSettingsScreen() {
           </View>
         )}
 
+        {/* Research Digest */}
+        {!configLoading && config && (
+          <View sx={{ mt: '$6' }}>
+            <Text sx={{ fontSize: 18, fontWeight: '700', color: '$foreground', mb: '$4' }}>
+              Research Digest
+            </Text>
+            <View sx={{ mb: '$3' }}>
+              <Text sx={{ fontSize: 13, fontWeight: '600', color: '$mutedForeground', mb: '$2' }}>
+                EMAIL FREQUENCY
+              </Text>
+              <View sx={{ flexDirection: 'row', gap: '$2', flexWrap: 'wrap' }}>
+                {[
+                  { key: null, label: 'Off' },
+                  { key: 'daily', label: 'Daily' },
+                  { key: 'weekly', label: 'Weekly' },
+                  { key: 'monthly', label: 'Monthly' },
+                ].map(opt => {
+                  const active = ((config as any).digestFrequency ?? null) === opt.key;
+                  return (
+                    <Pressable
+                      key={opt.key ?? 'off'}
+                      onPress={() => handleConfigUpdate('digestFrequency', opt.key)}
+                      sx={{
+                        borderRadius: 20,
+                        px: '$4',
+                        py: '$2',
+                        backgroundColor: active ? '#7C3AED' : 'transparent',
+                        borderWidth: 1,
+                        borderColor: active ? '#7C3AED' : '$border',
+                      }}
+                    >
+                      <Text sx={{ fontSize: 13, fontWeight: '600', color: active ? 'white' : '$mutedForeground' }}>
+                        {opt.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+              <Text sx={{ mt: '$2', fontSize: 12, color: '$mutedForeground' }}>
+                Get a personalized summary of new research, safety alerts, and community highlights.
+              </Text>
+            </View>
+            {(config as any).digestFrequency && (
+              <Link href="/intel/community">
+                <Text sx={{ fontSize: 13, color: '#2563EB' }}>Preview next digest →</Text>
+              </Link>
+            )}
+          </View>
+        )}
+
         {/* Ingestion Sources */}
         <View sx={{ mt: '$8' }}>
           <Text sx={{ fontSize: 18, fontWeight: '700', color: '$foreground', mb: '$2' }}>

@@ -164,8 +164,23 @@ export function IntelFeedScreen() {
             : 'Curated breast cancer research — classified by maturity and practice impact'}
         </Text>
 
+        {/* Quick links */}
+        <View sx={{ mt: '$4', flexDirection: 'row', gap: '$3' }}>
+          <Link href="/intel/community">
+            <View sx={{ flexDirection: 'row', alignItems: 'center', gap: '$1' }}>
+              <View sx={{ backgroundColor: '#F3E8FF', borderRadius: 12, px: '$2', py: 2 }}>
+                <Text sx={{ fontSize: 11, fontWeight: '600', color: '#7C3AED' }}>Community</Text>
+              </View>
+              <Text sx={{ fontSize: 12, color: '#7C3AED' }}>Patient experiences →</Text>
+            </View>
+          </Link>
+          <Link href="/intel/settings">
+            <Text sx={{ fontSize: 12, color: '$mutedForeground' }}>Settings</Text>
+          </Link>
+        </View>
+
         {/* Search */}
-        <View sx={{ mt: '$6', flexDirection: 'row', gap: '$2' }}>
+        <View sx={{ mt: '$4', flexDirection: 'row', gap: '$2' }}>
           <View sx={{ flex: 1, borderWidth: 1, borderColor: '$border', borderRadius: 8, px: '$3', py: '$2' }}>
             <TextInput
               value={searchQuery}

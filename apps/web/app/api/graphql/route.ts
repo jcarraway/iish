@@ -167,6 +167,15 @@ import {
   updateUserFeedConfig as _updateUserFeedConfig,
   computeRelevanceScores as _computeRelevanceScores,
 } from '@/lib/feed-personalization';
+import {
+  submitCommunityReport as _submitCommunityReport,
+  getCommunityReports as _getCommunityReports,
+  getDrugInsights as _getDrugInsights,
+  getCommunityInsightsForItem as _getCommunityInsightsForItem,
+  compileDigest as _compileDigest,
+  moderateReport as _moderateReport,
+  updateDigestPreferences as _updateDigestPreferences,
+} from '@/lib/community-manager';
 
 // ============================================================================
 // Adapter functions — bridge resolver signatures to actual lib functions
@@ -1409,6 +1418,15 @@ const handler = startServerAndCreateNextHandler<NextRequest, GraphQLContext>(ser
         markItemDismissed: _markItemDismissed,
         updateFeedConfig: _updateUserFeedConfig,
         computeRelevanceScores: _computeRelevanceScores,
+
+        // Intel — Community Intelligence (I5)
+        submitCommunityReport: _submitCommunityReport,
+        getCommunityReports: _getCommunityReports,
+        getCommunityInsights: _getDrugInsights,
+        getCommunityInsightsForItem: _getCommunityInsightsForItem,
+        compileDigest: _compileDigest,
+        moderateCommunityReport: _moderateReport,
+        updateDigestPreferences: _updateDigestPreferences,
       },
     };
   },

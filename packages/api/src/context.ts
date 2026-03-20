@@ -209,6 +209,15 @@ export interface GraphQLContext {
     markItemDismissed: (userId: string, itemId: string) => Promise<boolean>;
     updateFeedConfig: (userId: string, input: any) => Promise<any>;
     computeRelevanceScores: (userId: string) => Promise<any>;
+
+    // Intel — Community Intelligence (I5)
+    submitCommunityReport: (patientId: string, input: any) => Promise<any>;
+    getCommunityReports: (patientId: string) => Promise<any[]>;
+    getCommunityInsights: (drugName: string) => Promise<any>;
+    getCommunityInsightsForItem: (itemId: string) => Promise<any>;
+    compileDigest: (userId: string, period: string) => Promise<any>;
+    moderateCommunityReport: (reportId: string, status: string) => Promise<any>;
+    updateDigestPreferences: (userId: string, frequency: string | null) => Promise<any>;
   };
 }
 

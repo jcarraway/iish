@@ -6,6 +6,7 @@ import {
   useMeQuery,
   useGetResearchItemQuery,
   useGetPersonalizedNoteQuery,
+  useGetCommunityInsightsForItemQuery,
   useMarkItemViewedMutation,
   useMarkItemSavedMutation,
 } from '../generated/graphql';
@@ -62,6 +63,12 @@ export function IntelItemDetailScreen({ id }: Props) {
 
   // Lazy-load personalized note (authenticated only)
   const { data: noteData, loading: noteLoading } = useGetPersonalizedNoteQuery({
+    variables: { itemId: id },
+    skip: !isAuthenticated,
+  });
+
+  // Community insights (authenticated only, items with drugs)
+  const { data: insightsData } = useGetCommunityInsightsForItemQuery({
     variables: { itemId: id },
     skip: !isAuthenticated,
   });
@@ -313,6 +320,51 @@ export function IntelItemDetailScreen({ id }: Props) {
             )}
           </View>
         )}
+
+        {/* Community Insights (I5, authenticated only) */}
+        {isAuthenticated && insightsData?.communityInsightsForItem && insightsData.communityInsightsForItem.totalReports > 0 && (() => {
+          const ci = insightsData.communityInsightsForItem;
+          return (
+            <View sx={{ mt: '$4', p: '$4', backgroundColor: '#F9FAFB', borderRadius: 12, borderWidth: 1, borderColor: '$border' }}>
+              <Text sx={{ fontSize: 13, fontWeight: '700', color: '$foreground', mb: '$2' }}>
+                Community Insights
+              </Text>
+              <View sx={{ flexDirection: 'row', gap: '$4', mb: '$2' }}>
+                <View>
+                  <Text sx={{ fontSize: 11, color: '$mutedForeground' }}>Reports</Text>
+                  <Text sx={{ fontSize: 15, fontWeight: '700', color: '$foreground' }}>{ci.totalReports}</Text>
+                </View>
+                {ci.averageRating != null && (
+                  <View>
+                    <Text sx={{ fontSize: 11, color: '$mutedForeground' }}>Avg Rating</Text>
+                    <Text sx={{ fontSize: 15, fontWeight: '700', color: '#D97706' }}>
+                      {'★'.repeat(Math.round(ci.averageRating))}{'☆'.repeat(5 - Math.round(ci.averageRating))}
+                    </Text>
+                  </View>
+                )}
+              </View>
+              {ci.commonSideEffects.slice(0, 3).map((se: any) => (
+                <View key={se.effect} sx={{ flexDirection: 'row', justifyContent: 'space-between', py: '$1' }}>
+                  <Text sx={{ fontSize: 12, color: '$foreground' }}>{se.effect}</Text>
+                  <Text sx={{ fontSize: 12, color: '$mutedForeground' }}>
+                    {Math.round(se.reportedByPercent)}% · severity {se.averageSeverity.toFixed(1)}
+                  </Text>
+                </View>
+              ))}
+              <View sx={{ mt: '$2', flexDirection: 'row', gap: '$3' }}>
+                <Link href={`/intel/community?drug=${encodeURIComponent(ci.drugName)}`}>
+                  <Text sx={{ fontSize: 12, color: '#2563EB' }}>View all community reports</Text>
+                </Link>
+                <Link href={`/intel/community/submit?drug=${encodeURIComponent(ci.drugName)}`}>
+                  <Text sx={{ fontSize: 12, color: '#7C3AED' }}>Share your experience</Text>
+                </Link>
+              </View>
+              <Text sx={{ mt: '$2', fontSize: 10, color: '#9CA3AF', fontStyle: 'italic' }}>
+                Based on reports from {ci.totalReports} patient{ci.totalReports !== 1 ? 's' : ''} on this platform.
+              </Text>
+            </View>
+          );
+        })()}
 
         {/* Clinician Summary (collapsible) */}
         {clinician && (

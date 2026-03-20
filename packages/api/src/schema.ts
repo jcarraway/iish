@@ -989,6 +989,7 @@ export const typeDefs = `#graphql
     scpAnnualReview: Boolean!
     lifestyleCheckIn: Boolean!
     phaseTransitions: Boolean!
+    researchAlerts: Boolean!
     quietHoursStart: String
     quietHoursEnd: String
     timezone: String!
@@ -1602,6 +1603,7 @@ export const typeDefs = `#graphql
     contentDepth: String!
     showPreclinical: Boolean!
     showNegativeResults: Boolean!
+    digestFrequency: String
   }
 
   type PersonalizedNote {
@@ -1623,6 +1625,78 @@ export const typeDefs = `#graphql
     contentDepth: String
     showPreclinical: Boolean
     showNegativeResults: Boolean
+    digestFrequency: String
+  }
+
+  # ============================================================================
+  # Intel — Community Intelligence (I5)
+  # ============================================================================
+
+  type CommunityReport {
+    id: ID!
+    patientId: String!
+    reportType: String!
+    consentScope: String!
+    structuredData: JSON!
+    narrative: String
+    moderationStatus: String!
+    verified: Boolean!
+    relatedDrug: String
+    relatedTrialNctId: String
+    relatedItemId: String
+    createdAt: String!
+  }
+
+  type CommunityInsight {
+    drugName: String!
+    totalReports: Int!
+    averageRating: Float
+    commonSideEffects: [CommunityInsightSideEffect!]!
+    trialSummary: CommunityTrialSummary
+  }
+
+  type CommunityInsightSideEffect {
+    effect: String!
+    reportedByPercent: Float!
+    averageSeverity: Float!
+    averageOnset: String
+    resolvedPercent: Float!
+    topManagementTips: [String!]!
+  }
+
+  type CommunityTrialSummary {
+    totalReports: Int!
+    averageRating: Float!
+    commonPros: [String!]!
+    commonCons: [String!]!
+  }
+
+  type DigestPreview {
+    urgent: [DigestItem!]!
+    personallyRelevant: [DigestItem!]!
+    landscapeHighlights: [DigestItem!]!
+    communityHighlights: [DigestItem!]!
+    trialUpdates: [DigestItem!]!
+    totalNewItems: Int!
+  }
+
+  type DigestItem {
+    itemId: String!
+    headline: String!
+    summary: String!
+    maturityBadge: String!
+    relevanceReason: String
+    viewUrl: String!
+  }
+
+  input SubmitCommunityReportInput {
+    reportType: String!
+    consentScope: String!
+    structuredData: JSON!
+    narrative: String
+    relatedDrug: String
+    relatedTrialNctId: String
+    relatedItemId: String
   }
 
   input ResearchItemFilters {
@@ -1784,6 +1858,12 @@ export const typeDefs = `#graphql
     personalizedFeed(filters: PersonalizedFeedFilters): PersonalizedFeedResponse!
     personalizedNote(itemId: String!): PersonalizedNote!
     feedConfig: UserFeedConfig!
+
+    # Intel — Community Intelligence (I5, authenticated)
+    communityReports: [CommunityReport!]!
+    communityInsights(drugName: String!): CommunityInsight
+    communityInsightsForItem(itemId: String!): CommunityInsight
+    digestPreview: DigestPreview!
   }
 
   # ============================================================================
@@ -2173,5 +2253,10 @@ export const typeDefs = `#graphql
     reclassifyItem(itemId: String!): ResearchItem!
     runQCPipeline(batchSize: Int): QCResult!
     migrateOldTaxonomy: TaxonomyMigrationResult!
+
+    # Intel — Community Intelligence (I5)
+    submitCommunityReport(input: SubmitCommunityReportInput!): CommunityReport!
+    moderateCommunityReport(reportId: String!, status: String!): CommunityReport!
+    updateDigestPreferences(frequency: String): UserFeedConfig!
   }
 `;

@@ -3,6 +3,7 @@ import { anthropic, CLAUDE_MODEL } from './ai';
 import { redis } from './redis';
 import { prisma } from './db';
 import { refreshSCP } from './scp-generator';
+import { sendDigest } from './community-manager';
 import type { PatientProfile } from '@oncovax/shared';
 
 // ============================================================================
@@ -19,6 +20,7 @@ interface NotificationResults {
   lifestyleCheckIns: number;
   phaseTransitions: number;
   recurrenceNotifications: number;
+  researchDigests: number;
   errors: string[];
 }
 
@@ -228,6 +230,7 @@ export async function processAllNotifications(): Promise<NotificationResults> {
     lifestyleCheckIns: 0,
     phaseTransitions: 0,
     recurrenceNotifications: 0,
+    researchDigests: 0,
     errors: [],
   };
 
@@ -241,6 +244,7 @@ export async function processAllNotifications(): Promise<NotificationResults> {
     { name: 'lifestyleCheckIns', fn: processLifestyleCheckIn },
     { name: 'phaseTransitions', fn: processPhaseTransitions },
     { name: 'recurrenceNotifications', fn: processRecurrenceNotifications },
+    { name: 'researchDigests', fn: processResearchDigests },
   ] as const;
 
   for (const { name, fn } of processors) {
@@ -853,6 +857,40 @@ async function processRecurrenceNotifications(): Promise<number> {
         referenceType: 'recurrence_event',
       });
       if (sent) count++;
+    }
+  }
+
+  return count;
+}
+
+// ============================================================================
+// Processor 10: Research Digests (I5)
+// ============================================================================
+
+async function processResearchDigests(): Promise<number> {
+  let count = 0;
+  const now = new Date();
+  const dayOfWeek = now.getDay(); // 0=Sun, 1=Mon
+  const dayOfMonth = now.getDate();
+
+  // Find users with digest frequency set
+  const configs = await prisma.userFeedConfig.findMany({
+    where: { digestFrequency: { not: null } },
+  });
+
+  for (const config of configs) {
+    const freq = config.digestFrequency;
+    if (!freq) continue;
+
+    // Check timing: daily=every day, weekly=Monday, monthly=1st
+    if (freq === 'weekly' && dayOfWeek !== 1) continue;
+    if (freq === 'monthly' && dayOfMonth !== 1) continue;
+
+    try {
+      const sent = await sendDigest(config.userId);
+      if (sent) count++;
+    } catch (err: any) {
+      console.error(`Digest failed for user ${config.userId}: ${err.message}`);
     }
   }
 

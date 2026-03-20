@@ -112,6 +112,7 @@ model Patient {
   logisticsApplications   LogisticsAssistanceApplication[]
   secondOpinionRequests   SecondOpinionRequest[]
   articlePersonalizations  ArticlePersonalization[]
+  communityReports         CommunityReport[]
 
   @@map("patients")
 }
@@ -821,6 +822,7 @@ model NotificationPreference {
   scpAnnualReview         Boolean  @default(true) @map("scp_annual_review")
   lifestyleCheckIn        Boolean  @default(true) @map("lifestyle_check_in")
   phaseTransitions        Boolean  @default(true) @map("phase_transitions")
+  researchAlerts          Boolean  @default(true) @map("research_alerts")
   quietHoursStart         String?  @map("quiet_hours_start") @db.VarChar(5)
   quietHoursEnd           String?  @map("quiet_hours_end") @db.VarChar(5)
   timezone                String   @default("America/New_York") @db.VarChar(50)
@@ -1221,7 +1223,8 @@ model ResearchItem {
   @@index([sourceType, sourceItemId])
   @@map("research_items")
 
-  feedRelevances FeedRelevance[]
+  feedRelevances   FeedRelevance[]
+  communityReports CommunityReport[]
 }
 
 model IngestionSyncState {
@@ -1267,10 +1270,35 @@ model UserFeedConfig {
   contentDepth        String   @default("standard") @map("content_depth") @db.VarChar(20)
   showPreclinical     Boolean  @default(true) @map("show_preclinical")
   showNegativeResults Boolean  @default(true) @map("show_negative_results")
+  digestFrequency     String?  @map("digest_frequency") @db.VarChar(10)
   createdAt           DateTime @default(now()) @map("created_at")
   updatedAt           DateTime @updatedAt @map("updated_at")
 
   user                User     @relation(fields: [userId], references: [id])
 
   @@map("user_feed_configs")
+}
+
+model CommunityReport {
+  id                String        @id @default(uuid()) @db.Uuid
+  patientId         String        @map("patient_id") @db.Uuid
+  reportType        String        @map("report_type") @db.VarChar(30)
+  consentScope      String        @map("consent_scope") @db.VarChar(30)
+  structuredData    Json          @map("structured_data")
+  narrative         String?
+  moderationStatus  String        @default("pending") @map("moderation_status") @db.VarChar(20)
+  verified          Boolean       @default(false)
+  relatedDrug       String?       @map("related_drug")
+  relatedTrialNctId String?       @map("related_trial_nct_id")
+  relatedItemId     String?       @map("related_item_id") @db.Uuid
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
+
+  patient           Patient       @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  relatedItem       ResearchItem? @relation(fields: [relatedItemId], references: [id])
+
+  @@index([patientId, createdAt(sort: Desc)])
+  @@index([relatedDrug])
+  @@index([moderationStatus])
+  @@map("community_reports")
 }

@@ -212,6 +212,7 @@ query GetFeedConfig {
     contentDepth
     showPreclinical
     showNegativeResults
+    digestFrequency
   }
 }
 
@@ -234,9 +235,154 @@ mutation UpdateFeedConfig($input: UpdateFeedConfigInput!) {
     contentDepth
     showPreclinical
     showNegativeResults
+    digestFrequency
   }
 }
 
 mutation ComputeRelevanceScores {
   computeRelevanceScores
+}
+
+# ============================================================================
+# Intel — Community Intelligence (I5)
+# ============================================================================
+
+query GetCommunityReports {
+  communityReports {
+    id
+    patientId
+    reportType
+    consentScope
+    structuredData
+    narrative
+    moderationStatus
+    verified
+    relatedDrug
+    relatedTrialNctId
+    relatedItemId
+    createdAt
+  }
+}
+
+query GetCommunityInsights($drugName: String!) {
+  communityInsights(drugName: $drugName) {
+    drugName
+    totalReports
+    averageRating
+    commonSideEffects {
+      effect
+      reportedByPercent
+      averageSeverity
+      averageOnset
+      resolvedPercent
+      topManagementTips
+    }
+    trialSummary {
+      totalReports
+      averageRating
+      commonPros
+      commonCons
+    }
+  }
+}
+
+query GetCommunityInsightsForItem($itemId: String!) {
+  communityInsightsForItem(itemId: $itemId) {
+    drugName
+    totalReports
+    averageRating
+    commonSideEffects {
+      effect
+      reportedByPercent
+      averageSeverity
+      averageOnset
+      resolvedPercent
+      topManagementTips
+    }
+    trialSummary {
+      totalReports
+      averageRating
+      commonPros
+      commonCons
+    }
+  }
+}
+
+query GetDigestPreview {
+  digestPreview {
+    urgent {
+      itemId
+      headline
+      summary
+      maturityBadge
+      relevanceReason
+      viewUrl
+    }
+    personallyRelevant {
+      itemId
+      headline
+      summary
+      maturityBadge
+      relevanceReason
+      viewUrl
+    }
+    landscapeHighlights {
+      itemId
+      headline
+      summary
+      maturityBadge
+      relevanceReason
+      viewUrl
+    }
+    communityHighlights {
+      itemId
+      headline
+      summary
+      maturityBadge
+      relevanceReason
+      viewUrl
+    }
+    trialUpdates {
+      itemId
+      headline
+      summary
+      maturityBadge
+      relevanceReason
+      viewUrl
+    }
+    totalNewItems
+  }
+}
+
+mutation SubmitCommunityReport($input: SubmitCommunityReportInput!) {
+  submitCommunityReport(input: $input) {
+    id
+    reportType
+    consentScope
+    structuredData
+    narrative
+    moderationStatus
+    verified
+    relatedDrug
+    relatedTrialNctId
+    createdAt
+  }
+}
+
+mutation ModerateCommunityReport($reportId: String!, $status: String!) {
+  moderateCommunityReport(reportId: $reportId, status: $status) {
+    id
+    moderationStatus
+  }
+}
+
+mutation UpdateDigestPreferences($frequency: String) {
+  updateDigestPreferences(frequency: $frequency) {
+    id
+    audienceType
+    contentDepth
+    showPreclinical
+    showNegativeResults
+    digestFrequency
+  }
 }
