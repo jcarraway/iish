@@ -1,8 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { View, Text, Pressable, ScrollView } from 'dripsy';
 import { ActivityIndicator, Linking } from 'react-native';
 import { Link } from 'solito/link';
-import { useGetResearchItemQuery } from '../generated/graphql';
+import {
+  useMeQuery,
+  useGetResearchItemQuery,
+  useGetPersonalizedNoteQuery,
+  useMarkItemViewedMutation,
+  useMarkItemSavedMutation,
+} from '../generated/graphql';
 
 // ============================================================================
 // Constants
@@ -43,9 +49,37 @@ interface Props {
 }
 
 export function IntelItemDetailScreen({ id }: Props) {
+  const { data: meData } = useMeQuery();
+  const isAuthenticated = !!meData?.me;
+
   const { data, loading, error } = useGetResearchItemQuery({ variables: { id } });
   const [showClinician, setShowClinician] = useState(false);
   const [showCOI, setShowCOI] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+
+  const [markViewed] = useMarkItemViewedMutation();
+  const [markSaved] = useMarkItemSavedMutation();
+
+  // Lazy-load personalized note (authenticated only)
+  const { data: noteData, loading: noteLoading } = useGetPersonalizedNoteQuery({
+    variables: { itemId: id },
+    skip: !isAuthenticated,
+  });
+
+  // Mark viewed on mount (authenticated only)
+  useEffect(() => {
+    if (isAuthenticated && id) {
+      markViewed({ variables: { itemId: id } }).catch(() => {});
+    }
+  }, [isAuthenticated, id, markViewed]);
+
+  const handleSave = async () => {
+    const newSaved = !isSaved;
+    setIsSaved(newSaved);
+    await markSaved({ variables: { itemId: id, saved: newSaved } }).catch(() => {
+      setIsSaved(!newSaved); // revert on error
+    });
+  };
 
   if (loading) {
     return (
@@ -211,6 +245,27 @@ export function IntelItemDetailScreen({ id }: Props) {
           </Text>
         )}
 
+        {/* Action buttons (authenticated) */}
+        {isAuthenticated && (
+          <View sx={{ mt: '$4', flexDirection: 'row', gap: '$2' }}>
+            <Pressable
+              onPress={handleSave}
+              sx={{
+                borderWidth: 1,
+                borderColor: isSaved ? '#7C3AED' : '$border',
+                borderRadius: 8,
+                px: '$4',
+                py: '$2',
+                backgroundColor: isSaved ? '#EDE9FE' : 'transparent',
+              }}
+            >
+              <Text sx={{ fontSize: 13, fontWeight: '600', color: isSaved ? '#7C3AED' : '$mutedForeground' }}>
+                {isSaved ? 'Saved' : 'Save'}
+              </Text>
+            </Pressable>
+          </View>
+        )}
+
         {/* Maturity context */}
         <View sx={{ mt: '$4', p: '$3', backgroundColor: tier.bg, borderRadius: 8 }}>
           <Text sx={{ fontSize: 12, fontWeight: '600', color: tier.color }}>
@@ -233,6 +288,31 @@ export function IntelItemDetailScreen({ id }: Props) {
             </Text>
           )}
         </View>
+
+        {/* Personalized Note (authenticated only) */}
+        {isAuthenticated && (
+          <View sx={{ mt: '$4', p: '$4', backgroundColor: '#F5F3FF', borderRadius: 12, borderWidth: 1, borderColor: '#DDD6FE' }}>
+            <Text sx={{ fontSize: 13, fontWeight: '700', color: '#7C3AED', mb: '$2' }}>
+              Personalized for Your Profile
+            </Text>
+            {noteLoading ? (
+              <View sx={{ flexDirection: 'row', alignItems: 'center', gap: '$2' }}>
+                <ActivityIndicator size="small" color="#7C3AED" />
+                <Text sx={{ fontSize: 13, color: '#7C3AED', fontStyle: 'italic' }}>
+                  Generating personalized analysis...
+                </Text>
+              </View>
+            ) : noteData?.personalizedNote?.note ? (
+              <Text sx={{ fontSize: 14, color: '#4C1D95', lineHeight: 22 }}>
+                {noteData.personalizedNote.note}
+              </Text>
+            ) : (
+              <Text sx={{ fontSize: 13, color: '#7C3AED', fontStyle: 'italic' }}>
+                Sign in to see personalized analysis based on your cancer profile.
+              </Text>
+            )}
+          </View>
+        )}
 
         {/* Clinician Summary (collapsible) */}
         {clinician && (

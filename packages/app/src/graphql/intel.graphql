@@ -154,3 +154,89 @@ mutation MigrateOldTaxonomy {
     breastSubtypesUpdated
   }
 }
+
+# ============================================================================
+# Intel — Feed Personalization (I4)
+# ============================================================================
+
+query GetPersonalizedFeed($filters: PersonalizedFeedFilters) {
+  personalizedFeed(filters: $filters) {
+    items {
+      item {
+        id
+        sourceType
+        sourceUrl
+        sourceCredibility
+        title
+        journalName
+        doi
+        publishedAt
+        cancerTypes
+        breastSubtypes
+        maturityTier
+        domains
+        treatmentClasses
+        biomarkerRelevance
+        evidenceLevel
+        practiceImpact
+        patientSummary
+        drugNames
+        hypeScore
+        hypeFlags
+        retractionStatus
+        classificationStatus
+        createdAt
+      }
+      relevanceScore
+      personalizedNote
+      viewed
+      saved
+      dismissed
+    }
+    total
+    hasMore
+  }
+}
+
+query GetPersonalizedNote($itemId: String!) {
+  personalizedNote(itemId: $itemId) {
+    itemId
+    note
+  }
+}
+
+query GetFeedConfig {
+  feedConfig {
+    id
+    audienceType
+    contentDepth
+    showPreclinical
+    showNegativeResults
+  }
+}
+
+mutation MarkItemViewed($itemId: String!) {
+  markItemViewed(itemId: $itemId)
+}
+
+mutation MarkItemSaved($itemId: String!, $saved: Boolean!) {
+  markItemSaved(itemId: $itemId, saved: $saved)
+}
+
+mutation MarkItemDismissed($itemId: String!) {
+  markItemDismissed(itemId: $itemId)
+}
+
+mutation UpdateFeedConfig($input: UpdateFeedConfigInput!) {
+  updateFeedConfig(input: $input) {
+    id
+    audienceType
+    contentDepth
+    showPreclinical
+    showNegativeResults
+  }
+}
+
+mutation ComputeRelevanceScores {
+  computeRelevanceScores
+}

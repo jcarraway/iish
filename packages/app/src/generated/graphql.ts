@@ -426,6 +426,16 @@ export type ExtractionResult = {
   status: Scalars['String']['output'];
 };
 
+export type FeedRelevanceItem = {
+  __typename?: 'FeedRelevanceItem';
+  dismissed: Scalars['Boolean']['output'];
+  item: ResearchItem;
+  personalizedNote?: Maybe<Scalars['String']['output']>;
+  relevanceScore: Scalars['Int']['output'];
+  saved: Scalars['Boolean']['output'];
+  viewed: Scalars['Boolean']['output'];
+};
+
 export type FertilityAssessment = {
   __typename?: 'FertilityAssessment';
   createdAt: Scalars['DateTime']['output'];
@@ -995,6 +1005,7 @@ export type Mutation = {
   cancelPipelineJob: PipelineJob;
   checkInsuranceCoverage: InsuranceCoverage;
   completeTreatment: SurvivorshipPlan;
+  computeRelevanceScores: Scalars['Int']['output'];
   confirmGenomics: GenomicResult;
   connectSite: ManufacturingOrder;
   createInsuranceDenial: InsuranceDenial;
@@ -1026,6 +1037,9 @@ export type Mutation = {
   interpretGenomics: GenomicInterpretation;
   logout: Scalars['Boolean']['output'];
   markEventComplete: SurveillanceEvent;
+  markItemDismissed: Scalars['Boolean']['output'];
+  markItemSaved: Scalars['Boolean']['output'];
+  markItemViewed: Scalars['Boolean']['output'];
   matchFinancialPrograms: Array<FinancialMatch>;
   migrateOldTaxonomy: TaxonomyMigrationResult;
   publishArticle: Article;
@@ -1059,6 +1073,7 @@ export type Mutation = {
   updateCareTeamMember: CareTeamMember;
   updateCascadeStep: RecurrenceEvent;
   updateDenialStatus: InsuranceDenial;
+  updateFeedConfig: UserFeedConfig;
   updateFertilityOutcome: FertilityAssessment;
   updateManufacturingOrderStatus: ManufacturingOrder;
   updateMatchStatus: Match;
@@ -1240,6 +1255,22 @@ export type MutationMarkEventCompleteArgs = {
 };
 
 
+export type MutationMarkItemDismissedArgs = {
+  itemId: Scalars['String']['input'];
+};
+
+
+export type MutationMarkItemSavedArgs = {
+  itemId: Scalars['String']['input'];
+  saved: Scalars['Boolean']['input'];
+};
+
+
+export type MutationMarkItemViewedArgs = {
+  itemId: Scalars['String']['input'];
+};
+
+
 export type MutationMatchFinancialProgramsArgs = {
   input: FinancialProfileInput;
 };
@@ -1395,6 +1426,11 @@ export type MutationUpdateCascadeStepArgs = {
 
 export type MutationUpdateDenialStatusArgs = {
   input: UpdateDenialStatusInput;
+};
+
+
+export type MutationUpdateFeedConfigArgs = {
+  input: UpdateFeedConfigInput;
 };
 
 
@@ -1633,6 +1669,28 @@ export type PeerReviewPrep = {
   tips: Array<Scalars['String']['output']>;
 };
 
+export type PersonalizedFeedFilters = {
+  domains?: InputMaybe<Array<Scalars['String']['input']>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  maturityTiers?: InputMaybe<Array<Scalars['String']['input']>>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  practiceImpact?: InputMaybe<Scalars['String']['input']>;
+  treatmentClasses?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+export type PersonalizedFeedResponse = {
+  __typename?: 'PersonalizedFeedResponse';
+  hasMore: Scalars['Boolean']['output'];
+  items: Array<FeedRelevanceItem>;
+  total: Scalars['Int']['output'];
+};
+
+export type PersonalizedNote = {
+  __typename?: 'PersonalizedNote';
+  itemId: Scalars['String']['output'];
+  note: Scalars['String']['output'];
+};
+
 export type PipelineJob = {
   __typename?: 'PipelineJob';
   completedAt?: Maybe<Scalars['DateTime']['output']>;
@@ -1718,6 +1776,7 @@ export type Query = {
   conversationGuide: ConversationGuide;
   ctdnaHistory: Array<CtdnaResult>;
   documents: Array<Document>;
+  feedConfig: UserFeedConfig;
   fertilityAssessment?: Maybe<FertilityAssessment>;
   fertilityFinancialPrograms: Array<FertilityFinancialProgram>;
   fertilityProviders: Array<FertilityProvider>;
@@ -1755,6 +1814,8 @@ export type Query = {
   oncologistBrief: OncologistBrief;
   patient?: Maybe<Patient>;
   patientProfile?: Maybe<PatientProfile>;
+  personalizedFeed: PersonalizedFeedResponse;
+  personalizedNote: PersonalizedNote;
   pipelineJob?: Maybe<PipelineJob>;
   pipelineJobs: Array<PipelineJob>;
   pipelineResults: PipelineResultDownloads;
@@ -1952,6 +2013,16 @@ export type QueryNotificationHistoryArgs = {
 
 export type QueryOncologistBriefArgs = {
   matchId: Scalars['String']['input'];
+};
+
+
+export type QueryPersonalizedFeedArgs = {
+  filters?: InputMaybe<PersonalizedFeedFilters>;
+};
+
+
+export type QueryPersonalizedNoteArgs = {
+  itemId: Scalars['String']['input'];
 };
 
 
@@ -2646,6 +2717,13 @@ export type UpdateDenialStatusInput = {
   status: Scalars['String']['input'];
 };
 
+export type UpdateFeedConfigInput = {
+  audienceType?: InputMaybe<Scalars['String']['input']>;
+  contentDepth?: InputMaybe<Scalars['String']['input']>;
+  showNegativeResults?: InputMaybe<Scalars['Boolean']['input']>;
+  showPreclinical?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
 export type UpdateFertilityOutcomeInput = {
   assessmentId: Scalars['String']['input'];
   preservationCompleted?: InputMaybe<Scalars['Boolean']['input']>;
@@ -2684,6 +2762,15 @@ export type UploadUrlResult = {
   expiresAt?: Maybe<Scalars['String']['output']>;
   s3Key: Scalars['String']['output'];
   uploadUrl: Scalars['String']['output'];
+};
+
+export type UserFeedConfig = {
+  __typename?: 'UserFeedConfig';
+  audienceType: Scalars['String']['output'];
+  contentDepth: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  showNegativeResults: Scalars['Boolean']['output'];
+  showPreclinical: Scalars['Boolean']['output'];
 };
 
 export type WaitingContent = {
@@ -3013,6 +3100,59 @@ export type MigrateOldTaxonomyMutationVariables = Exact<{ [key: string]: never; 
 
 
 export type MigrateOldTaxonomyMutation = { __typename?: 'Mutation', migrateOldTaxonomy: { __typename?: 'TaxonomyMigrationResult', practiceImpactUpdated: number, breastSubtypesUpdated: number } };
+
+export type GetPersonalizedFeedQueryVariables = Exact<{
+  filters?: InputMaybe<PersonalizedFeedFilters>;
+}>;
+
+
+export type GetPersonalizedFeedQuery = { __typename?: 'Query', personalizedFeed: { __typename?: 'PersonalizedFeedResponse', total: number, hasMore: boolean, items: Array<{ __typename?: 'FeedRelevanceItem', relevanceScore: number, personalizedNote?: string | null, viewed: boolean, saved: boolean, dismissed: boolean, item: { __typename?: 'ResearchItem', id: string, sourceType: string, sourceUrl?: string | null, sourceCredibility: string, title: string, journalName?: string | null, doi?: string | null, publishedAt?: string | null, cancerTypes: Array<string>, breastSubtypes: Array<string>, maturityTier?: string | null, domains: Array<string>, treatmentClasses: Array<string>, biomarkerRelevance: Array<string>, evidenceLevel?: string | null, practiceImpact?: string | null, patientSummary?: string | null, drugNames: Array<string>, hypeScore?: number | null, hypeFlags: Array<string>, retractionStatus?: string | null, classificationStatus: string, createdAt: string } }> } };
+
+export type GetPersonalizedNoteQueryVariables = Exact<{
+  itemId: Scalars['String']['input'];
+}>;
+
+
+export type GetPersonalizedNoteQuery = { __typename?: 'Query', personalizedNote: { __typename?: 'PersonalizedNote', itemId: string, note: string } };
+
+export type GetFeedConfigQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetFeedConfigQuery = { __typename?: 'Query', feedConfig: { __typename?: 'UserFeedConfig', id: string, audienceType: string, contentDepth: string, showPreclinical: boolean, showNegativeResults: boolean } };
+
+export type MarkItemViewedMutationVariables = Exact<{
+  itemId: Scalars['String']['input'];
+}>;
+
+
+export type MarkItemViewedMutation = { __typename?: 'Mutation', markItemViewed: boolean };
+
+export type MarkItemSavedMutationVariables = Exact<{
+  itemId: Scalars['String']['input'];
+  saved: Scalars['Boolean']['input'];
+}>;
+
+
+export type MarkItemSavedMutation = { __typename?: 'Mutation', markItemSaved: boolean };
+
+export type MarkItemDismissedMutationVariables = Exact<{
+  itemId: Scalars['String']['input'];
+}>;
+
+
+export type MarkItemDismissedMutation = { __typename?: 'Mutation', markItemDismissed: boolean };
+
+export type UpdateFeedConfigMutationVariables = Exact<{
+  input: UpdateFeedConfigInput;
+}>;
+
+
+export type UpdateFeedConfigMutation = { __typename?: 'Mutation', updateFeedConfig: { __typename?: 'UserFeedConfig', id: string, audienceType: string, contentDepth: string, showPreclinical: boolean, showNegativeResults: boolean } };
+
+export type ComputeRelevanceScoresMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ComputeRelevanceScoresMutation = { __typename?: 'Mutation', computeRelevanceScores: number };
 
 export type GetArticleQueryVariables = Exact<{
   slug: Scalars['String']['input'];
@@ -6213,6 +6353,333 @@ export function useMigrateOldTaxonomyMutation(baseOptions?: Apollo.MutationHookO
 export type MigrateOldTaxonomyMutationHookResult = ReturnType<typeof useMigrateOldTaxonomyMutation>;
 export type MigrateOldTaxonomyMutationResult = Apollo.MutationResult<MigrateOldTaxonomyMutation>;
 export type MigrateOldTaxonomyMutationOptions = Apollo.BaseMutationOptions<MigrateOldTaxonomyMutation, MigrateOldTaxonomyMutationVariables>;
+export const GetPersonalizedFeedDocument = gql`
+    query GetPersonalizedFeed($filters: PersonalizedFeedFilters) {
+  personalizedFeed(filters: $filters) {
+    items {
+      item {
+        id
+        sourceType
+        sourceUrl
+        sourceCredibility
+        title
+        journalName
+        doi
+        publishedAt
+        cancerTypes
+        breastSubtypes
+        maturityTier
+        domains
+        treatmentClasses
+        biomarkerRelevance
+        evidenceLevel
+        practiceImpact
+        patientSummary
+        drugNames
+        hypeScore
+        hypeFlags
+        retractionStatus
+        classificationStatus
+        createdAt
+      }
+      relevanceScore
+      personalizedNote
+      viewed
+      saved
+      dismissed
+    }
+    total
+    hasMore
+  }
+}
+    `;
+
+/**
+ * __useGetPersonalizedFeedQuery__
+ *
+ * To run a query within a React component, call `useGetPersonalizedFeedQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetPersonalizedFeedQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPersonalizedFeedQuery({
+ *   variables: {
+ *      filters: // value for 'filters'
+ *   },
+ * });
+ */
+export function useGetPersonalizedFeedQuery(baseOptions?: Apollo.QueryHookOptions<GetPersonalizedFeedQuery, GetPersonalizedFeedQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetPersonalizedFeedQuery, GetPersonalizedFeedQueryVariables>(GetPersonalizedFeedDocument, options);
+      }
+export function useGetPersonalizedFeedLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetPersonalizedFeedQuery, GetPersonalizedFeedQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetPersonalizedFeedQuery, GetPersonalizedFeedQueryVariables>(GetPersonalizedFeedDocument, options);
+        }
+// @ts-ignore
+export function useGetPersonalizedFeedSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetPersonalizedFeedQuery, GetPersonalizedFeedQueryVariables>): Apollo.UseSuspenseQueryResult<GetPersonalizedFeedQuery, GetPersonalizedFeedQueryVariables>;
+export function useGetPersonalizedFeedSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetPersonalizedFeedQuery, GetPersonalizedFeedQueryVariables>): Apollo.UseSuspenseQueryResult<GetPersonalizedFeedQuery | undefined, GetPersonalizedFeedQueryVariables>;
+export function useGetPersonalizedFeedSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetPersonalizedFeedQuery, GetPersonalizedFeedQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetPersonalizedFeedQuery, GetPersonalizedFeedQueryVariables>(GetPersonalizedFeedDocument, options);
+        }
+export type GetPersonalizedFeedQueryHookResult = ReturnType<typeof useGetPersonalizedFeedQuery>;
+export type GetPersonalizedFeedLazyQueryHookResult = ReturnType<typeof useGetPersonalizedFeedLazyQuery>;
+export type GetPersonalizedFeedSuspenseQueryHookResult = ReturnType<typeof useGetPersonalizedFeedSuspenseQuery>;
+export type GetPersonalizedFeedQueryResult = Apollo.QueryResult<GetPersonalizedFeedQuery, GetPersonalizedFeedQueryVariables>;
+export const GetPersonalizedNoteDocument = gql`
+    query GetPersonalizedNote($itemId: String!) {
+  personalizedNote(itemId: $itemId) {
+    itemId
+    note
+  }
+}
+    `;
+
+/**
+ * __useGetPersonalizedNoteQuery__
+ *
+ * To run a query within a React component, call `useGetPersonalizedNoteQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetPersonalizedNoteQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPersonalizedNoteQuery({
+ *   variables: {
+ *      itemId: // value for 'itemId'
+ *   },
+ * });
+ */
+export function useGetPersonalizedNoteQuery(baseOptions: Apollo.QueryHookOptions<GetPersonalizedNoteQuery, GetPersonalizedNoteQueryVariables> & ({ variables: GetPersonalizedNoteQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetPersonalizedNoteQuery, GetPersonalizedNoteQueryVariables>(GetPersonalizedNoteDocument, options);
+      }
+export function useGetPersonalizedNoteLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetPersonalizedNoteQuery, GetPersonalizedNoteQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetPersonalizedNoteQuery, GetPersonalizedNoteQueryVariables>(GetPersonalizedNoteDocument, options);
+        }
+// @ts-ignore
+export function useGetPersonalizedNoteSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetPersonalizedNoteQuery, GetPersonalizedNoteQueryVariables>): Apollo.UseSuspenseQueryResult<GetPersonalizedNoteQuery, GetPersonalizedNoteQueryVariables>;
+export function useGetPersonalizedNoteSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetPersonalizedNoteQuery, GetPersonalizedNoteQueryVariables>): Apollo.UseSuspenseQueryResult<GetPersonalizedNoteQuery | undefined, GetPersonalizedNoteQueryVariables>;
+export function useGetPersonalizedNoteSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetPersonalizedNoteQuery, GetPersonalizedNoteQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetPersonalizedNoteQuery, GetPersonalizedNoteQueryVariables>(GetPersonalizedNoteDocument, options);
+        }
+export type GetPersonalizedNoteQueryHookResult = ReturnType<typeof useGetPersonalizedNoteQuery>;
+export type GetPersonalizedNoteLazyQueryHookResult = ReturnType<typeof useGetPersonalizedNoteLazyQuery>;
+export type GetPersonalizedNoteSuspenseQueryHookResult = ReturnType<typeof useGetPersonalizedNoteSuspenseQuery>;
+export type GetPersonalizedNoteQueryResult = Apollo.QueryResult<GetPersonalizedNoteQuery, GetPersonalizedNoteQueryVariables>;
+export const GetFeedConfigDocument = gql`
+    query GetFeedConfig {
+  feedConfig {
+    id
+    audienceType
+    contentDepth
+    showPreclinical
+    showNegativeResults
+  }
+}
+    `;
+
+/**
+ * __useGetFeedConfigQuery__
+ *
+ * To run a query within a React component, call `useGetFeedConfigQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetFeedConfigQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetFeedConfigQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetFeedConfigQuery(baseOptions?: Apollo.QueryHookOptions<GetFeedConfigQuery, GetFeedConfigQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetFeedConfigQuery, GetFeedConfigQueryVariables>(GetFeedConfigDocument, options);
+      }
+export function useGetFeedConfigLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetFeedConfigQuery, GetFeedConfigQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetFeedConfigQuery, GetFeedConfigQueryVariables>(GetFeedConfigDocument, options);
+        }
+// @ts-ignore
+export function useGetFeedConfigSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetFeedConfigQuery, GetFeedConfigQueryVariables>): Apollo.UseSuspenseQueryResult<GetFeedConfigQuery, GetFeedConfigQueryVariables>;
+export function useGetFeedConfigSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetFeedConfigQuery, GetFeedConfigQueryVariables>): Apollo.UseSuspenseQueryResult<GetFeedConfigQuery | undefined, GetFeedConfigQueryVariables>;
+export function useGetFeedConfigSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetFeedConfigQuery, GetFeedConfigQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetFeedConfigQuery, GetFeedConfigQueryVariables>(GetFeedConfigDocument, options);
+        }
+export type GetFeedConfigQueryHookResult = ReturnType<typeof useGetFeedConfigQuery>;
+export type GetFeedConfigLazyQueryHookResult = ReturnType<typeof useGetFeedConfigLazyQuery>;
+export type GetFeedConfigSuspenseQueryHookResult = ReturnType<typeof useGetFeedConfigSuspenseQuery>;
+export type GetFeedConfigQueryResult = Apollo.QueryResult<GetFeedConfigQuery, GetFeedConfigQueryVariables>;
+export const MarkItemViewedDocument = gql`
+    mutation MarkItemViewed($itemId: String!) {
+  markItemViewed(itemId: $itemId)
+}
+    `;
+export type MarkItemViewedMutationFn = Apollo.MutationFunction<MarkItemViewedMutation, MarkItemViewedMutationVariables>;
+
+/**
+ * __useMarkItemViewedMutation__
+ *
+ * To run a mutation, you first call `useMarkItemViewedMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useMarkItemViewedMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [markItemViewedMutation, { data, loading, error }] = useMarkItemViewedMutation({
+ *   variables: {
+ *      itemId: // value for 'itemId'
+ *   },
+ * });
+ */
+export function useMarkItemViewedMutation(baseOptions?: Apollo.MutationHookOptions<MarkItemViewedMutation, MarkItemViewedMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<MarkItemViewedMutation, MarkItemViewedMutationVariables>(MarkItemViewedDocument, options);
+      }
+export type MarkItemViewedMutationHookResult = ReturnType<typeof useMarkItemViewedMutation>;
+export type MarkItemViewedMutationResult = Apollo.MutationResult<MarkItemViewedMutation>;
+export type MarkItemViewedMutationOptions = Apollo.BaseMutationOptions<MarkItemViewedMutation, MarkItemViewedMutationVariables>;
+export const MarkItemSavedDocument = gql`
+    mutation MarkItemSaved($itemId: String!, $saved: Boolean!) {
+  markItemSaved(itemId: $itemId, saved: $saved)
+}
+    `;
+export type MarkItemSavedMutationFn = Apollo.MutationFunction<MarkItemSavedMutation, MarkItemSavedMutationVariables>;
+
+/**
+ * __useMarkItemSavedMutation__
+ *
+ * To run a mutation, you first call `useMarkItemSavedMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useMarkItemSavedMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [markItemSavedMutation, { data, loading, error }] = useMarkItemSavedMutation({
+ *   variables: {
+ *      itemId: // value for 'itemId'
+ *      saved: // value for 'saved'
+ *   },
+ * });
+ */
+export function useMarkItemSavedMutation(baseOptions?: Apollo.MutationHookOptions<MarkItemSavedMutation, MarkItemSavedMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<MarkItemSavedMutation, MarkItemSavedMutationVariables>(MarkItemSavedDocument, options);
+      }
+export type MarkItemSavedMutationHookResult = ReturnType<typeof useMarkItemSavedMutation>;
+export type MarkItemSavedMutationResult = Apollo.MutationResult<MarkItemSavedMutation>;
+export type MarkItemSavedMutationOptions = Apollo.BaseMutationOptions<MarkItemSavedMutation, MarkItemSavedMutationVariables>;
+export const MarkItemDismissedDocument = gql`
+    mutation MarkItemDismissed($itemId: String!) {
+  markItemDismissed(itemId: $itemId)
+}
+    `;
+export type MarkItemDismissedMutationFn = Apollo.MutationFunction<MarkItemDismissedMutation, MarkItemDismissedMutationVariables>;
+
+/**
+ * __useMarkItemDismissedMutation__
+ *
+ * To run a mutation, you first call `useMarkItemDismissedMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useMarkItemDismissedMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [markItemDismissedMutation, { data, loading, error }] = useMarkItemDismissedMutation({
+ *   variables: {
+ *      itemId: // value for 'itemId'
+ *   },
+ * });
+ */
+export function useMarkItemDismissedMutation(baseOptions?: Apollo.MutationHookOptions<MarkItemDismissedMutation, MarkItemDismissedMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<MarkItemDismissedMutation, MarkItemDismissedMutationVariables>(MarkItemDismissedDocument, options);
+      }
+export type MarkItemDismissedMutationHookResult = ReturnType<typeof useMarkItemDismissedMutation>;
+export type MarkItemDismissedMutationResult = Apollo.MutationResult<MarkItemDismissedMutation>;
+export type MarkItemDismissedMutationOptions = Apollo.BaseMutationOptions<MarkItemDismissedMutation, MarkItemDismissedMutationVariables>;
+export const UpdateFeedConfigDocument = gql`
+    mutation UpdateFeedConfig($input: UpdateFeedConfigInput!) {
+  updateFeedConfig(input: $input) {
+    id
+    audienceType
+    contentDepth
+    showPreclinical
+    showNegativeResults
+  }
+}
+    `;
+export type UpdateFeedConfigMutationFn = Apollo.MutationFunction<UpdateFeedConfigMutation, UpdateFeedConfigMutationVariables>;
+
+/**
+ * __useUpdateFeedConfigMutation__
+ *
+ * To run a mutation, you first call `useUpdateFeedConfigMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateFeedConfigMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateFeedConfigMutation, { data, loading, error }] = useUpdateFeedConfigMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUpdateFeedConfigMutation(baseOptions?: Apollo.MutationHookOptions<UpdateFeedConfigMutation, UpdateFeedConfigMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateFeedConfigMutation, UpdateFeedConfigMutationVariables>(UpdateFeedConfigDocument, options);
+      }
+export type UpdateFeedConfigMutationHookResult = ReturnType<typeof useUpdateFeedConfigMutation>;
+export type UpdateFeedConfigMutationResult = Apollo.MutationResult<UpdateFeedConfigMutation>;
+export type UpdateFeedConfigMutationOptions = Apollo.BaseMutationOptions<UpdateFeedConfigMutation, UpdateFeedConfigMutationVariables>;
+export const ComputeRelevanceScoresDocument = gql`
+    mutation ComputeRelevanceScores {
+  computeRelevanceScores
+}
+    `;
+export type ComputeRelevanceScoresMutationFn = Apollo.MutationFunction<ComputeRelevanceScoresMutation, ComputeRelevanceScoresMutationVariables>;
+
+/**
+ * __useComputeRelevanceScoresMutation__
+ *
+ * To run a mutation, you first call `useComputeRelevanceScoresMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useComputeRelevanceScoresMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [computeRelevanceScoresMutation, { data, loading, error }] = useComputeRelevanceScoresMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useComputeRelevanceScoresMutation(baseOptions?: Apollo.MutationHookOptions<ComputeRelevanceScoresMutation, ComputeRelevanceScoresMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ComputeRelevanceScoresMutation, ComputeRelevanceScoresMutationVariables>(ComputeRelevanceScoresDocument, options);
+      }
+export type ComputeRelevanceScoresMutationHookResult = ReturnType<typeof useComputeRelevanceScoresMutation>;
+export type ComputeRelevanceScoresMutationResult = Apollo.MutationResult<ComputeRelevanceScoresMutation>;
+export type ComputeRelevanceScoresMutationOptions = Apollo.BaseMutationOptions<ComputeRelevanceScoresMutation, ComputeRelevanceScoresMutationVariables>;
 export const GetArticleDocument = gql`
     query GetArticle($slug: String!) {
   article(slug: $slug) {

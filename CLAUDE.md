@@ -12,7 +12,7 @@ oncovax/
 │   ├── web/                    # Next.js 15.0.0, React 19.0.0, Tailwind CSS 3.4
 │   │   ├── app/                # App Router — pages + 89 API route files + 2 cron endpoints
 │   │   ├── components/         # 3 web-only components (DocumentUploader, AdministrationSiteCard, AdministrationSiteMap)
-│   │   └── lib/                # 53 library files (see below)
+│   │   └── lib/                # 54 library files (see below)
 │   └── mobile/                 # Expo SDK 54, React Native 0.76.9, Dripsy + Solito
 │       ├── app/                # Expo Router — 102 route files across 25 directories
 │       └── lib/                # apollo.ts (GraphQL client), auth.ts (SecureStore guard)
@@ -21,9 +21,9 @@ oncovax/
 │   ├── ui/                     # Thin RN + Solito re-exports (@oncovax/ui)
 │   ├── app/                    # 98 shared screens, 24 Dripsy components, theme, 150+ generated hooks (@oncovax/app)
 │   │   └── src/{screens[94],components[24],providers,theme,graphql,generated,utils,index}.ts
-│   ├── api/                    # Apollo Server schema (119+ types, 73Q, 77M) + 26 resolver files (@oncovax/api)
+│   ├── api/                    # Apollo Server schema (125+ types, 76Q, 82M) + 26 resolver files (@oncovax/api)
 │   │   └── src/{schema,resolvers[24 files],context,index}.ts
-│   ├── db/                     # Prisma 7 + PostgreSQL (45 models)
+│   ├── db/                     # Prisma 7 + PostgreSQL (47 models)
 │   │   ├── prisma/schema.prisma
 │   │   └── prisma.config.ts    # defineConfig — url goes HERE, not in schema
 │   ├── shared/                 # Types (720+ lines), Zod schemas, constants, auth
@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
 - Generator: `prisma-client` (not `prisma-client-js`), `output` field required
 - Client needs driver adapter: `new PrismaClient({ adapter: new PrismaPg({ connectionString }) })`
 - All models use `@map("snake_case")` columns and `@@map("table_names")`
-- 45 models total (43 + ResearchItem, IngestionSyncState from INTEL I1)
+- 47 models total (45 + FeedRelevance, UserFeedConfig from INTEL I4)
 
 ### Auth: Custom Magic Link (NOT NextAuth)
 - `jose` HS256 for JWT tokens with 15min expiry
@@ -162,9 +162,12 @@ export async function POST(req: NextRequest) {
 **INTEL — I3: Additional Sources + FDA Alerts (complete):**
 - No new Prisma models. 5 new source fetchers in intel-sources.ts (~400 lines): fetchFDADrugApprovals + fetchFDASafetyAlerts (openFDA drug labels + adverse events, 500ms rate limit, optional OPENFDA_API_KEY), fetchPreprints (bioRxiv + medRxiv API with breast cancer keyword filter, 200ms rate limit), fetchTrialUpdates (ClinicalTrials.gov v2 API — new registrations + results postings, 350ms rate limit), fetchInstitutionNews (7 RSS feeds — NCI, MSK, MD Anderson, Dana-Farber, Mayo, Hopkins, Cleveland Clinic — regex XML parsing, 500ms between feeds), fetchNIHGrants (NIH Reporter POST API, 6s rate limit). Normalized interfaces: FDAItem, PreprintArticle, TrialUpdate, NewsItem, NIHGrant. 5 new ingest functions in intel-manager.ts (~350 lines, 24 functions total up from 19): ingestFDAItems (sourceType fda, 180-day default lookback, safety items prefixed [FDA SAFETY ALERT]), ingestPreprints (sourceType preprint, sourceCredibility preprint, 30-day lookback), ingestTrialUpdates (sourceType clinicaltrials, 30-day lookback, NCT ID tracking), ingestInstitutionNews (sourceType institution, 30-day lookback), ingestNIHGrants (sourceType nih_reporter, 90-day lookback). runIngestionCycle expanded: 6 sequential sources → classify → summarize → QC. triggerIngestion: switch for all 6 sources. GraphQL: +2 types (SourceIngestionResult, IngestionBreakdown). IntelSettingsScreen rewritten from stub to real source management UI (~150 lines): sync state display per source (relative time, total ingested, last run count, errors), Sync Now button with loading state, source descriptions + badges (Academic/Federal/Preprint/News). IntelFeedScreen: source type badge pills (PubMed/FDA/Preprint/Trial/News/NIH), NOT PEER-REVIEWED amber badge for preprints, FDA ALERT red badge for FDA safety items. IntelItemDetailScreen: source-specific banners (preprint disclaimer, FDA regulatory, ClinicalTrials.gov NCT, NIH funding details), source-aware external links. **6 ingestion sources (up from 1): PubMed, FDA, bioRxiv/medRxiv, ClinicalTrials.gov, Institutional News, NIH Reporter. All feed through existing classify→summarize→QC pipeline.**
 
+**INTEL — I4: Personalization Engine + Feed UI (complete):**
+- 2 Prisma models (FeedRelevance with per-user per-item relevance score + interaction tracking + cached personalized note, UserFeedConfig with audience/depth/preclinical/negative toggles). 1 new lib file (feed-personalization.ts: 13 functions — profileToSubtype maps receptor status to I2 snake_case, extractPatientBiomarkers aggregates from profile/receptors/genomics, getCurrentDrugs filters active treatments, mapStageToTreatmentStage maps AJCC to I2 stages, calculateRelevanceScore 0-100 weighted algorithm with safety alert force-100, computeRelevanceScores batch upsert, getPersonalizedFeed relevance-ranked with config filtering, generatePersonalizedNote lazy Claude + Redis 7-day cache + DB cache, markItemViewed/Saved/Dismissed/Shared interaction upserts, getUserFeedConfig/updateUserFeedConfig). GraphQL: +6 types (FeedRelevanceItem, PersonalizedFeedResponse, UserFeedConfig, PersonalizedNote, PersonalizedFeedFilters input, UpdateFeedConfigInput input) + 3 queries (personalizedFeed, personalizedNote, feedConfig) + 5 mutations (markItemViewed, markItemSaved, markItemDismissed, updateFeedConfig, computeRelevanceScores), 8 resolver operations in intel.ts, 8 context signatures, 8 route handler adapters. 8 operations in intel.graphql (16 total, up from 8). 3 screens updated: IntelFeedScreen (dual-mode: auth uses personalizedFeed ranked by relevance with score pills + For You badge + save/dismiss buttons, unauth uses chronological researchItems unchanged), IntelItemDetailScreen (personalized note section with purple card + lazy Claude generation, mark viewed on mount, save button), IntelSettingsScreen (feed preferences section with audience/depth pills + preclinical/negative toggles, auto-save on change). **Personalized relevance-ranked feed for authenticated users. Safety alerts for current drugs force score to 100. Public browsing unchanged.**
+
 ## What's NOT Built Yet
 
-**Cross-cutting:** INTEL I4-I7 (remaining intel sessions), VISUAL (30 visualizations), CARE (care commerce), COOL (cold capping), ENGINE (opportunity detection).
+**Cross-cutting:** INTEL I5-I7 (remaining intel sessions), VISUAL (30 visualizations), CARE (care commerce), COOL (cold capping), ENGINE (opportunity detection).
 
 **Access gap:** PALLIATIVE, PEERS.
 

@@ -20,8 +20,10 @@ model User {
   createdAt                      DateTime   @default(now()) @map("created_at")
   updatedAt                      DateTime   @updatedAt @map("updated_at")
 
-  patient Patient?
-  events  UserEvent[]
+  patient          Patient?
+  events           UserEvent[]
+  feedRelevances   FeedRelevance[]
+  feedConfig       UserFeedConfig?
 
   @@map("users")
 }
@@ -1218,6 +1220,8 @@ model ResearchItem {
   @@index([contentHash])
   @@index([sourceType, sourceItemId])
   @@map("research_items")
+
+  feedRelevances FeedRelevance[]
 }
 
 model IngestionSyncState {
@@ -1231,4 +1235,42 @@ model IngestionSyncState {
   updatedAt             DateTime  @updatedAt @map("updated_at")
 
   @@map("ingestion_sync_state")
+}
+
+model FeedRelevance {
+  id               String       @id @default(cuid()) @map("id")
+  userId           String       @map("user_id") @db.Uuid
+  itemId           String       @map("item_id") @db.Uuid
+  relevanceScore   Int          @default(0) @map("relevance_score")
+  personalizedNote String?      @map("personalized_note")
+  viewed           Boolean      @default(false) @map("viewed")
+  viewedAt         DateTime?    @map("viewed_at")
+  saved            Boolean      @default(false) @map("saved")
+  dismissed        Boolean      @default(false) @map("dismissed")
+  shared           Boolean      @default(false) @map("shared")
+  createdAt        DateTime     @default(now()) @map("created_at")
+  updatedAt        DateTime     @updatedAt @map("updated_at")
+
+  user             User         @relation(fields: [userId], references: [id])
+  item             ResearchItem @relation(fields: [itemId], references: [id])
+
+  @@unique([userId, itemId])
+  @@index([userId, relevanceScore(sort: Desc)])
+  @@index([userId, dismissed])
+  @@map("feed_relevance")
+}
+
+model UserFeedConfig {
+  id                  String   @id @default(cuid()) @map("id")
+  userId              String   @unique @map("user_id") @db.Uuid
+  audienceType        String   @default("patient") @map("audience_type") @db.VarChar(20)
+  contentDepth        String   @default("standard") @map("content_depth") @db.VarChar(20)
+  showPreclinical     Boolean  @default(true) @map("show_preclinical")
+  showNegativeResults Boolean  @default(true) @map("show_negative_results")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  user                User     @relation(fields: [userId], references: [id])
+
+  @@map("user_feed_configs")
 }

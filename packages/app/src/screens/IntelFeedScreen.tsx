@@ -2,7 +2,14 @@ import { useState, useCallback } from 'react';
 import { View, Text, Pressable, ScrollView } from 'dripsy';
 import { ActivityIndicator, TextInput } from 'react-native';
 import { Link } from 'solito/link';
-import { useGetResearchItemsQuery, useSearchResearchQuery } from '../generated/graphql';
+import {
+  useMeQuery,
+  useGetResearchItemsQuery,
+  useSearchResearchQuery,
+  useGetPersonalizedFeedQuery,
+  useMarkItemSavedMutation,
+  useMarkItemDismissedMutation,
+} from '../generated/graphql';
 
 // ============================================================================
 // Constants
@@ -48,16 +55,34 @@ const SOURCE_BADGES: Record<string, { label: string; color: string; bg: string }
   nih_reporter: { label: 'NIH', color: '#166534', bg: '#DCFCE7' },
 };
 
+function getRelevanceColor(score: number): string {
+  if (score >= 70) return '#16A34A';
+  if (score >= 40) return '#D97706';
+  return '#6B7280';
+}
+
+function getRelevanceBg(score: number): string {
+  if (score >= 70) return '#DCFCE7';
+  if (score >= 40) return '#FEF3C7';
+  return '#F3F4F6';
+}
+
 // ============================================================================
 // Screen
 // ============================================================================
 
 export function IntelFeedScreen() {
+  const { data: meData } = useMeQuery();
+  const isAuthenticated = !!meData?.me;
+
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSearch, setActiveSearch] = useState('');
   const [selectedTiers, setSelectedTiers] = useState<string[]>([]);
   const [selectedDomains, setSelectedDomains] = useState<string[]>([]);
   const [selectedImpact, setSelectedImpact] = useState<string | null>(null);
+
+  const [markSaved] = useMarkItemSavedMutation();
+  const [markDismissed] = useMarkItemDismissedMutation();
 
   const filters = {
     ...(selectedTiers.length > 0 ? { maturityTiers: selectedTiers } : {}),
@@ -66,9 +91,10 @@ export function IntelFeedScreen() {
     limit: 30,
   };
 
+  // Public feed (unauthenticated or search mode)
   const { data: feedData, loading: feedLoading } = useGetResearchItemsQuery({
     variables: { filters },
-    skip: activeSearch.length > 0,
+    skip: activeSearch.length > 0 || isAuthenticated,
   });
 
   const { data: searchData, loading: searchLoading } = useSearchResearchQuery({
@@ -76,8 +102,29 @@ export function IntelFeedScreen() {
     skip: activeSearch.length === 0,
   });
 
-  const loading = feedLoading || searchLoading;
-  const items = activeSearch ? (searchData?.searchResearch ?? []) : (feedData?.researchItems ?? []);
+  // Personalized feed (authenticated, non-search)
+  const { data: personalizedData, loading: personalizedLoading, refetch: refetchPersonalized } =
+    useGetPersonalizedFeedQuery({
+      variables: { filters },
+      skip: !isAuthenticated || activeSearch.length > 0,
+    });
+
+  const loading = feedLoading || searchLoading || personalizedLoading;
+
+  // Determine items to display
+  let items: any[] = [];
+  let totalCount = 0;
+
+  if (activeSearch) {
+    items = (searchData?.searchResearch ?? []).map((item: any) => ({ item, relevanceScore: null }));
+    totalCount = items.length;
+  } else if (isAuthenticated && personalizedData?.personalizedFeed) {
+    items = personalizedData.personalizedFeed.items;
+    totalCount = personalizedData.personalizedFeed.total;
+  } else {
+    items = (feedData?.researchItems ?? []).map((item: any) => ({ item, relevanceScore: null }));
+    totalCount = items.length;
+  }
 
   const toggleTier = useCallback((tier: string) => {
     setSelectedTiers(prev =>
@@ -95,6 +142,16 @@ export function IntelFeedScreen() {
     setActiveSearch(searchQuery.trim());
   }, [searchQuery]);
 
+  const handleSave = useCallback(async (itemId: string, currentlySaved: boolean) => {
+    await markSaved({ variables: { itemId, saved: !currentlySaved } });
+    refetchPersonalized();
+  }, [markSaved, refetchPersonalized]);
+
+  const handleDismiss = useCallback(async (itemId: string) => {
+    await markDismissed({ variables: { itemId } });
+    refetchPersonalized();
+  }, [markDismissed, refetchPersonalized]);
+
   return (
     <ScrollView sx={{ flex: 1 }}>
       <View sx={{ mx: 'auto', maxWidth: 896, px: '$6', py: '$10', width: '100%' }}>
@@ -102,7 +159,9 @@ export function IntelFeedScreen() {
           Research Intelligence
         </Text>
         <Text sx={{ mt: '$2', fontSize: 14, color: '$mutedForeground' }}>
-          Curated breast cancer research — classified by maturity and practice impact
+          {isAuthenticated && !activeSearch
+            ? 'Personalized for your profile — ranked by relevance to your cancer type, biomarkers, and treatments'
+            : 'Curated breast cancer research — classified by maturity and practice impact'}
         </Text>
 
         {/* Search */}
@@ -239,110 +298,154 @@ export function IntelFeedScreen() {
         ) : (
           <View sx={{ mt: '$6', gap: '$3' }}>
             <Text sx={{ fontSize: 12, color: '$mutedForeground' }}>
-              {items.length} result{items.length !== 1 ? 's' : ''}
+              {totalCount} result{totalCount !== 1 ? 's' : ''}
             </Text>
-            {items.map((item: any) => {
+            {items.map((entry: any) => {
+              const item = entry.item;
+              const relevanceScore: number | null = entry.relevanceScore ?? null;
+              const saved: boolean = entry.saved ?? false;
               const tier = getTierStyle(item.maturityTier);
               const impact = getImpactStyle(item.practiceImpact);
               return (
-                <Link key={item.id} href={`/intel/${item.id}`}>
-                  <View sx={{
-                    borderWidth: item.practiceImpact === 'safety_alert' ? 2 : 1,
-                    borderColor: item.practiceImpact === 'safety_alert' ? '#DC2626' : (item.retractionStatus === 'retracted' ? '#DC2626' : '$border'),
-                    borderRadius: 12,
-                    p: '$4',
-                  }}>
-                    {/* Top row: tier + impact + retraction badges */}
-                    <View sx={{ flexDirection: 'row', gap: '$2', flexWrap: 'wrap', mb: '$2' }}>
-                      <View sx={{ backgroundColor: tier.bg, borderRadius: 12, px: '$2', py: 2 }}>
-                        <Text sx={{ fontSize: 11, fontWeight: '700', color: tier.color }}>{tier.key}</Text>
-                      </View>
-                      {impact && (
-                        <View sx={{ backgroundColor: impact.color + '15', borderRadius: 12, px: '$2', py: 2 }}>
-                          <Text sx={{ fontSize: 11, fontWeight: '600', color: impact.color }}>
-                            {impact.label}
-                          </Text>
-                        </View>
-                      )}
-                      {item.retractionStatus === 'retracted' && (
-                        <View sx={{ backgroundColor: '#FEE2E2', borderRadius: 12, px: '$2', py: 2 }}>
-                          <Text sx={{ fontSize: 11, fontWeight: '700', color: '#DC2626' }}>RETRACTED</Text>
-                        </View>
-                      )}
-                      {item.retractionStatus === 'expression_of_concern' && (
-                        <View sx={{ backgroundColor: '#FEF3C7', borderRadius: 12, px: '$2', py: 2 }}>
-                          <Text sx={{ fontSize: 11, fontWeight: '700', color: '#92400E' }}>CONCERN</Text>
-                        </View>
-                      )}
-                      {item.sourceCredibility === 'tier1_journal' && (
-                        <View sx={{ backgroundColor: '#FEF3C7', borderRadius: 12, px: '$2', py: 2 }}>
-                          <Text sx={{ fontSize: 11, fontWeight: '600', color: '#92400E' }}>Top Journal</Text>
-                        </View>
-                      )}
-                      {/* Source type badge */}
-                      {(() => {
-                        const sb = SOURCE_BADGES[item.sourceType as string];
-                        return sb ? (
-                          <View sx={{ backgroundColor: sb.bg, borderRadius: 12, px: '$2', py: 2 }}>
-                            <Text sx={{ fontSize: 11, fontWeight: '600', color: sb.color }}>{sb.label}</Text>
-                          </View>
-                        ) : null;
-                      })()}
-                      {/* Preprint warning */}
-                      {item.sourceType === 'preprint' && (
-                        <View sx={{ backgroundColor: '#FEF3C7', borderRadius: 12, px: '$2', py: 2, borderWidth: 1, borderColor: '#F59E0B' }}>
-                          <Text sx={{ fontSize: 11, fontWeight: '700', color: '#92400E' }}>NOT PEER-REVIEWED</Text>
-                        </View>
-                      )}
-                      {/* FDA safety alert */}
-                      {item.sourceType === 'fda' && item.practiceImpact === 'safety_alert' && (
-                        <View sx={{ backgroundColor: '#FEE2E2', borderRadius: 12, px: '$2', py: 2 }}>
-                          <Text sx={{ fontSize: 11, fontWeight: '700', color: '#DC2626' }}>FDA ALERT</Text>
-                        </View>
-                      )}
+                <View key={item.id} sx={{
+                  borderWidth: item.practiceImpact === 'safety_alert' ? 2 : 1,
+                  borderColor: item.practiceImpact === 'safety_alert' ? '#DC2626' : (item.retractionStatus === 'retracted' ? '#DC2626' : '$border'),
+                  borderRadius: 12,
+                  p: '$4',
+                }}>
+                  {/* Top row: tier + impact + relevance + retraction badges */}
+                  <View sx={{ flexDirection: 'row', gap: '$2', flexWrap: 'wrap', mb: '$2' }}>
+                    <View sx={{ backgroundColor: tier.bg, borderRadius: 12, px: '$2', py: 2 }}>
+                      <Text sx={{ fontSize: 11, fontWeight: '700', color: tier.color }}>{tier.key}</Text>
                     </View>
-
-                    {/* Title */}
-                    <Text sx={{ fontSize: 15, fontWeight: '600', color: '$foreground', lineHeight: 20 }} numberOfLines={2}>
-                      {item.title}
-                    </Text>
-
-                    {/* Journal + date */}
-                    <Text sx={{ mt: '$1', fontSize: 12, color: '$mutedForeground' }}>
-                      {item.journalName || 'Unknown journal'}
-                      {item.publishedAt ? ` · ${new Date(item.publishedAt).toLocaleDateString()}` : ''}
-                    </Text>
-
-                    {/* Patient summary */}
-                    {item.patientSummary && (
-                      <Text sx={{ mt: '$2', fontSize: 13, color: '$foreground', lineHeight: 19 }} numberOfLines={3}>
-                        {item.patientSummary}
-                      </Text>
-                    )}
-
-                    {/* Domain chips */}
-                    {item.domains?.length > 0 && (
-                      <View sx={{ mt: '$2', flexDirection: 'row', gap: '$1', flexWrap: 'wrap' }}>
-                        {(item.domains as string[]).slice(0, 4).map((d: string) => (
-                          <View key={d} sx={{ backgroundColor: '#F3F4F6', borderRadius: 8, px: '$2', py: 1 }}>
-                            <Text sx={{ fontSize: 10, color: '#4B5563' }}>{d.replace(/_/g, ' ')}</Text>
-                          </View>
-                        ))}
+                    {impact && (
+                      <View sx={{ backgroundColor: impact.color + '15', borderRadius: 12, px: '$2', py: 2 }}>
+                        <Text sx={{ fontSize: 11, fontWeight: '600', color: impact.color }}>
+                          {impact.label}
+                        </Text>
                       </View>
                     )}
-
-                    {/* Drug name chips */}
-                    {item.drugNames?.length > 0 && (
-                      <View sx={{ mt: '$1', flexDirection: 'row', gap: '$1', flexWrap: 'wrap' }}>
-                        {(item.drugNames as string[]).slice(0, 3).map((drug: string) => (
-                          <View key={drug} sx={{ backgroundColor: '#EDE9FE', borderRadius: 8, px: '$2', py: 1 }}>
-                            <Text sx={{ fontSize: 10, color: '#5B21B6' }}>{drug}</Text>
-                          </View>
-                        ))}
+                    {/* Relevance score pill (authenticated only) */}
+                    {relevanceScore != null && (
+                      <View sx={{ backgroundColor: getRelevanceBg(relevanceScore), borderRadius: 12, px: '$2', py: 2 }}>
+                        <Text sx={{ fontSize: 11, fontWeight: '700', color: getRelevanceColor(relevanceScore) }}>
+                          {relevanceScore}% match
+                        </Text>
+                      </View>
+                    )}
+                    {/* "For You" badge if high relevance */}
+                    {relevanceScore != null && relevanceScore >= 70 && (
+                      <View sx={{ backgroundColor: '#EDE9FE', borderRadius: 12, px: '$2', py: 2 }}>
+                        <Text sx={{ fontSize: 11, fontWeight: '700', color: '#7C3AED' }}>For You</Text>
+                      </View>
+                    )}
+                    {item.retractionStatus === 'retracted' && (
+                      <View sx={{ backgroundColor: '#FEE2E2', borderRadius: 12, px: '$2', py: 2 }}>
+                        <Text sx={{ fontSize: 11, fontWeight: '700', color: '#DC2626' }}>RETRACTED</Text>
+                      </View>
+                    )}
+                    {item.retractionStatus === 'expression_of_concern' && (
+                      <View sx={{ backgroundColor: '#FEF3C7', borderRadius: 12, px: '$2', py: 2 }}>
+                        <Text sx={{ fontSize: 11, fontWeight: '700', color: '#92400E' }}>CONCERN</Text>
+                      </View>
+                    )}
+                    {item.sourceCredibility === 'tier1_journal' && (
+                      <View sx={{ backgroundColor: '#FEF3C7', borderRadius: 12, px: '$2', py: 2 }}>
+                        <Text sx={{ fontSize: 11, fontWeight: '600', color: '#92400E' }}>Top Journal</Text>
+                      </View>
+                    )}
+                    {/* Source type badge */}
+                    {(() => {
+                      const sb = SOURCE_BADGES[item.sourceType as string];
+                      return sb ? (
+                        <View sx={{ backgroundColor: sb.bg, borderRadius: 12, px: '$2', py: 2 }}>
+                          <Text sx={{ fontSize: 11, fontWeight: '600', color: sb.color }}>{sb.label}</Text>
+                        </View>
+                      ) : null;
+                    })()}
+                    {/* Preprint warning */}
+                    {item.sourceType === 'preprint' && (
+                      <View sx={{ backgroundColor: '#FEF3C7', borderRadius: 12, px: '$2', py: 2, borderWidth: 1, borderColor: '#F59E0B' }}>
+                        <Text sx={{ fontSize: 11, fontWeight: '700', color: '#92400E' }}>NOT PEER-REVIEWED</Text>
+                      </View>
+                    )}
+                    {/* FDA safety alert */}
+                    {item.sourceType === 'fda' && item.practiceImpact === 'safety_alert' && (
+                      <View sx={{ backgroundColor: '#FEE2E2', borderRadius: 12, px: '$2', py: 2 }}>
+                        <Text sx={{ fontSize: 11, fontWeight: '700', color: '#DC2626' }}>FDA ALERT</Text>
                       </View>
                     )}
                   </View>
-                </Link>
+
+                  {/* Title (linkable) */}
+                  <Link href={`/intel/${item.id}`}>
+                    <Text sx={{ fontSize: 15, fontWeight: '600', color: '$foreground', lineHeight: 20 }} numberOfLines={2}>
+                      {item.title}
+                    </Text>
+                  </Link>
+
+                  {/* Journal + date */}
+                  <Text sx={{ mt: '$1', fontSize: 12, color: '$mutedForeground' }}>
+                    {item.journalName || 'Unknown journal'}
+                    {item.publishedAt ? ` · ${new Date(item.publishedAt).toLocaleDateString()}` : ''}
+                  </Text>
+
+                  {/* Patient summary */}
+                  {item.patientSummary && (
+                    <Text sx={{ mt: '$2', fontSize: 13, color: '$foreground', lineHeight: 19 }} numberOfLines={3}>
+                      {item.patientSummary}
+                    </Text>
+                  )}
+
+                  {/* Domain chips */}
+                  {item.domains?.length > 0 && (
+                    <View sx={{ mt: '$2', flexDirection: 'row', gap: '$1', flexWrap: 'wrap' }}>
+                      {(item.domains as string[]).slice(0, 4).map((d: string) => (
+                        <View key={d} sx={{ backgroundColor: '#F3F4F6', borderRadius: 8, px: '$2', py: 1 }}>
+                          <Text sx={{ fontSize: 10, color: '#4B5563' }}>{d.replace(/_/g, ' ')}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+
+                  {/* Drug name chips */}
+                  {item.drugNames?.length > 0 && (
+                    <View sx={{ mt: '$1', flexDirection: 'row', gap: '$1', flexWrap: 'wrap' }}>
+                      {(item.drugNames as string[]).slice(0, 3).map((drug: string) => (
+                        <View key={drug} sx={{ backgroundColor: '#EDE9FE', borderRadius: 8, px: '$2', py: 1 }}>
+                          <Text sx={{ fontSize: 10, color: '#5B21B6' }}>{drug}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+
+                  {/* Action buttons (authenticated only) */}
+                  {isAuthenticated && !activeSearch && (
+                    <View sx={{ mt: '$3', flexDirection: 'row', gap: '$2' }}>
+                      <Pressable
+                        onPress={() => handleSave(item.id, saved)}
+                        sx={{
+                          borderWidth: 1,
+                          borderColor: saved ? '#7C3AED' : '$border',
+                          borderRadius: 8,
+                          px: '$3',
+                          py: '$1',
+                          backgroundColor: saved ? '#EDE9FE' : 'transparent',
+                        }}
+                      >
+                        <Text sx={{ fontSize: 12, fontWeight: '600', color: saved ? '#7C3AED' : '$mutedForeground' }}>
+                          {saved ? 'Saved' : 'Save'}
+                        </Text>
+                      </Pressable>
+                      <Pressable
+                        onPress={() => handleDismiss(item.id)}
+                        sx={{ borderWidth: 1, borderColor: '$border', borderRadius: 8, px: '$3', py: '$1' }}
+                      >
+                        <Text sx={{ fontSize: 12, color: '$mutedForeground' }}>Dismiss</Text>
+                      </Pressable>
+                    </View>
+                  )}
+                </View>
               );
             })}
           </View>

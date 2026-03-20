@@ -199,6 +199,16 @@ export interface GraphQLContext {
     reclassifyItem: (itemId: string) => Promise<any>;
     processQCQueue: (batchSize?: number) => Promise<any>;
     migrateOldTaxonomy: () => Promise<any>;
+
+    // Intel — Feed Personalization (I4)
+    getPersonalizedFeed: (userId: string, filters?: any) => Promise<any>;
+    getPersonalizedNote: (itemId: string, userId: string) => Promise<any>;
+    getFeedConfig: (userId: string) => Promise<any>;
+    markItemViewed: (userId: string, itemId: string) => Promise<boolean>;
+    markItemSaved: (userId: string, itemId: string, saved: boolean) => Promise<boolean>;
+    markItemDismissed: (userId: string, itemId: string) => Promise<boolean>;
+    updateFeedConfig: (userId: string, input: any) => Promise<any>;
+    computeRelevanceScores: (userId: string) => Promise<any>;
   };
 }
 

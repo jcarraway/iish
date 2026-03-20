@@ -157,6 +157,16 @@ import {
   processQCQueue as _processQCQueue,
   migrateOldTaxonomy as _migrateOldTaxonomy,
 } from '@/lib/intel-manager';
+import {
+  getPersonalizedFeed as _getPersonalizedFeed,
+  generatePersonalizedNote as _generatePersonalizedNote,
+  getUserFeedConfig as _getUserFeedConfig,
+  markItemViewed as _markItemViewed,
+  markItemSaved as _markItemSaved,
+  markItemDismissed as _markItemDismissed,
+  updateUserFeedConfig as _updateUserFeedConfig,
+  computeRelevanceScores as _computeRelevanceScores,
+} from '@/lib/feed-personalization';
 
 // ============================================================================
 // Adapter functions — bridge resolver signatures to actual lib functions
@@ -1389,6 +1399,16 @@ const handler = startServerAndCreateNextHandler<NextRequest, GraphQLContext>(ser
         reclassifyItem: _reclassifyItem,
         processQCQueue: _processQCQueue,
         migrateOldTaxonomy: _migrateOldTaxonomy,
+
+        // Intel — Feed Personalization (I4)
+        getPersonalizedFeed: _getPersonalizedFeed,
+        getPersonalizedNote: _generatePersonalizedNote,
+        getFeedConfig: _getUserFeedConfig,
+        markItemViewed: _markItemViewed,
+        markItemSaved: _markItemSaved,
+        markItemDismissed: _markItemDismissed,
+        updateFeedConfig: _updateUserFeedConfig,
+        computeRelevanceScores: _computeRelevanceScores,
       },
     };
   },

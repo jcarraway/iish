@@ -26,8 +26,41 @@ export const intelResolvers = {
       requireAuth(ctx);
       return ctx.lib.getSyncStates();
     },
+    personalizedFeed: async (_: any, args: { filters?: any }, ctx: ResolverContext) => {
+      const userId = requireAuth(ctx);
+      return ctx.lib.getPersonalizedFeed(userId, args.filters);
+    },
+    personalizedNote: async (_: any, args: { itemId: string }, ctx: ResolverContext) => {
+      const userId = requireAuth(ctx);
+      return ctx.lib.getPersonalizedNote(args.itemId, userId);
+    },
+    feedConfig: async (_: any, __: any, ctx: ResolverContext) => {
+      const userId = requireAuth(ctx);
+      return ctx.lib.getFeedConfig(userId);
+    },
   },
   Mutation: {
+    markItemViewed: async (_: any, args: { itemId: string }, ctx: ResolverContext) => {
+      const userId = requireAuth(ctx);
+      return ctx.lib.markItemViewed(userId, args.itemId);
+    },
+    markItemSaved: async (_: any, args: { itemId: string; saved: boolean }, ctx: ResolverContext) => {
+      const userId = requireAuth(ctx);
+      return ctx.lib.markItemSaved(userId, args.itemId, args.saved);
+    },
+    markItemDismissed: async (_: any, args: { itemId: string }, ctx: ResolverContext) => {
+      const userId = requireAuth(ctx);
+      return ctx.lib.markItemDismissed(userId, args.itemId);
+    },
+    updateFeedConfig: async (_: any, args: { input: any }, ctx: ResolverContext) => {
+      const userId = requireAuth(ctx);
+      return ctx.lib.updateFeedConfig(userId, args.input);
+    },
+    computeRelevanceScores: async (_: any, __: any, ctx: ResolverContext) => {
+      const userId = requireAuth(ctx);
+      const result = await ctx.lib.computeRelevanceScores(userId);
+      return result.computed;
+    },
     triggerIngestion: async (_: any, args: { sourceId: string }, ctx: ResolverContext) => {
       requireAuth(ctx);
       const result = await ctx.lib.triggerIngestion(args.sourceId);

@@ -1577,6 +1577,54 @@ export const typeDefs = `#graphql
     breastSubtypesUpdated: Int!
   }
 
+  # ============================================================================
+  # Intel — Feed Personalization (I4)
+  # ============================================================================
+
+  type FeedRelevanceItem {
+    item: ResearchItem!
+    relevanceScore: Int!
+    personalizedNote: String
+    viewed: Boolean!
+    saved: Boolean!
+    dismissed: Boolean!
+  }
+
+  type PersonalizedFeedResponse {
+    items: [FeedRelevanceItem!]!
+    total: Int!
+    hasMore: Boolean!
+  }
+
+  type UserFeedConfig {
+    id: ID!
+    audienceType: String!
+    contentDepth: String!
+    showPreclinical: Boolean!
+    showNegativeResults: Boolean!
+  }
+
+  type PersonalizedNote {
+    itemId: String!
+    note: String!
+  }
+
+  input PersonalizedFeedFilters {
+    maturityTiers: [String!]
+    domains: [String!]
+    treatmentClasses: [String!]
+    practiceImpact: String
+    limit: Int
+    offset: Int
+  }
+
+  input UpdateFeedConfigInput {
+    audienceType: String
+    contentDepth: String
+    showPreclinical: Boolean
+    showNegativeResults: Boolean
+  }
+
   input ResearchItemFilters {
     maturityTiers: [String!]
     domains: [String!]
@@ -1733,6 +1781,9 @@ export const typeDefs = `#graphql
 
     # Intel — Research Intelligence (authenticated)
     ingestionSyncStates: [IngestionSyncState!]!
+    personalizedFeed(filters: PersonalizedFeedFilters): PersonalizedFeedResponse!
+    personalizedNote(itemId: String!): PersonalizedNote!
+    feedConfig: UserFeedConfig!
   }
 
   # ============================================================================
@@ -2113,6 +2164,11 @@ export const typeDefs = `#graphql
     generateReadingPlan: ReadingPlan!
 
     # Intel — Research Intelligence
+    markItemViewed(itemId: String!): Boolean!
+    markItemSaved(itemId: String!, saved: Boolean!): Boolean!
+    markItemDismissed(itemId: String!): Boolean!
+    updateFeedConfig(input: UpdateFeedConfigInput!): UserFeedConfig!
+    computeRelevanceScores: Int!
     triggerIngestion(sourceId: String!): IngestionCycleResult!
     reclassifyItem(itemId: String!): ResearchItem!
     runQCPipeline(batchSize: Int): QCResult!
