@@ -12,16 +12,16 @@ oncovax/
 │   ├── web/                    # Next.js 15.0.0, React 19.0.0, Tailwind CSS 3.4
 │   │   ├── app/                # App Router — pages + 89 API route files + 2 cron endpoints
 │   │   ├── components/         # 3 web-only components (DocumentUploader, AdministrationSiteCard, AdministrationSiteMap)
-│   │   └── lib/                # 55 library files (see below)
+│   │   └── lib/                # 56 library files (see below)
 │   └── mobile/                 # Expo SDK 54, React Native 0.76.9, Dripsy + Solito
 │       ├── app/                # Expo Router — 106 route files across 27 directories
 │       └── lib/                # apollo.ts (GraphQL client), auth.ts (SecureStore guard)
 ├── docker-compose.yml          # Local dev: postgres:15-alpine + redis:7-alpine
 ├── packages/
 │   ├── ui/                     # Thin RN + Solito re-exports (@oncovax/ui)
-│   ├── app/                    # 100 shared screens, 24 Dripsy components, theme, 165+ generated hooks (@oncovax/app)
+│   ├── app/                    # 101 shared screens, 24 Dripsy components, theme, 170+ generated hooks (@oncovax/app)
 │   │   └── src/{screens[96],components[24],providers,theme,graphql,generated,utils,index}.ts
-│   ├── api/                    # Apollo Server schema (134+ types, 80Q, 85M) + 26 resolver files (@oncovax/api)
+│   ├── api/                    # Apollo Server schema (141+ types, 87Q, 86M) + 26 resolver files (@oncovax/api)
 │   │   └── src/{schema,resolvers[24 files],context,index}.ts
 │   ├── db/                     # Prisma 7 + PostgreSQL (48 models)
 │   │   ├── prisma/schema.prisma
@@ -76,9 +76,9 @@ export async function POST(req: NextRequest) {
 
 ### UI: Dripsy + Solito (Cross-Platform, Screen Migration Complete)
 - **Shared components:** 22 Dripsy components in `packages/app/src/components/` — cross-platform ready
-- **Shared screens:** 100 screens in `packages/app/src/screens/` — 46 migratable (D3-D6) + 4 survivorship (S1) + 2 surveillance (S2) + 3 journal/effects (S3) + 1 lifestyle (S4) + 2 care team (S5) + 2 ctDNA (S6) + 1 notifications (S7) + 8 recurrence (S8) + 5 fertility + 5 advocate + 5 logistics + 5 second opinion + 6 learn (L1) + 4 intel (I1) + 2 community (I5)
+- **Shared screens:** 101 screens in `packages/app/src/screens/` — 46 migratable (D3-D6) + 4 survivorship (S1) + 2 surveillance (S2) + 3 journal/effects (S3) + 1 lifestyle (S4) + 2 care team (S5) + 2 ctDNA (S6) + 1 notifications (S7) + 8 recurrence (S8) + 5 fertility + 5 advocate + 5 logistics + 5 second opinion + 6 learn (L1) + 4 intel (I1) + 2 community (I5) + 1 intel landscape (I6)
 - **Web pages:** Most pages are thin re-exports: `'use client'; export { XxxScreen as default } from '@oncovax/app';`. Exception: `/learn/[category]/[slug]/page.tsx` is a server component with `generateMetadata` + `generateStaticParams` + JSON-LD that renders a client component wrapper.
-- **Mobile routes:** All 100 screens wired via Expo Router — 106 route files across 27 directories
+- **Mobile routes:** All 101 screens wired via Expo Router — 108 route files across 27 directories
 - **Mobile tabs:** 5-tab layout (Home, Matches, Sequencing, Pipeline, More) with Ionicons
 - **Mobile auth:** `useProtectedRoute()` hook — SecureStore token check + redirect to `/auth` modal
 - **Web-only components (3):** `DocumentUploader` (File API), `AdministrationSiteCard`, `AdministrationSiteMap` (Mapbox) — kept in `apps/web/components/`
@@ -168,9 +168,12 @@ export async function POST(req: NextRequest) {
 **INTEL — I5: Community Intelligence + Email Digests (complete):**
 - 1 Prisma model (CommunityReport with reportType/consentScope/structuredData JSON/narrative/moderationStatus/verified/relatedDrug, 3 indexes). 2 field extensions (UserFeedConfig.digestFrequency, NotificationPreference.researchAlerts). 1 new lib file (community-manager.ts: 10 functions — submitCommunityReport with auto-verify + moderation, getCommunityReports, getCommunityReportsByDrug, moderateReport, getDrugInsights aggregation with ratings/sideEffects/tips, getTrialInsights, getCommunityInsightsForItem, compileDigest 5-section builder, sendDigest with Resend + dedup, updateDigestPreferences). notification-manager.ts extended with processResearchDigests (day-of-week/month gating). GraphQL: +7 types (CommunityReport, CommunityInsight, CommunityInsightSideEffect, CommunityTrialSummary, DigestPreview, DigestItem, SubmitCommunityReportInput) + 4 queries + 3 mutations, 7 resolver operations in intel.ts, 7 context signatures, 7 route handler adapters. 7 operations in intel.graphql (23 total). 2 new screens: CommunityFeedScreen (report type filter pills + drug filter + report cards + drug insights), CommunitySubmitScreen (4-step form: type → structured data → narrative → consent). 3 screens updated: IntelItemDetailScreen (community insights section), IntelSettingsScreen (digest frequency selector), IntelFeedScreen (community + settings links). 2 web pages + 2 mobile routes under `/intel/community/`. **Community data always labeled "Based on reports from X patients on this platform." Configurable email digests (daily/weekly/monthly) with 5 personalized sections.**
 
+**INTEL — I6: Landscape Views + Cross-Module Integration (complete):**
+- No new Prisma models. 1 new lib file (landscape-manager.ts: 10 functions — getLandscapeOverview with maturity/domain/subtype/treatmentClass distribution counts, getSubtypeLandscape with tier-bucketed items + pipeline + cached SOC, getTreatmentPipeline grouped by drugName with most advanced tier, getRecentDevelopments T1/T2 last N days, generateStandardOfCareSummary via Claude + Redis 14-day cache, checkTranslatorUpdates cross-referencing T1/T2 items vs patient subtype/drugs since translation generated, checkFinancialUpdates FDA T1 practice_changing items vs patient drugs last 90 days, checkSurvivorshipUpdates survivorship/QoL + ctDNA research vs patient subtype last 90 days, getLandscapeHighlights, getSubtypeLabel). GraphQL: +7 types (LandscapeOverview, SubtypeLandscape, StandardOfCareSummary, TreatmentPipelineEntry, TranslatorUpdateCheck, FinancialUpdateCheck, SurvivorshipUpdateCheck) + 4 public queries (landscapeOverview, subtypeLandscape, treatmentPipeline, recentDevelopments) + 3 authenticated queries (translatorUpdates, financialUpdates, survivorshipUpdates) + 1 mutation (generateStandardOfCare), 8 resolver operations in intel.ts, 8 context signatures, 8 route handler adapters. 8 operations in intel.graphql (31 total). IntelLandscapeScreen rewritten (~380 lines, dual-mode: overview with maturity distribution bar + subtype grid cards + treatment pipeline table + recent highlights, subtype detail with SOC card + tier sections + pipeline + browse link). 1 new screen: IntelSubtypeLandscapeScreen (thin wrapper). 3 screens updated with integration badges: TranslateScreen (amber "New Research Since Your Guide" card), FinancialScreen (green "New Drug Approvals" card), SurviveDashboardScreen (blue research updates card). 1 web page + 2 mobile routes added for `/intel/landscape/[subtype]`. Mobile landscape route restructured from flat file to directory. **Aggregated research landscape by subtype and domain. Cross-module integration surfaces new research in Translator, Financial, and Survivorship. INTEL module complete (I1-I6).**
+
 ## What's NOT Built Yet
 
-**Cross-cutting:** INTEL I6 (landscape views + cross-module integration), VISUAL (30 visualizations), CARE (care commerce), COOL (cold capping), ENGINE (opportunity detection).
+**Cross-cutting:** VISUAL (30 visualizations), CARE (care commerce), COOL (cold capping), ENGINE (opportunity detection).
 
 **Access gap:** PALLIATIVE, PEERS.
 

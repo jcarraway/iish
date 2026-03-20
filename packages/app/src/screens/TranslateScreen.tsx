@@ -5,7 +5,7 @@ import { useRouter } from 'solito/router';
 import { Link } from 'solito/link';
 import { TranslationSection } from '../components';
 import { copyToClipboard } from '../utils';
-import { useGetMatchesQuery, useTranslateTreatmentMutation } from '../generated/graphql';
+import { useGetMatchesQuery, useTranslateTreatmentMutation, useGetTranslatorUpdatesQuery } from '../generated/graphql';
 import type { TreatmentTranslation } from '@oncovax/shared';
 
 type LoadingStep = 'checking' | 'analyzing' | 'reviewing' | 'creating' | 'done';
@@ -378,6 +378,9 @@ export function TranslateScreen() {
           </Pressable>
         </View>
 
+        {/* Research updates badge (I6) */}
+        <TranslatorResearchBadge />
+
         {/* CTAs */}
         <View sx={{ mt: '$6', gap: '$3' }}>
           <Link href="/matches">
@@ -393,5 +396,42 @@ export function TranslateScreen() {
         </View>
       </View>
     </ScrollView>
+  );
+}
+
+function TranslatorResearchBadge() {
+  const { data } = useGetTranslatorUpdatesQuery({ errorPolicy: 'ignore' });
+  const updates = data?.translatorUpdates;
+
+  if (!updates?.hasUpdates) return null;
+
+  return (
+    <View sx={{
+      mt: '$6',
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: '#F59E0B',
+      backgroundColor: '#FFFBEB',
+      p: '$4',
+    }}>
+      <Text sx={{ fontSize: 14, fontWeight: '600', color: '#92400E' }}>
+        New Research Since Your Guide Was Generated
+      </Text>
+      <Text sx={{ mt: '$2', fontSize: 13, color: '#92400E' }}>
+        {updates.count} new T1/T2 development{updates.count !== 1 ? 's' : ''} relevant to your treatment
+      </Text>
+      <View sx={{ mt: '$3', gap: '$2' }}>
+        {updates.items.slice(0, 3).map(item => (
+          <Link key={item.id} href={`/intel/${item.id}`}>
+            <Text sx={{ fontSize: 12, color: '#1D4ED8' }}>
+              [{item.maturityTier}] {item.title}
+            </Text>
+          </Link>
+        ))}
+      </View>
+      <Text sx={{ mt: '$2', fontSize: 11, color: '#92400E', fontStyle: 'italic' }}>
+        This does not change your current guide. Discuss with your oncologist.
+      </Text>
+    </View>
   );
 }

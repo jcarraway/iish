@@ -137,5 +137,6 @@ export { IntelFeedScreen } from './IntelFeedScreen';
 export { IntelItemDetailScreen } from './IntelItemDetailScreen';
 export { IntelSettingsScreen } from './IntelSettingsScreen';
 export { IntelLandscapeScreen } from './IntelLandscapeScreen';
+export { IntelSubtypeLandscapeScreen } from './IntelSubtypeLandscapeScreen';
 export { CommunityFeedScreen } from './CommunityFeedScreen';
 export { CommunitySubmitScreen } from './CommunitySubmitScreen';

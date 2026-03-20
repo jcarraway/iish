@@ -190,6 +190,16 @@ export interface GraphQLContext {
     selectCenter: (patientId: string, centerId: string, isVirtual: boolean, appointmentDate?: string) => Promise<any>;
     recordSecondOpinionOutcome: (patientId: string, outcome: string, outcomeSummary?: string) => Promise<any>;
 
+    // Intel — Landscape Views (I6)
+    getLandscapeOverview: () => Promise<any>;
+    getSubtypeLandscape: (subtype: string) => Promise<any>;
+    getTreatmentPipeline: (subtype?: string) => Promise<any[]>;
+    getRecentDevelopments: (subtype?: string, days?: number) => Promise<any[]>;
+    generateStandardOfCareSummary: (subtype: string) => Promise<any>;
+    checkTranslatorUpdates: (patientId: string) => Promise<any>;
+    checkFinancialUpdates: (patientId: string) => Promise<any>;
+    checkSurvivorshipUpdates: (patientId: string) => Promise<any>;
+
     // Intel — Research Intelligence
     getResearchItems: (filters?: any) => Promise<any>;
     getResearchItem: (id: string) => Promise<any>;

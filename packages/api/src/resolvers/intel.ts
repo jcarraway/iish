@@ -39,6 +39,40 @@ export const intelResolvers = {
       return ctx.lib.getFeedConfig(userId);
     },
 
+    // Landscape Views (I6, public)
+    landscapeOverview: async (_: any, __: any, ctx: ResolverContext) => {
+      return ctx.lib.getLandscapeOverview();
+    },
+    subtypeLandscape: async (_: any, args: { subtype: string }, ctx: ResolverContext) => {
+      return ctx.lib.getSubtypeLandscape(args.subtype);
+    },
+    treatmentPipeline: async (_: any, args: { subtype?: string }, ctx: ResolverContext) => {
+      return ctx.lib.getTreatmentPipeline(args.subtype);
+    },
+    recentDevelopments: async (_: any, args: { subtype?: string; days?: number }, ctx: ResolverContext) => {
+      return ctx.lib.getRecentDevelopments(args.subtype, args.days);
+    },
+
+    // Landscape Integration (I6, authenticated)
+    translatorUpdates: async (_: any, __: any, ctx: ResolverContext) => {
+      const userId = requireAuth(ctx);
+      const patient = await ctx.prisma.patient.findFirst({ where: { userId } });
+      if (!patient) return { hasUpdates: false, items: [], count: 0, since: '' };
+      return ctx.lib.checkTranslatorUpdates(patient.id);
+    },
+    financialUpdates: async (_: any, __: any, ctx: ResolverContext) => {
+      const userId = requireAuth(ctx);
+      const patient = await ctx.prisma.patient.findFirst({ where: { userId } });
+      if (!patient) return { newApprovals: [], hasPAPOpportunities: false };
+      return ctx.lib.checkFinancialUpdates(patient.id);
+    },
+    survivorshipUpdates: async (_: any, __: any, ctx: ResolverContext) => {
+      const userId = requireAuth(ctx);
+      const patient = await ctx.prisma.patient.findFirst({ where: { userId } });
+      if (!patient) return { lateEffectsItems: [], ctdnaItems: [], hasUpdates: false };
+      return ctx.lib.checkSurvivorshipUpdates(patient.id);
+    },
+
     // Community Intelligence (I5)
     communityReports: async (_: any, __: any, ctx: ResolverContext) => {
       const userId = requireAuth(ctx);
@@ -104,6 +138,12 @@ export const intelResolvers = {
     migrateOldTaxonomy: async (_: any, __: any, ctx: ResolverContext) => {
       requireAuth(ctx);
       return ctx.lib.migrateOldTaxonomy();
+    },
+
+    // Landscape Views (I6)
+    generateStandardOfCare: async (_: any, args: { subtype: string }, ctx: ResolverContext) => {
+      requireAuth(ctx);
+      return ctx.lib.generateStandardOfCareSummary(args.subtype);
     },
 
     // Community Intelligence (I5)

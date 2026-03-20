@@ -386,3 +386,179 @@ mutation UpdateDigestPreferences($frequency: String) {
     digestFrequency
   }
 }
+
+# ============================================================================
+# Intel — Landscape Views (I6)
+# ============================================================================
+
+query GetLandscapeOverview {
+  landscapeOverview {
+    totalItems
+    maturityDistribution
+    domainDistribution
+    subtypeDistribution
+    treatmentClassDistribution
+    recentHighlights {
+      id
+      sourceType
+      title
+      maturityTier
+      practiceImpact
+      patientSummary
+      drugNames
+      publishedAt
+    }
+    lastUpdated
+  }
+}
+
+query GetSubtypeLandscape($subtype: String!) {
+  subtypeLandscape(subtype: $subtype) {
+    subtype
+    subtypeLabel
+    totalItems
+    maturityDistribution
+    domainDistribution
+    standardOfCare {
+      subtype
+      currentSOC
+      whatsChanging
+      whatsComing
+      whatsBeingExplored
+      generatedAt
+    }
+    availableNow {
+      id
+      title
+      maturityTier
+      practiceImpact
+      patientSummary
+      drugNames
+      publishedAt
+    }
+    expectedSoon {
+      id
+      title
+      maturityTier
+      practiceImpact
+      patientSummary
+      drugNames
+      publishedAt
+    }
+    inTrials {
+      id
+      title
+      maturityTier
+      practiceImpact
+      patientSummary
+      drugNames
+      publishedAt
+    }
+    earlyResearch {
+      id
+      title
+      maturityTier
+      practiceImpact
+      patientSummary
+      drugNames
+      publishedAt
+    }
+    topDrugs {
+      drugName
+      maturityTier
+      treatmentClass
+      itemCount
+      latestItemId
+      latestItemTitle
+      latestPublishedAt
+    }
+  }
+}
+
+query GetTreatmentPipeline($subtype: String) {
+  treatmentPipeline(subtype: $subtype) {
+    drugName
+    maturityTier
+    treatmentClass
+    itemCount
+    latestItemId
+    latestItemTitle
+    latestPublishedAt
+  }
+}
+
+query GetRecentDevelopments($subtype: String, $days: Int) {
+  recentDevelopments(subtype: $subtype, days: $days) {
+    id
+    sourceType
+    title
+    maturityTier
+    practiceImpact
+    patientSummary
+    drugNames
+    publishedAt
+  }
+}
+
+query GetTranslatorUpdates {
+  translatorUpdates {
+    hasUpdates
+    items {
+      id
+      title
+      maturityTier
+      practiceImpact
+      drugNames
+      publishedAt
+    }
+    count
+    since
+  }
+}
+
+query GetFinancialUpdates {
+  financialUpdates {
+    newApprovals {
+      id
+      title
+      maturityTier
+      practiceImpact
+      drugNames
+      publishedAt
+    }
+    hasPAPOpportunities
+  }
+}
+
+query GetSurvivorshipUpdates {
+  survivorshipUpdates {
+    lateEffectsItems {
+      id
+      title
+      maturityTier
+      domains
+      patientSummary
+      publishedAt
+    }
+    ctdnaItems {
+      id
+      title
+      maturityTier
+      treatmentClasses
+      patientSummary
+      publishedAt
+    }
+    hasUpdates
+  }
+}
+
+mutation GenerateStandardOfCare($subtype: String!) {
+  generateStandardOfCare(subtype: $subtype) {
+    subtype
+    currentSOC
+    whatsChanging
+    whatsComing
+    whatsBeingExplored
+    generatedAt
+  }
+}

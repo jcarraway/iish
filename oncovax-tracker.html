@@ -906,10 +906,13 @@
         "second:SO1": "complete",
         // LEARN L1 — complete
         "learn:L1": "complete",
-        // INTEL I1+I2+I3 — complete
+        // INTEL I1+I2+I3+I4+I5 — complete
         "intel:I1": "complete",
         "intel:I2": "complete",
         "intel:I3": "complete",
+        "intel:I4": "complete",
+        "intel:I5": "complete",
+        "intel:I6": "complete",
       };
 
       const DEFAULT_NOTES = {
@@ -1011,6 +1014,16 @@
         // INTEL I3 — Additional Sources + FDA Alerts
         "intel:I3":
           "5 new source fetchers in intel-sources.ts: FDA openFDA (drug labels + adverse events), bioRxiv/medRxiv preprints, ClinicalTrials.gov v2 (new registrations + results), institutional newsroom RSS (7 feeds: NCI, MSK, MD Anderson, Dana-Farber, Mayo, Hopkins, Cleveland), NIH Reporter grants. 5 new ingest functions in intel-manager.ts (24 functions total). runIngestionCycle expanded to 6 sequential sources. triggerIngestion supports all 6 sources. +2 GraphQL types (SourceIngestionResult, IngestionBreakdown). IntelSettingsScreen rewritten from stub to real source management UI (sync state, trigger buttons). Feed: source type badge pills, NOT PEER-REVIEWED badge for preprints, FDA ALERT badge. Detail: source-specific banners (preprint/FDA/trial/NIH), source-aware links. 6 ingestion sources total.",
+        // INTEL I4 — Personalization Engine + Feed UI
+        "intel:I4":
+          "2 Prisma models (FeedRelevance, UserFeedConfig). feed-personalization.ts: 13 functions (relevance scoring 0-100 weighted: cancer type 30, subtype 25, biomarker 20, stage 15, drug 10, safety alert force-100). Dual-mode feed (auth: relevance-ranked, unauth: chronological). Lazy Claude personalized notes + Redis 7-day cache + DB cache. Interaction tracking (viewed/saved/dismissed/shared). Feed preferences (audience/depth/preclinical/negative toggles). 3 screens updated, 8 new GraphQL operations.",
+        // INTEL I5 — Community Intelligence + Email Digests
+        "intel:I5":
+          "1 Prisma model (CommunityReport). community-manager.ts: 10 functions (report CRUD + auto-verify, drug/trial insights aggregation, 5-section digest compilation, Resend email delivery). notification-manager.ts: processResearchDigests added. +7 GraphQL types, +4Q +3M. 2 new screens (CommunityFeed, CommunitySubmit 4-step form). 3 screens updated (Detail: community insights, Settings: digest frequency, Feed: community + settings links). 2 web + 2 mobile routes. Community data labeled 'Based on reports from X patients.'",
+
+        // INTEL I6 — Landscape Views + Cross-Module Integration
+        "intel:I6":
+          "0 new Prisma models. landscape-manager.ts: 10 functions (landscape overview, subtype landscape, treatment pipeline, recent developments, Claude SOC summary, translator/financial/survivorship update checks, highlights, subtype label). +7 GraphQL types, +7Q +1M. 1 screen rewritten (IntelLandscapeScreen dual-mode: overview + subtype detail), 1 new screen (IntelSubtypeLandscapeScreen wrapper). 3 screens updated with integration badges (TranslateScreen, FinancialScreen, SurviveDashboardScreen). 1 web + 2 mobile routes. SOC summary cached 14 days.",
       };
 
       let state = { statuses: {}, notes: {}, expanded: {}, filter: "all" };

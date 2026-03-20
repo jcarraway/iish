@@ -7,6 +7,7 @@ import {
   useGetJournalEntriesQuery,
   useGetCtdnaHistoryQuery,
   useGetRecurrenceEventQuery,
+  useGetSurvivorshipUpdatesQuery,
 } from '../generated/graphql';
 
 export function SurviveDashboardScreen() {
@@ -266,6 +267,9 @@ export function SurviveDashboardScreen() {
             </View>
           </Link>
 
+          {/* Research updates card (I6) */}
+          <SurvivorshipResearchBadge />
+
           {/* Overdue alert */}
           {overdue.length > 0 && (
             <Link href="/survive/monitoring">
@@ -382,6 +386,44 @@ export function SurviveDashboardScreen() {
         </View>
       </View>
     </ScrollView>
+  );
+}
+
+function SurvivorshipResearchBadge() {
+  const { data } = useGetSurvivorshipUpdatesQuery({ errorPolicy: 'ignore' });
+  const updates = data?.survivorshipUpdates;
+
+  if (!updates?.hasUpdates) return null;
+
+  const lateCount = updates.lateEffectsItems.length;
+  const ctdnaCount = updates.ctdnaItems.length;
+
+  return (
+    <Link href="/intel/landscape">
+      <View sx={{
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#93C5FD',
+        backgroundColor: '#EFF6FF',
+        p: '$5',
+      }}>
+        <View sx={{ flexDirection: 'row', alignItems: 'center', gap: '$2' }}>
+          <View sx={{
+            width: 32, height: 32, borderRadius: 8,
+            backgroundColor: '#DBEAFE', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <Text sx={{ fontSize: 14 }}>{'📰'}</Text>
+          </View>
+          <Text sx={{ fontWeight: '600', color: '#1E40AF' }}>Research Updates</Text>
+        </View>
+        <Text sx={{ mt: '$3', fontSize: 13, color: '#1E40AF' }}>
+          {lateCount > 0 && `${lateCount} survivorship/QoL update${lateCount !== 1 ? 's' : ''}`}
+          {lateCount > 0 && ctdnaCount > 0 && ' · '}
+          {ctdnaCount > 0 && `${ctdnaCount} ctDNA monitoring update${ctdnaCount !== 1 ? 's' : ''}`}
+        </Text>
+        <Text sx={{ mt: '$2', fontSize: 12, color: '#1E40AF' }}>View research landscape {'→'}</Text>
+      </View>
+    </Link>
   );
 }
 

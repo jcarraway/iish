@@ -148,6 +148,16 @@ import {
   getRelatedArticles as _getRelatedArticles,
 } from '@/lib/learn-manager';
 import {
+  getLandscapeOverview as _getLandscapeOverview,
+  getSubtypeLandscape as _getSubtypeLandscape,
+  getTreatmentPipeline as _getTreatmentPipeline,
+  getRecentDevelopments as _getRecentDevelopments,
+  generateStandardOfCareSummary as _generateStandardOfCareSummary,
+  checkTranslatorUpdates as _checkTranslatorUpdates,
+  checkFinancialUpdates as _checkFinancialUpdates,
+  checkSurvivorshipUpdates as _checkSurvivorshipUpdates,
+} from '@/lib/landscape-manager';
+import {
   getResearchItems as _getResearchItems,
   getResearchItem as _getResearchItem,
   searchResearchItems as _searchResearchItems,
@@ -1398,6 +1408,16 @@ const handler = startServerAndCreateNextHandler<NextRequest, GraphQLContext>(ser
         generateCommunicationGuide: generateCommunicationGuideAdapter,
         selectCenter: selectCenterAdapter,
         recordSecondOpinionOutcome: recordSecondOpinionOutcomeAdapter,
+
+        // Intel — Landscape Views (I6)
+        getLandscapeOverview: _getLandscapeOverview,
+        getSubtypeLandscape: _getSubtypeLandscape,
+        getTreatmentPipeline: _getTreatmentPipeline,
+        getRecentDevelopments: _getRecentDevelopments,
+        generateStandardOfCareSummary: _generateStandardOfCareSummary,
+        checkTranslatorUpdates: _checkTranslatorUpdates,
+        checkFinancialUpdates: _checkFinancialUpdates,
+        checkSurvivorshipUpdates: _checkSurvivorshipUpdates,
 
         // Intel — Research Intelligence
         getResearchItems: _getResearchItems,

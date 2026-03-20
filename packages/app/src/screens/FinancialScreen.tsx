@@ -3,7 +3,8 @@ import { View, Text, Pressable } from 'dripsy';
 import { ActivityIndicator, Alert } from 'react-native';
 import { useRouter } from 'solito/router';
 import { FinancialProgramCard } from '../components';
-import { useGetFinancialMatchesQuery, useSubscribeFinancialProgramMutation } from '../generated/graphql';
+import { Link } from 'solito/link';
+import { useGetFinancialMatchesQuery, useSubscribeFinancialProgramMutation, useGetFinancialUpdatesQuery } from '../generated/graphql';
 
 const CATEGORY_LABELS: Record<string, string> = {
   copay_treatment: 'Treatment Copay Help',
@@ -117,6 +118,9 @@ export function FinancialScreen() {
         </Text>
       </View>
 
+      {/* New drug approval badge (I6) */}
+      <FinancialResearchBadge />
+
       {/* Grouped results */}
       <View sx={{ gap: '$10' }}>
         {Object.entries(grouped)
@@ -163,6 +167,40 @@ export function FinancialScreen() {
         >
           <Text sx={{ fontSize: '$sm', fontWeight: '600', color: 'gray700' }}>View trial matches</Text>
         </Pressable>
+      </View>
+    </View>
+  );
+}
+
+function FinancialResearchBadge() {
+  const { data } = useGetFinancialUpdatesQuery({ errorPolicy: 'ignore' });
+  const updates = data?.financialUpdates;
+
+  if (!updates?.hasPAPOpportunities) return null;
+
+  return (
+    <View sx={{
+      mb: '$6',
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: '#BBF7D0',
+      backgroundColor: '#F0FDF4',
+      p: '$5',
+    }}>
+      <Text sx={{ fontSize: 14, fontWeight: '600', color: '#166534' }}>
+        New Drug Approvals May Affect Programs
+      </Text>
+      <Text sx={{ mt: '$2', fontSize: 13, color: '#166534' }}>
+        Recent FDA approvals for drugs in your treatment may open new patient assistance programs.
+      </Text>
+      <View sx={{ mt: '$3', gap: '$2' }}>
+        {updates.newApprovals.slice(0, 3).map(item => (
+          <Link key={item.id} href={`/intel/${item.id}`}>
+            <Text sx={{ fontSize: 12, color: '#1D4ED8' }}>
+              {item.title}
+            </Text>
+          </Link>
+        ))}
       </View>
     </View>
   );

@@ -622,6 +622,12 @@ export type FinancialProgram = {
   website: Scalars['String']['output'];
 };
 
+export type FinancialUpdateCheck = {
+  __typename?: 'FinancialUpdateCheck';
+  hasPAPOpportunities: Scalars['Boolean']['output'];
+  newApprovals: Array<ResearchItem>;
+};
+
 export type GenerateArticleInput = {
   cancerType?: InputMaybe<Scalars['String']['input']>;
   category: Scalars['String']['input'];
@@ -847,6 +853,17 @@ export type Lomn = {
   generatedAt: Scalars['String']['output'];
   icdCodes: Array<Scalars['String']['output']>;
   testType: Scalars['String']['output'];
+};
+
+export type LandscapeOverview = {
+  __typename?: 'LandscapeOverview';
+  domainDistribution: Scalars['JSON']['output'];
+  lastUpdated: Scalars['String']['output'];
+  maturityDistribution: Scalars['JSON']['output'];
+  recentHighlights: Array<ResearchItem>;
+  subtypeDistribution: Scalars['JSON']['output'];
+  totalItems: Scalars['Int']['output'];
+  treatmentClassDistribution: Scalars['JSON']['output'];
 };
 
 export type LifestyleRecommendations = {
@@ -1097,6 +1114,7 @@ export type Mutation = {
   generateRegulatoryDocument: RegulatoryDocument;
   generateReportPdf: ReportPdfResult;
   generateSequencingRecommendation: SequencingRecommendation;
+  generateStandardOfCare: StandardOfCareSummary;
   interpretGenomics: GenomicInterpretation;
   logout: Scalars['Boolean']['output'];
   markEventComplete: SurveillanceEvent;
@@ -1313,6 +1331,11 @@ export type MutationGenerateRegulatoryDocumentArgs = {
 export type MutationGenerateReportPdfArgs = {
   pipelineJobId: Scalars['String']['input'];
   reportType: Scalars['String']['input'];
+};
+
+
+export type MutationGenerateStandardOfCareArgs = {
+  subtype: Scalars['String']['input'];
 };
 
 
@@ -1871,6 +1894,7 @@ export type Query = {
   financialMatches: Array<FinancialMatch>;
   financialProgram?: Maybe<FinancialProgram>;
   financialPrograms: Array<FinancialProgram>;
+  financialUpdates: FinancialUpdateCheck;
   generateReport?: Maybe<Scalars['JSON']['output']>;
   genomicComparison: GenomicComparison;
   genomicResult?: Maybe<GenomicResult>;
@@ -1883,6 +1907,7 @@ export type Query = {
   insuranceDenials: Array<InsuranceDenial>;
   journalEntries: Array<JournalEntry>;
   journalTrends: JournalTrends;
+  landscapeOverview: LandscapeOverview;
   lifestyleRecommendations?: Maybe<LifestyleRecommendations>;
   manufacturingOrder?: Maybe<ManufacturingOrder>;
   manufacturingOrders: Array<ManufacturingOrder>;
@@ -1908,6 +1933,7 @@ export type Query = {
   pipelineResults: PipelineResultDownloads;
   preservationOptions: Array<PreservationOption>;
   readingPlan?: Maybe<ReadingPlan>;
+  recentDevelopments: Array<ResearchItem>;
   recommendedPartners: Array<PartnerRecommendation>;
   recurrenceEvent?: Maybe<RecurrenceEvent>;
   recurrenceEvents: Array<RecurrenceEvent>;
@@ -1931,10 +1957,14 @@ export type Query = {
   sequencingOrders: Array<SequencingOrder>;
   sequencingProviders: Array<SequencingProvider>;
   sequencingRecommendation: SequencingRecommendation;
+  subtypeLandscape: SubtypeLandscape;
   surveillanceSchedule: Array<SurveillanceEvent>;
   survivorshipFeedback: Array<SurvivorshipFeedback>;
   survivorshipPlan?: Maybe<SurvivorshipPlan>;
+  survivorshipUpdates: SurvivorshipUpdateCheck;
   testRecommendation: TestRecommendation;
+  translatorUpdates: TranslatorUpdateCheck;
+  treatmentPipeline: Array<TreatmentPipelineEntry>;
   trial?: Maybe<Trial>;
   trialLogisticsAssessment?: Maybe<TrialLogisticsAssessment>;
   trialLogisticsAssessments: Array<TrialLogisticsAssessment>;
@@ -2133,6 +2163,12 @@ export type QueryPipelineResultsArgs = {
 };
 
 
+export type QueryRecentDevelopmentsArgs = {
+  days?: InputMaybe<Scalars['Int']['input']>;
+  subtype?: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type QueryRecommendedPartnersArgs = {
   pipelineJobId: Scalars['String']['input'];
 };
@@ -2204,9 +2240,19 @@ export type QuerySequencingOrderArgs = {
 };
 
 
+export type QuerySubtypeLandscapeArgs = {
+  subtype: Scalars['String']['input'];
+};
+
+
 export type QueryTestRecommendationArgs = {
   preferComprehensive?: InputMaybe<Scalars['Boolean']['input']>;
   tissueAvailable?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+
+export type QueryTreatmentPipelineArgs = {
+  subtype?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -2563,6 +2609,16 @@ export type SourceIngestionResult = {
   skipped: Scalars['Int']['output'];
 };
 
+export type StandardOfCareSummary = {
+  __typename?: 'StandardOfCareSummary';
+  currentSOC: Scalars['String']['output'];
+  generatedAt: Scalars['String']['output'];
+  subtype: Scalars['String']['output'];
+  whatsBeingExplored: Scalars['String']['output'];
+  whatsChanging: Scalars['String']['output'];
+  whatsComing: Scalars['String']['output'];
+};
+
 export type StateProtection = {
   __typename?: 'StateProtection';
   cancerSpecific: Scalars['String']['output'];
@@ -2600,6 +2656,21 @@ export type SubmitJournalEntryInput = {
   notes?: InputMaybe<Scalars['String']['input']>;
   pain: Scalars['Int']['input'];
   sleepQuality: Scalars['Int']['input'];
+};
+
+export type SubtypeLandscape = {
+  __typename?: 'SubtypeLandscape';
+  availableNow: Array<ResearchItem>;
+  domainDistribution: Scalars['JSON']['output'];
+  earlyResearch: Array<ResearchItem>;
+  expectedSoon: Array<ResearchItem>;
+  inTrials: Array<ResearchItem>;
+  maturityDistribution: Scalars['JSON']['output'];
+  standardOfCare?: Maybe<StandardOfCareSummary>;
+  subtype: Scalars['String']['output'];
+  subtypeLabel: Scalars['String']['output'];
+  topDrugs: Array<TreatmentPipelineEntry>;
+  totalItems: Scalars['Int']['output'];
 };
 
 export type SurveillanceEvent = {
@@ -2644,6 +2715,13 @@ export type SurvivorshipPlan = {
   planContent: Scalars['JSON']['output'];
   riskCategory?: Maybe<Scalars['String']['output']>;
   treatmentCompletionDate: Scalars['String']['output'];
+};
+
+export type SurvivorshipUpdateCheck = {
+  __typename?: 'SurvivorshipUpdateCheck';
+  ctdnaItems: Array<ResearchItem>;
+  hasUpdates: Scalars['Boolean']['output'];
+  lateEffectsItems: Array<ResearchItem>;
 };
 
 export type SymptomExercise = {
@@ -2735,12 +2813,31 @@ export type TmbBiomarker = {
   value: Scalars['Float']['output'];
 };
 
+export type TranslatorUpdateCheck = {
+  __typename?: 'TranslatorUpdateCheck';
+  count: Scalars['Int']['output'];
+  hasUpdates: Scalars['Boolean']['output'];
+  items: Array<ResearchItem>;
+  since: Scalars['String']['output'];
+};
+
 export type TreatmentCompletionInput = {
   completionDate: Scalars['String']['input'];
   completionType: Scalars['String']['input'];
   newSymptoms?: InputMaybe<Scalars['String']['input']>;
   ongoingTherapies: Array<Scalars['String']['input']>;
   wantsReminders: Scalars['Boolean']['input'];
+};
+
+export type TreatmentPipelineEntry = {
+  __typename?: 'TreatmentPipelineEntry';
+  drugName: Scalars['String']['output'];
+  itemCount: Scalars['Int']['output'];
+  latestItemId: Scalars['String']['output'];
+  latestItemTitle: Scalars['String']['output'];
+  latestPublishedAt?: Maybe<Scalars['String']['output']>;
+  maturityTier: Scalars['String']['output'];
+  treatmentClass: Scalars['String']['output'];
 };
 
 export type TreatmentTranslation = {
@@ -3308,6 +3405,55 @@ export type UpdateDigestPreferencesMutationVariables = Exact<{
 
 
 export type UpdateDigestPreferencesMutation = { __typename?: 'Mutation', updateDigestPreferences: { __typename?: 'UserFeedConfig', id: string, audienceType: string, contentDepth: string, showPreclinical: boolean, showNegativeResults: boolean, digestFrequency?: string | null } };
+
+export type GetLandscapeOverviewQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetLandscapeOverviewQuery = { __typename?: 'Query', landscapeOverview: { __typename?: 'LandscapeOverview', totalItems: number, maturityDistribution: Record<string, unknown>, domainDistribution: Record<string, unknown>, subtypeDistribution: Record<string, unknown>, treatmentClassDistribution: Record<string, unknown>, lastUpdated: string, recentHighlights: Array<{ __typename?: 'ResearchItem', id: string, sourceType: string, title: string, maturityTier?: string | null, practiceImpact?: string | null, patientSummary?: string | null, drugNames: Array<string>, publishedAt?: string | null }> } };
+
+export type GetSubtypeLandscapeQueryVariables = Exact<{
+  subtype: Scalars['String']['input'];
+}>;
+
+
+export type GetSubtypeLandscapeQuery = { __typename?: 'Query', subtypeLandscape: { __typename?: 'SubtypeLandscape', subtype: string, subtypeLabel: string, totalItems: number, maturityDistribution: Record<string, unknown>, domainDistribution: Record<string, unknown>, standardOfCare?: { __typename?: 'StandardOfCareSummary', subtype: string, currentSOC: string, whatsChanging: string, whatsComing: string, whatsBeingExplored: string, generatedAt: string } | null, availableNow: Array<{ __typename?: 'ResearchItem', id: string, title: string, maturityTier?: string | null, practiceImpact?: string | null, patientSummary?: string | null, drugNames: Array<string>, publishedAt?: string | null }>, expectedSoon: Array<{ __typename?: 'ResearchItem', id: string, title: string, maturityTier?: string | null, practiceImpact?: string | null, patientSummary?: string | null, drugNames: Array<string>, publishedAt?: string | null }>, inTrials: Array<{ __typename?: 'ResearchItem', id: string, title: string, maturityTier?: string | null, practiceImpact?: string | null, patientSummary?: string | null, drugNames: Array<string>, publishedAt?: string | null }>, earlyResearch: Array<{ __typename?: 'ResearchItem', id: string, title: string, maturityTier?: string | null, practiceImpact?: string | null, patientSummary?: string | null, drugNames: Array<string>, publishedAt?: string | null }>, topDrugs: Array<{ __typename?: 'TreatmentPipelineEntry', drugName: string, maturityTier: string, treatmentClass: string, itemCount: number, latestItemId: string, latestItemTitle: string, latestPublishedAt?: string | null }> } };
+
+export type GetTreatmentPipelineQueryVariables = Exact<{
+  subtype?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type GetTreatmentPipelineQuery = { __typename?: 'Query', treatmentPipeline: Array<{ __typename?: 'TreatmentPipelineEntry', drugName: string, maturityTier: string, treatmentClass: string, itemCount: number, latestItemId: string, latestItemTitle: string, latestPublishedAt?: string | null }> };
+
+export type GetRecentDevelopmentsQueryVariables = Exact<{
+  subtype?: InputMaybe<Scalars['String']['input']>;
+  days?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type GetRecentDevelopmentsQuery = { __typename?: 'Query', recentDevelopments: Array<{ __typename?: 'ResearchItem', id: string, sourceType: string, title: string, maturityTier?: string | null, practiceImpact?: string | null, patientSummary?: string | null, drugNames: Array<string>, publishedAt?: string | null }> };
+
+export type GetTranslatorUpdatesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetTranslatorUpdatesQuery = { __typename?: 'Query', translatorUpdates: { __typename?: 'TranslatorUpdateCheck', hasUpdates: boolean, count: number, since: string, items: Array<{ __typename?: 'ResearchItem', id: string, title: string, maturityTier?: string | null, practiceImpact?: string | null, drugNames: Array<string>, publishedAt?: string | null }> } };
+
+export type GetFinancialUpdatesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetFinancialUpdatesQuery = { __typename?: 'Query', financialUpdates: { __typename?: 'FinancialUpdateCheck', hasPAPOpportunities: boolean, newApprovals: Array<{ __typename?: 'ResearchItem', id: string, title: string, maturityTier?: string | null, practiceImpact?: string | null, drugNames: Array<string>, publishedAt?: string | null }> } };
+
+export type GetSurvivorshipUpdatesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetSurvivorshipUpdatesQuery = { __typename?: 'Query', survivorshipUpdates: { __typename?: 'SurvivorshipUpdateCheck', hasUpdates: boolean, lateEffectsItems: Array<{ __typename?: 'ResearchItem', id: string, title: string, maturityTier?: string | null, domains: Array<string>, patientSummary?: string | null, publishedAt?: string | null }>, ctdnaItems: Array<{ __typename?: 'ResearchItem', id: string, title: string, maturityTier?: string | null, treatmentClasses: Array<string>, patientSummary?: string | null, publishedAt?: string | null }> } };
+
+export type GenerateStandardOfCareMutationVariables = Exact<{
+  subtype: Scalars['String']['input'];
+}>;
+
+
+export type GenerateStandardOfCareMutation = { __typename?: 'Mutation', generateStandardOfCare: { __typename?: 'StandardOfCareSummary', subtype: string, currentSOC: string, whatsChanging: string, whatsComing: string, whatsBeingExplored: string, generatedAt: string } };
 
 export type GetArticleQueryVariables = Exact<{
   slug: Scalars['String']['input'];
@@ -7205,6 +7351,461 @@ export function useUpdateDigestPreferencesMutation(baseOptions?: Apollo.Mutation
 export type UpdateDigestPreferencesMutationHookResult = ReturnType<typeof useUpdateDigestPreferencesMutation>;
 export type UpdateDigestPreferencesMutationResult = Apollo.MutationResult<UpdateDigestPreferencesMutation>;
 export type UpdateDigestPreferencesMutationOptions = Apollo.BaseMutationOptions<UpdateDigestPreferencesMutation, UpdateDigestPreferencesMutationVariables>;
+export const GetLandscapeOverviewDocument = gql`
+    query GetLandscapeOverview {
+  landscapeOverview {
+    totalItems
+    maturityDistribution
+    domainDistribution
+    subtypeDistribution
+    treatmentClassDistribution
+    recentHighlights {
+      id
+      sourceType
+      title
+      maturityTier
+      practiceImpact
+      patientSummary
+      drugNames
+      publishedAt
+    }
+    lastUpdated
+  }
+}
+    `;
+
+/**
+ * __useGetLandscapeOverviewQuery__
+ *
+ * To run a query within a React component, call `useGetLandscapeOverviewQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetLandscapeOverviewQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetLandscapeOverviewQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetLandscapeOverviewQuery(baseOptions?: Apollo.QueryHookOptions<GetLandscapeOverviewQuery, GetLandscapeOverviewQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetLandscapeOverviewQuery, GetLandscapeOverviewQueryVariables>(GetLandscapeOverviewDocument, options);
+      }
+export function useGetLandscapeOverviewLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetLandscapeOverviewQuery, GetLandscapeOverviewQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetLandscapeOverviewQuery, GetLandscapeOverviewQueryVariables>(GetLandscapeOverviewDocument, options);
+        }
+// @ts-ignore
+export function useGetLandscapeOverviewSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetLandscapeOverviewQuery, GetLandscapeOverviewQueryVariables>): Apollo.UseSuspenseQueryResult<GetLandscapeOverviewQuery, GetLandscapeOverviewQueryVariables>;
+export function useGetLandscapeOverviewSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetLandscapeOverviewQuery, GetLandscapeOverviewQueryVariables>): Apollo.UseSuspenseQueryResult<GetLandscapeOverviewQuery | undefined, GetLandscapeOverviewQueryVariables>;
+export function useGetLandscapeOverviewSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetLandscapeOverviewQuery, GetLandscapeOverviewQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetLandscapeOverviewQuery, GetLandscapeOverviewQueryVariables>(GetLandscapeOverviewDocument, options);
+        }
+export type GetLandscapeOverviewQueryHookResult = ReturnType<typeof useGetLandscapeOverviewQuery>;
+export type GetLandscapeOverviewLazyQueryHookResult = ReturnType<typeof useGetLandscapeOverviewLazyQuery>;
+export type GetLandscapeOverviewSuspenseQueryHookResult = ReturnType<typeof useGetLandscapeOverviewSuspenseQuery>;
+export type GetLandscapeOverviewQueryResult = Apollo.QueryResult<GetLandscapeOverviewQuery, GetLandscapeOverviewQueryVariables>;
+export const GetSubtypeLandscapeDocument = gql`
+    query GetSubtypeLandscape($subtype: String!) {
+  subtypeLandscape(subtype: $subtype) {
+    subtype
+    subtypeLabel
+    totalItems
+    maturityDistribution
+    domainDistribution
+    standardOfCare {
+      subtype
+      currentSOC
+      whatsChanging
+      whatsComing
+      whatsBeingExplored
+      generatedAt
+    }
+    availableNow {
+      id
+      title
+      maturityTier
+      practiceImpact
+      patientSummary
+      drugNames
+      publishedAt
+    }
+    expectedSoon {
+      id
+      title
+      maturityTier
+      practiceImpact
+      patientSummary
+      drugNames
+      publishedAt
+    }
+    inTrials {
+      id
+      title
+      maturityTier
+      practiceImpact
+      patientSummary
+      drugNames
+      publishedAt
+    }
+    earlyResearch {
+      id
+      title
+      maturityTier
+      practiceImpact
+      patientSummary
+      drugNames
+      publishedAt
+    }
+    topDrugs {
+      drugName
+      maturityTier
+      treatmentClass
+      itemCount
+      latestItemId
+      latestItemTitle
+      latestPublishedAt
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetSubtypeLandscapeQuery__
+ *
+ * To run a query within a React component, call `useGetSubtypeLandscapeQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSubtypeLandscapeQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSubtypeLandscapeQuery({
+ *   variables: {
+ *      subtype: // value for 'subtype'
+ *   },
+ * });
+ */
+export function useGetSubtypeLandscapeQuery(baseOptions: Apollo.QueryHookOptions<GetSubtypeLandscapeQuery, GetSubtypeLandscapeQueryVariables> & ({ variables: GetSubtypeLandscapeQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetSubtypeLandscapeQuery, GetSubtypeLandscapeQueryVariables>(GetSubtypeLandscapeDocument, options);
+      }
+export function useGetSubtypeLandscapeLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSubtypeLandscapeQuery, GetSubtypeLandscapeQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetSubtypeLandscapeQuery, GetSubtypeLandscapeQueryVariables>(GetSubtypeLandscapeDocument, options);
+        }
+// @ts-ignore
+export function useGetSubtypeLandscapeSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetSubtypeLandscapeQuery, GetSubtypeLandscapeQueryVariables>): Apollo.UseSuspenseQueryResult<GetSubtypeLandscapeQuery, GetSubtypeLandscapeQueryVariables>;
+export function useGetSubtypeLandscapeSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetSubtypeLandscapeQuery, GetSubtypeLandscapeQueryVariables>): Apollo.UseSuspenseQueryResult<GetSubtypeLandscapeQuery | undefined, GetSubtypeLandscapeQueryVariables>;
+export function useGetSubtypeLandscapeSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetSubtypeLandscapeQuery, GetSubtypeLandscapeQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetSubtypeLandscapeQuery, GetSubtypeLandscapeQueryVariables>(GetSubtypeLandscapeDocument, options);
+        }
+export type GetSubtypeLandscapeQueryHookResult = ReturnType<typeof useGetSubtypeLandscapeQuery>;
+export type GetSubtypeLandscapeLazyQueryHookResult = ReturnType<typeof useGetSubtypeLandscapeLazyQuery>;
+export type GetSubtypeLandscapeSuspenseQueryHookResult = ReturnType<typeof useGetSubtypeLandscapeSuspenseQuery>;
+export type GetSubtypeLandscapeQueryResult = Apollo.QueryResult<GetSubtypeLandscapeQuery, GetSubtypeLandscapeQueryVariables>;
+export const GetTreatmentPipelineDocument = gql`
+    query GetTreatmentPipeline($subtype: String) {
+  treatmentPipeline(subtype: $subtype) {
+    drugName
+    maturityTier
+    treatmentClass
+    itemCount
+    latestItemId
+    latestItemTitle
+    latestPublishedAt
+  }
+}
+    `;
+
+/**
+ * __useGetTreatmentPipelineQuery__
+ *
+ * To run a query within a React component, call `useGetTreatmentPipelineQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetTreatmentPipelineQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetTreatmentPipelineQuery({
+ *   variables: {
+ *      subtype: // value for 'subtype'
+ *   },
+ * });
+ */
+export function useGetTreatmentPipelineQuery(baseOptions?: Apollo.QueryHookOptions<GetTreatmentPipelineQuery, GetTreatmentPipelineQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetTreatmentPipelineQuery, GetTreatmentPipelineQueryVariables>(GetTreatmentPipelineDocument, options);
+      }
+export function useGetTreatmentPipelineLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetTreatmentPipelineQuery, GetTreatmentPipelineQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetTreatmentPipelineQuery, GetTreatmentPipelineQueryVariables>(GetTreatmentPipelineDocument, options);
+        }
+// @ts-ignore
+export function useGetTreatmentPipelineSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetTreatmentPipelineQuery, GetTreatmentPipelineQueryVariables>): Apollo.UseSuspenseQueryResult<GetTreatmentPipelineQuery, GetTreatmentPipelineQueryVariables>;
+export function useGetTreatmentPipelineSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetTreatmentPipelineQuery, GetTreatmentPipelineQueryVariables>): Apollo.UseSuspenseQueryResult<GetTreatmentPipelineQuery | undefined, GetTreatmentPipelineQueryVariables>;
+export function useGetTreatmentPipelineSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetTreatmentPipelineQuery, GetTreatmentPipelineQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetTreatmentPipelineQuery, GetTreatmentPipelineQueryVariables>(GetTreatmentPipelineDocument, options);
+        }
+export type GetTreatmentPipelineQueryHookResult = ReturnType<typeof useGetTreatmentPipelineQuery>;
+export type GetTreatmentPipelineLazyQueryHookResult = ReturnType<typeof useGetTreatmentPipelineLazyQuery>;
+export type GetTreatmentPipelineSuspenseQueryHookResult = ReturnType<typeof useGetTreatmentPipelineSuspenseQuery>;
+export type GetTreatmentPipelineQueryResult = Apollo.QueryResult<GetTreatmentPipelineQuery, GetTreatmentPipelineQueryVariables>;
+export const GetRecentDevelopmentsDocument = gql`
+    query GetRecentDevelopments($subtype: String, $days: Int) {
+  recentDevelopments(subtype: $subtype, days: $days) {
+    id
+    sourceType
+    title
+    maturityTier
+    practiceImpact
+    patientSummary
+    drugNames
+    publishedAt
+  }
+}
+    `;
+
+/**
+ * __useGetRecentDevelopmentsQuery__
+ *
+ * To run a query within a React component, call `useGetRecentDevelopmentsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetRecentDevelopmentsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetRecentDevelopmentsQuery({
+ *   variables: {
+ *      subtype: // value for 'subtype'
+ *      days: // value for 'days'
+ *   },
+ * });
+ */
+export function useGetRecentDevelopmentsQuery(baseOptions?: Apollo.QueryHookOptions<GetRecentDevelopmentsQuery, GetRecentDevelopmentsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetRecentDevelopmentsQuery, GetRecentDevelopmentsQueryVariables>(GetRecentDevelopmentsDocument, options);
+      }
+export function useGetRecentDevelopmentsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetRecentDevelopmentsQuery, GetRecentDevelopmentsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetRecentDevelopmentsQuery, GetRecentDevelopmentsQueryVariables>(GetRecentDevelopmentsDocument, options);
+        }
+// @ts-ignore
+export function useGetRecentDevelopmentsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetRecentDevelopmentsQuery, GetRecentDevelopmentsQueryVariables>): Apollo.UseSuspenseQueryResult<GetRecentDevelopmentsQuery, GetRecentDevelopmentsQueryVariables>;
+export function useGetRecentDevelopmentsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetRecentDevelopmentsQuery, GetRecentDevelopmentsQueryVariables>): Apollo.UseSuspenseQueryResult<GetRecentDevelopmentsQuery | undefined, GetRecentDevelopmentsQueryVariables>;
+export function useGetRecentDevelopmentsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetRecentDevelopmentsQuery, GetRecentDevelopmentsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetRecentDevelopmentsQuery, GetRecentDevelopmentsQueryVariables>(GetRecentDevelopmentsDocument, options);
+        }
+export type GetRecentDevelopmentsQueryHookResult = ReturnType<typeof useGetRecentDevelopmentsQuery>;
+export type GetRecentDevelopmentsLazyQueryHookResult = ReturnType<typeof useGetRecentDevelopmentsLazyQuery>;
+export type GetRecentDevelopmentsSuspenseQueryHookResult = ReturnType<typeof useGetRecentDevelopmentsSuspenseQuery>;
+export type GetRecentDevelopmentsQueryResult = Apollo.QueryResult<GetRecentDevelopmentsQuery, GetRecentDevelopmentsQueryVariables>;
+export const GetTranslatorUpdatesDocument = gql`
+    query GetTranslatorUpdates {
+  translatorUpdates {
+    hasUpdates
+    items {
+      id
+      title
+      maturityTier
+      practiceImpact
+      drugNames
+      publishedAt
+    }
+    count
+    since
+  }
+}
+    `;
+
+/**
+ * __useGetTranslatorUpdatesQuery__
+ *
+ * To run a query within a React component, call `useGetTranslatorUpdatesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetTranslatorUpdatesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetTranslatorUpdatesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetTranslatorUpdatesQuery(baseOptions?: Apollo.QueryHookOptions<GetTranslatorUpdatesQuery, GetTranslatorUpdatesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetTranslatorUpdatesQuery, GetTranslatorUpdatesQueryVariables>(GetTranslatorUpdatesDocument, options);
+      }
+export function useGetTranslatorUpdatesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetTranslatorUpdatesQuery, GetTranslatorUpdatesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetTranslatorUpdatesQuery, GetTranslatorUpdatesQueryVariables>(GetTranslatorUpdatesDocument, options);
+        }
+// @ts-ignore
+export function useGetTranslatorUpdatesSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetTranslatorUpdatesQuery, GetTranslatorUpdatesQueryVariables>): Apollo.UseSuspenseQueryResult<GetTranslatorUpdatesQuery, GetTranslatorUpdatesQueryVariables>;
+export function useGetTranslatorUpdatesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetTranslatorUpdatesQuery, GetTranslatorUpdatesQueryVariables>): Apollo.UseSuspenseQueryResult<GetTranslatorUpdatesQuery | undefined, GetTranslatorUpdatesQueryVariables>;
+export function useGetTranslatorUpdatesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetTranslatorUpdatesQuery, GetTranslatorUpdatesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetTranslatorUpdatesQuery, GetTranslatorUpdatesQueryVariables>(GetTranslatorUpdatesDocument, options);
+        }
+export type GetTranslatorUpdatesQueryHookResult = ReturnType<typeof useGetTranslatorUpdatesQuery>;
+export type GetTranslatorUpdatesLazyQueryHookResult = ReturnType<typeof useGetTranslatorUpdatesLazyQuery>;
+export type GetTranslatorUpdatesSuspenseQueryHookResult = ReturnType<typeof useGetTranslatorUpdatesSuspenseQuery>;
+export type GetTranslatorUpdatesQueryResult = Apollo.QueryResult<GetTranslatorUpdatesQuery, GetTranslatorUpdatesQueryVariables>;
+export const GetFinancialUpdatesDocument = gql`
+    query GetFinancialUpdates {
+  financialUpdates {
+    newApprovals {
+      id
+      title
+      maturityTier
+      practiceImpact
+      drugNames
+      publishedAt
+    }
+    hasPAPOpportunities
+  }
+}
+    `;
+
+/**
+ * __useGetFinancialUpdatesQuery__
+ *
+ * To run a query within a React component, call `useGetFinancialUpdatesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetFinancialUpdatesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetFinancialUpdatesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetFinancialUpdatesQuery(baseOptions?: Apollo.QueryHookOptions<GetFinancialUpdatesQuery, GetFinancialUpdatesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetFinancialUpdatesQuery, GetFinancialUpdatesQueryVariables>(GetFinancialUpdatesDocument, options);
+      }
+export function useGetFinancialUpdatesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetFinancialUpdatesQuery, GetFinancialUpdatesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetFinancialUpdatesQuery, GetFinancialUpdatesQueryVariables>(GetFinancialUpdatesDocument, options);
+        }
+// @ts-ignore
+export function useGetFinancialUpdatesSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetFinancialUpdatesQuery, GetFinancialUpdatesQueryVariables>): Apollo.UseSuspenseQueryResult<GetFinancialUpdatesQuery, GetFinancialUpdatesQueryVariables>;
+export function useGetFinancialUpdatesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetFinancialUpdatesQuery, GetFinancialUpdatesQueryVariables>): Apollo.UseSuspenseQueryResult<GetFinancialUpdatesQuery | undefined, GetFinancialUpdatesQueryVariables>;
+export function useGetFinancialUpdatesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetFinancialUpdatesQuery, GetFinancialUpdatesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetFinancialUpdatesQuery, GetFinancialUpdatesQueryVariables>(GetFinancialUpdatesDocument, options);
+        }
+export type GetFinancialUpdatesQueryHookResult = ReturnType<typeof useGetFinancialUpdatesQuery>;
+export type GetFinancialUpdatesLazyQueryHookResult = ReturnType<typeof useGetFinancialUpdatesLazyQuery>;
+export type GetFinancialUpdatesSuspenseQueryHookResult = ReturnType<typeof useGetFinancialUpdatesSuspenseQuery>;
+export type GetFinancialUpdatesQueryResult = Apollo.QueryResult<GetFinancialUpdatesQuery, GetFinancialUpdatesQueryVariables>;
+export const GetSurvivorshipUpdatesDocument = gql`
+    query GetSurvivorshipUpdates {
+  survivorshipUpdates {
+    lateEffectsItems {
+      id
+      title
+      maturityTier
+      domains
+      patientSummary
+      publishedAt
+    }
+    ctdnaItems {
+      id
+      title
+      maturityTier
+      treatmentClasses
+      patientSummary
+      publishedAt
+    }
+    hasUpdates
+  }
+}
+    `;
+
+/**
+ * __useGetSurvivorshipUpdatesQuery__
+ *
+ * To run a query within a React component, call `useGetSurvivorshipUpdatesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSurvivorshipUpdatesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSurvivorshipUpdatesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetSurvivorshipUpdatesQuery(baseOptions?: Apollo.QueryHookOptions<GetSurvivorshipUpdatesQuery, GetSurvivorshipUpdatesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetSurvivorshipUpdatesQuery, GetSurvivorshipUpdatesQueryVariables>(GetSurvivorshipUpdatesDocument, options);
+      }
+export function useGetSurvivorshipUpdatesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSurvivorshipUpdatesQuery, GetSurvivorshipUpdatesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetSurvivorshipUpdatesQuery, GetSurvivorshipUpdatesQueryVariables>(GetSurvivorshipUpdatesDocument, options);
+        }
+// @ts-ignore
+export function useGetSurvivorshipUpdatesSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetSurvivorshipUpdatesQuery, GetSurvivorshipUpdatesQueryVariables>): Apollo.UseSuspenseQueryResult<GetSurvivorshipUpdatesQuery, GetSurvivorshipUpdatesQueryVariables>;
+export function useGetSurvivorshipUpdatesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetSurvivorshipUpdatesQuery, GetSurvivorshipUpdatesQueryVariables>): Apollo.UseSuspenseQueryResult<GetSurvivorshipUpdatesQuery | undefined, GetSurvivorshipUpdatesQueryVariables>;
+export function useGetSurvivorshipUpdatesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetSurvivorshipUpdatesQuery, GetSurvivorshipUpdatesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetSurvivorshipUpdatesQuery, GetSurvivorshipUpdatesQueryVariables>(GetSurvivorshipUpdatesDocument, options);
+        }
+export type GetSurvivorshipUpdatesQueryHookResult = ReturnType<typeof useGetSurvivorshipUpdatesQuery>;
+export type GetSurvivorshipUpdatesLazyQueryHookResult = ReturnType<typeof useGetSurvivorshipUpdatesLazyQuery>;
+export type GetSurvivorshipUpdatesSuspenseQueryHookResult = ReturnType<typeof useGetSurvivorshipUpdatesSuspenseQuery>;
+export type GetSurvivorshipUpdatesQueryResult = Apollo.QueryResult<GetSurvivorshipUpdatesQuery, GetSurvivorshipUpdatesQueryVariables>;
+export const GenerateStandardOfCareDocument = gql`
+    mutation GenerateStandardOfCare($subtype: String!) {
+  generateStandardOfCare(subtype: $subtype) {
+    subtype
+    currentSOC
+    whatsChanging
+    whatsComing
+    whatsBeingExplored
+    generatedAt
+  }
+}
+    `;
+export type GenerateStandardOfCareMutationFn = Apollo.MutationFunction<GenerateStandardOfCareMutation, GenerateStandardOfCareMutationVariables>;
+
+/**
+ * __useGenerateStandardOfCareMutation__
+ *
+ * To run a mutation, you first call `useGenerateStandardOfCareMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useGenerateStandardOfCareMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [generateStandardOfCareMutation, { data, loading, error }] = useGenerateStandardOfCareMutation({
+ *   variables: {
+ *      subtype: // value for 'subtype'
+ *   },
+ * });
+ */
+export function useGenerateStandardOfCareMutation(baseOptions?: Apollo.MutationHookOptions<GenerateStandardOfCareMutation, GenerateStandardOfCareMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<GenerateStandardOfCareMutation, GenerateStandardOfCareMutationVariables>(GenerateStandardOfCareDocument, options);
+      }
+export type GenerateStandardOfCareMutationHookResult = ReturnType<typeof useGenerateStandardOfCareMutation>;
+export type GenerateStandardOfCareMutationResult = Apollo.MutationResult<GenerateStandardOfCareMutation>;
+export type GenerateStandardOfCareMutationOptions = Apollo.BaseMutationOptions<GenerateStandardOfCareMutation, GenerateStandardOfCareMutationVariables>;
 export const GetArticleDocument = gql`
     query GetArticle($slug: String!) {
   article(slug: $slug) {

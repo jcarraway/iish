@@ -1699,6 +1699,71 @@ export const typeDefs = `#graphql
     relatedItemId: String
   }
 
+  # ============================================================================
+  # Intel — Landscape Views (I6)
+  # ============================================================================
+
+  type LandscapeOverview {
+    totalItems: Int!
+    maturityDistribution: JSON!
+    domainDistribution: JSON!
+    subtypeDistribution: JSON!
+    treatmentClassDistribution: JSON!
+    recentHighlights: [ResearchItem!]!
+    lastUpdated: String!
+  }
+
+  type SubtypeLandscape {
+    subtype: String!
+    subtypeLabel: String!
+    totalItems: Int!
+    maturityDistribution: JSON!
+    domainDistribution: JSON!
+    standardOfCare: StandardOfCareSummary
+    availableNow: [ResearchItem!]!
+    expectedSoon: [ResearchItem!]!
+    inTrials: [ResearchItem!]!
+    earlyResearch: [ResearchItem!]!
+    topDrugs: [TreatmentPipelineEntry!]!
+  }
+
+  type StandardOfCareSummary {
+    subtype: String!
+    currentSOC: String!
+    whatsChanging: String!
+    whatsComing: String!
+    whatsBeingExplored: String!
+    generatedAt: String!
+  }
+
+  type TreatmentPipelineEntry {
+    drugName: String!
+    maturityTier: String!
+    treatmentClass: String!
+    itemCount: Int!
+    latestItemId: String!
+    latestItemTitle: String!
+    latestPublishedAt: String
+  }
+
+  type TranslatorUpdateCheck {
+    hasUpdates: Boolean!
+    items: [ResearchItem!]!
+    count: Int!
+    since: String!
+  }
+
+  type FinancialUpdateCheck {
+    newApprovals: [ResearchItem!]!
+    hasPAPOpportunities: Boolean!
+  }
+
+  type SurvivorshipUpdateCheck {
+    lateEffectsItems: [ResearchItem!]!
+    ctdnaItems: [ResearchItem!]!
+    hasUpdates: Boolean!
+  }
+
   input ResearchItemFilters {
     maturityTiers: [String!]
     domains: [String!]
@@ -1852,6 +1917,17 @@ export const typeDefs = `#graphql
     researchItems(filters: ResearchItemFilters): [ResearchItem!]!
     researchItem(id: String!): ResearchItem
     searchResearch(query: String!, filters: ResearchItemFilters): [ResearchItem!]!
+
+    # Intel — Landscape Views (I6, public)
+    landscapeOverview: LandscapeOverview!
+    subtypeLandscape(subtype: String!): SubtypeLandscape!
+    treatmentPipeline(subtype: String): [TreatmentPipelineEntry!]!
+    recentDevelopments(subtype: String, days: Int): [ResearchItem!]!
+
+    # Intel — Landscape Integration (I6, authenticated)
+    translatorUpdates: TranslatorUpdateCheck!
+    financialUpdates: FinancialUpdateCheck!
+    survivorshipUpdates: SurvivorshipUpdateCheck!
 
     # Intel — Research Intelligence (authenticated)
     ingestionSyncStates: [IngestionSyncState!]!
@@ -2253,6 +2329,9 @@ export const typeDefs = `#graphql
     reclassifyItem(itemId: String!): ResearchItem!
     runQCPipeline(batchSize: Int): QCResult!
     migrateOldTaxonomy: TaxonomyMigrationResult!
+
+    # Intel — Landscape Views (I6)
+    generateStandardOfCare(subtype: String!): StandardOfCareSummary!
 
     # Intel — Community Intelligence (I5)
     submitCommunityReport(input: SubmitCommunityReportInput!): CommunityReport!
