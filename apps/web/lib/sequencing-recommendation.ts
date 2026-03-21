@@ -1,6 +1,6 @@
 import { anthropic, CLAUDE_MODEL } from './ai';
 import { redis } from './redis';
-import type { PatientProfile, SequencingRecommendation, SequencingExplanation } from '@oncovax/shared';
+import type { PatientProfile, SequencingRecommendation, SequencingExplanation } from '@iish/shared';
 
 const CACHE_TTL = 24 * 60 * 60; // 24 hours
 

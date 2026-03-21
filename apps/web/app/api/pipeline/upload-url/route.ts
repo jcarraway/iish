@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/session';
-import { generatePresignedUploadUrl, inputPath } from '@oncovax/pipeline-storage';
-import { pipelineUploadUrlSchema } from '@oncovax/shared';
+import { generatePresignedUploadUrl, inputPath } from '@iish/pipeline-storage';
+import { pipelineUploadUrlSchema } from '@iish/shared';
 import { randomUUID } from 'crypto';
 
 export async function POST(req: NextRequest) {

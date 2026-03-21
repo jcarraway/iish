@@ -1,2 +1,2 @@
 'use client';
-export { IntelFeedScreen as default } from '@oncovax/app';
+export { IntelFeedScreen as default } from '@iish/app';

@@ -1,6 +1,6 @@
-import { Prisma, type PrismaClient } from '@oncovax/db/generated/prisma';
-import type { ParsedEligibility } from '@oncovax/shared';
-import { parsedEligibilitySchema } from '@oncovax/shared';
+import { Prisma, type PrismaClient } from '@iish/db/generated/prisma';
+import type { ParsedEligibility } from '@iish/shared';
+import { parsedEligibilitySchema } from '@iish/shared';
 import { anthropic, CLAUDE_MODEL } from './ai';
 
 const SYSTEM_PROMPT = `You are an expert oncology clinical trial eligibility criteria parser. Your task is to extract structured data from raw eligibility text.

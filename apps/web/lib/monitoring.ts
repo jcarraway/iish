@@ -1,7 +1,7 @@
-import type { MonitoringReportType, AdverseEventSeverity } from '@oncovax/shared';
-import { ADVERSE_EVENT_OPTIONS } from '@oncovax/shared';
+import type { MonitoringReportType, AdverseEventSeverity } from '@iish/shared';
+import { ADVERSE_EVENT_OPTIONS } from '@iish/shared';
 import { MONITORING_SCHEDULE } from './providers';
-export type { AdverseEventOption } from '@oncovax/shared';
+export type { AdverseEventOption } from '@iish/shared';
 export { ADVERSE_EVENT_OPTIONS };
 
 export interface ScheduleEntry {

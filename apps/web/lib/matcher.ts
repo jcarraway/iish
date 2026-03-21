@@ -6,8 +6,8 @@ import type {
   MatchBreakdownItem,
   LLMAssessment,
   MatchDelta,
-} from '@oncovax/shared';
-import { TRIAL_STATUSES } from '@oncovax/shared';
+} from '@iish/shared';
+import { TRIAL_STATUSES } from '@iish/shared';
 
 // ---------------------------------------------------------------------------
 // Cancer type fuzzy matching

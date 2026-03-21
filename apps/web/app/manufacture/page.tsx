@@ -1,2 +1,2 @@
 'use client';
-export { ManufactureLandingScreen as default } from '@oncovax/app';
+export { ManufactureLandingScreen as default } from '@iish/app';

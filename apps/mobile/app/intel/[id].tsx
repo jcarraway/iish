@@ -1,5 +1,5 @@
 import { useLocalSearchParams } from 'expo-router';
-import { IntelItemDetailScreen } from '@oncovax/app';
+import { IntelItemDetailScreen } from '@iish/app';
 
 export default function IntelItemRoute() {
   const { id } = useLocalSearchParams<{ id: string }>();

@@ -2,14 +2,14 @@ import { View, Text } from 'dripsy';
 import { useRouter } from 'solito/router';
 import { Platform } from 'react-native';
 import { ManualIntakeWizard } from '../components';
-import type { PatientProfile } from '@oncovax/shared';
+import type { PatientProfile } from '@iish/shared';
 
 export function ManualIntakeScreen() {
   const router = useRouter();
 
   const handleComplete = (profile: PatientProfile) => {
     if (Platform.OS === 'web') {
-      sessionStorage.setItem('oncovax_manual_profile', JSON.stringify(profile));
+      sessionStorage.setItem('iish_manual_profile', JSON.stringify(profile));
     }
     router.push('/start/confirm?path=manual');
   };

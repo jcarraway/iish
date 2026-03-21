@@ -1,2 +1,2 @@
-import { RegulatoryDocumentsScreen } from '@oncovax/app';
+import { RegulatoryDocumentsScreen } from '@iish/app';
 export default RegulatoryDocumentsScreen;

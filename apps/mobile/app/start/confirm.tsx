@@ -1,2 +1,2 @@
-import { ConfirmProfileScreen } from '@oncovax/app';
+import { ConfirmProfileScreen } from '@iish/app';
 export default ConfirmProfileScreen;

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://oncovax.com';
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://iish.com';
 
 export async function GET() {
   const [articles, glossaryTerms] = await Promise.all([

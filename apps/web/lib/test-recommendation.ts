@@ -1,6 +1,6 @@
 import { prisma } from './db';
 import { redis } from './redis';
-import type { PatientProfile, TestRecommendation, SequencingProviderDetails } from '@oncovax/shared';
+import type { PatientProfile, TestRecommendation, SequencingProviderDetails } from '@iish/shared';
 
 const CACHE_TTL = 24 * 60 * 60; // 24 hours
 

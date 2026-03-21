@@ -1,6 +1,6 @@
 # Compute environments
 resource "aws_batch_compute_environment" "cpu_intensive" {
-  compute_environment_name = "oncovax-cpu-intensive-${var.environment}"
+  compute_environment_name = "iish-cpu-intensive-${var.environment}"
   type                     = "MANAGED"
   service_role             = aws_iam_role.batch_service.arn
 
@@ -11,6 +11,7 @@ resource "aws_batch_compute_environment" "cpu_intensive" {
     min_vcpus           = 0
     desired_vcpus       = 0
     instance_type       = ["r6i.2xlarge", "r6i.4xlarge"]
+    instance_role       = aws_iam_instance_profile.ecs_instance.arn
     spot_iam_fleet_role = aws_iam_role.batch_service.arn
 
     subnets            = aws_subnet.private[*].id
@@ -19,7 +20,7 @@ resource "aws_batch_compute_environment" "cpu_intensive" {
 }
 
 resource "aws_batch_compute_environment" "standard" {
-  compute_environment_name = "oncovax-standard-${var.environment}"
+  compute_environment_name = "iish-standard-${var.environment}"
   type                     = "MANAGED"
   service_role             = aws_iam_role.batch_service.arn
 
@@ -30,6 +31,7 @@ resource "aws_batch_compute_environment" "standard" {
     min_vcpus           = 0
     desired_vcpus       = 0
     instance_type       = ["r6i.large", "r6i.xlarge"]
+    instance_role       = aws_iam_instance_profile.ecs_instance.arn
     spot_iam_fleet_role = aws_iam_role.batch_service.arn
 
     subnets            = aws_subnet.private[*].id
@@ -39,7 +41,7 @@ resource "aws_batch_compute_environment" "standard" {
 
 # Job queues
 resource "aws_batch_job_queue" "cpu_intensive" {
-  name     = "oncovax-pipeline-cpu-intensive-${var.environment}"
+  name     = "iish-pipeline-cpu-intensive-${var.environment}"
   state    = "ENABLED"
   priority = 10
 
@@ -50,7 +52,7 @@ resource "aws_batch_job_queue" "cpu_intensive" {
 }
 
 resource "aws_batch_job_queue" "standard" {
-  name     = "oncovax-pipeline-standard-${var.environment}"
+  name     = "iish-pipeline-standard-${var.environment}"
   state    = "ENABLED"
   priority = 5
 
@@ -62,7 +64,7 @@ resource "aws_batch_job_queue" "standard" {
 
 # Job definitions
 resource "aws_batch_job_definition" "alignment" {
-  name = "oncovax-alignment"
+  name = "iish-alignment"
   type = "container"
 
   container_properties = jsonencode({
@@ -91,7 +93,7 @@ resource "aws_batch_job_definition" "alignment" {
 }
 
 resource "aws_batch_job_definition" "variant_calling" {
-  name = "oncovax-variant-calling"
+  name = "iish-variant-calling"
   type = "container"
 
   container_properties = jsonencode({
@@ -120,7 +122,7 @@ resource "aws_batch_job_definition" "variant_calling" {
 }
 
 resource "aws_batch_job_definition" "hla_typing" {
-  name = "oncovax-hla-typing"
+  name = "iish-hla-typing"
   type = "container"
 
   container_properties = jsonencode({
@@ -149,7 +151,7 @@ resource "aws_batch_job_definition" "hla_typing" {
 }
 
 resource "aws_batch_job_definition" "peptide_generation" {
-  name = "oncovax-peptide-generator"
+  name = "iish-peptide-generator"
   type = "container"
 
   container_properties = jsonencode({
@@ -178,7 +180,7 @@ resource "aws_batch_job_definition" "peptide_generation" {
 }
 
 resource "aws_batch_job_definition" "neoantigen_prediction" {
-  name = "oncovax-neoantigen-prediction"
+  name = "iish-neoantigen-prediction"
   type = "container"
 
   container_properties = jsonencode({
@@ -207,7 +209,7 @@ resource "aws_batch_job_definition" "neoantigen_prediction" {
 }
 
 resource "aws_batch_job_definition" "structure_prediction" {
-  name = "oncovax-structure-prediction"
+  name = "iish-structure-prediction"
   type = "container"
 
   container_properties = jsonencode({
@@ -236,7 +238,7 @@ resource "aws_batch_job_definition" "structure_prediction" {
 }
 
 resource "aws_batch_job_definition" "ranking" {
-  name = "oncovax-ranking"
+  name = "iish-ranking"
   type = "container"
 
   container_properties = jsonencode({
@@ -265,7 +267,7 @@ resource "aws_batch_job_definition" "ranking" {
 }
 
 resource "aws_batch_job_definition" "mrna_design" {
-  name = "oncovax-mrna-design"
+  name = "iish-mrna-design"
   type = "container"
 
   container_properties = jsonencode({

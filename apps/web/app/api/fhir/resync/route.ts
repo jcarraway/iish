@@ -6,9 +6,9 @@ import { discoverEndpoints } from '@/lib/fhir/smart-auth';
 import { FhirClient } from '@/lib/fhir/client';
 import { extractFhirResources } from '@/lib/fhir/extract-resources';
 import { mapFhirToPatientProfile } from '@/lib/fhir/mapper';
-import type { PatientProfile } from '@oncovax/shared';
+import type { PatientProfile } from '@iish/shared';
 
-const EPIC_CLIENT_ID = process.env.EPIC_CLIENT_ID ?? 'oncovax-dev';
+const EPIC_CLIENT_ID = process.env.EPIC_CLIENT_ID ?? 'iish-dev';
 
 export async function POST(req: NextRequest) {
   try {

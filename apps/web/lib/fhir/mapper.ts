@@ -1,5 +1,5 @@
-import type { PatientProfile, FhirExtractionResult, FhirResourceSummary } from '@oncovax/shared';
-import { BIOMARKER_LOINCS, LAB_LOINCS } from '@oncovax/shared';
+import type { PatientProfile, FhirExtractionResult, FhirResourceSummary } from '@iish/shared';
+import { BIOMARKER_LOINCS, LAB_LOINCS } from '@iish/shared';
 import type { RawFhirData } from './extract-resources';
 import {
   icd10ToCancerType,

@@ -335,7 +335,7 @@ export function FertilityProvidersScreen() {
             Important disclaimer
           </Text>
           <Text sx={{ mt: '$2', fontSize: 12, color: '#78350F', lineHeight: 18 }}>
-            Provider listings are for informational purposes. OncoVax does not endorse specific
+            Provider listings are for informational purposes. IISH does not endorse specific
             providers. Always verify credentials, insurance acceptance, and availability directly
             with the provider.
           </Text>

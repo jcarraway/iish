@@ -2,18 +2,18 @@ import { BatchClient, SubmitJobCommand } from '@aws-sdk/client-batch';
 
 const batch = new BatchClient({ region: process.env.AWS_REGION! });
 
-const CPU_INTENSIVE_QUEUE = process.env.AWS_BATCH_JOB_QUEUE_CPU || 'oncovax-pipeline-cpu-intensive';
-const STANDARD_QUEUE = process.env.AWS_BATCH_JOB_QUEUE_STANDARD || 'oncovax-pipeline-standard';
+const CPU_INTENSIVE_QUEUE = process.env.AWS_BATCH_JOB_QUEUE_CPU || 'iish-pipeline-cpu-intensive';
+const STANDARD_QUEUE = process.env.AWS_BATCH_JOB_QUEUE_STANDARD || 'iish-pipeline-standard';
 
 const JOB_DEFINITIONS: Record<string, { definition: string; queue: string }> = {
-  alignment: { definition: 'oncovax-alignment', queue: CPU_INTENSIVE_QUEUE },
-  variant_calling: { definition: 'oncovax-variant-calling', queue: CPU_INTENSIVE_QUEUE },
-  hla_typing: { definition: 'oncovax-hla-typing', queue: STANDARD_QUEUE },
-  peptide_generation: { definition: 'oncovax-peptide-generator', queue: STANDARD_QUEUE },
-  neoantigen_prediction: { definition: 'oncovax-neoantigen-prediction', queue: STANDARD_QUEUE },
-  structure_prediction: { definition: 'oncovax-structure-prediction', queue: STANDARD_QUEUE },
-  ranking: { definition: 'oncovax-ranking', queue: STANDARD_QUEUE },
-  mrna_design: { definition: 'oncovax-mrna-design', queue: STANDARD_QUEUE },
+  alignment: { definition: 'iish-alignment', queue: CPU_INTENSIVE_QUEUE },
+  variant_calling: { definition: 'iish-variant-calling', queue: CPU_INTENSIVE_QUEUE },
+  hla_typing: { definition: 'iish-hla-typing', queue: STANDARD_QUEUE },
+  peptide_generation: { definition: 'iish-peptide-generator', queue: STANDARD_QUEUE },
+  neoantigen_prediction: { definition: 'iish-neoantigen-prediction', queue: STANDARD_QUEUE },
+  structure_prediction: { definition: 'iish-structure-prediction', queue: STANDARD_QUEUE },
+  ranking: { definition: 'iish-ranking', queue: STANDARD_QUEUE },
+  mrna_design: { definition: 'iish-mrna-design', queue: STANDARD_QUEUE },
 };
 
 export async function dispatchStep(

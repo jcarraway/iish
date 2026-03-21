@@ -3,7 +3,7 @@ import { ActivityIndicator } from 'react-native';
 import { Link } from 'solito/link';
 import { EligibilityBreakdown } from '../components';
 import { openExternalUrl } from '../utils';
-import type { MatchBreakdownItem } from '@oncovax/shared';
+import type { MatchBreakdownItem } from '@iish/shared';
 import { useGetMatchQuery } from '../generated/graphql';
 
 interface TrialSite {

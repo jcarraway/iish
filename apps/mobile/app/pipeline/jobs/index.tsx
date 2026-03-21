@@ -1,2 +1,2 @@
-import { PipelineJobsScreen } from '@oncovax/app';
+import { PipelineJobsScreen } from '@iish/app';
 export default PipelineJobsScreen;

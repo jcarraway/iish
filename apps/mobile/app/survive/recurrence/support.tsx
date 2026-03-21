@@ -1,1 +1,1 @@
-export { RecurrenceSupportScreen as default } from '@oncovax/app';
+export { RecurrenceSupportScreen as default } from '@iish/app';

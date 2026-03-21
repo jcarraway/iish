@@ -1,17 +1,17 @@
 {
   "expo": {
-    "name": "OncoVax",
-    "slug": "oncovax",
+    "name": "IISH",
+    "slug": "iish",
     "version": "0.0.1",
     "orientation": "portrait",
-    "scheme": "oncovax",
+    "scheme": "iish",
     "platforms": ["ios", "android"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.oncovax.app"
+      "bundleIdentifier": "ch.iish.app"
     },
     "android": {
-      "package": "com.oncovax.app"
+      "package": "ch.iish.app"
     },
     "plugins": ["expo-router", "expo-secure-store"]
   }

@@ -1,2 +1,2 @@
-import { PipelineLandingScreen } from '@oncovax/app';
+import { PipelineLandingScreen } from '@iish/app';
 export default PipelineLandingScreen;

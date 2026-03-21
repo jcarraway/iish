@@ -1,8 +1,31 @@
 data "aws_caller_identity" "current" {}
+# ECS Instance Role + Profile (required by Batch EC2 compute environments)
+resource "aws_iam_role" "ecs_instance" {
+  name = "iish-ecs-instance-${var.environment}"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = { Service = "ec2.amazonaws.com" }
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_instance" {
+  role       = aws_iam_role.ecs_instance.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
+}
+
+resource "aws_iam_instance_profile" "ecs_instance" {
+  name = "iish-ecs-instance-${var.environment}"
+  role = aws_iam_role.ecs_instance.name
+}
 
 # Batch execution role (ECS agent)
 resource "aws_iam_role" "batch_execution" {
-  name = "oncovax-batch-execution-${var.environment}"
+  name = "iish-batch-execution-${var.environment}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -51,7 +74,7 @@ resource "aws_iam_role_policy" "batch_execution_ecr" {
 
 # Batch job role (application container)
 resource "aws_iam_role" "batch_job" {
-  name = "oncovax-batch-job-${var.environment}"
+  name = "iish-batch-job-${var.environment}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -105,7 +128,7 @@ resource "aws_iam_role_policy" "batch_job_logs" {
 
 # Batch service role
 resource "aws_iam_role" "batch_service" {
-  name = "oncovax-batch-service-${var.environment}"
+  name = "iish-batch-service-${var.environment}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -124,7 +147,7 @@ resource "aws_iam_role_policy_attachment" "batch_service" {
 
 # ECS task execution role for NATS
 resource "aws_iam_role" "nats_execution" {
-  name = "oncovax-nats-execution-${var.environment}"
+  name = "iish-nats-execution-${var.environment}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"

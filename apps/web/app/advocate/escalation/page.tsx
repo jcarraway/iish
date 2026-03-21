@@ -1,2 +1,2 @@
 'use client';
-export { EscalationGuideScreen as default } from '@oncovax/app';
+export { EscalationGuideScreen as default } from '@iish/app';

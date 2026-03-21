@@ -4,7 +4,7 @@ import { redis } from './redis';
 import { prisma } from './db';
 import { refreshSCP } from './scp-generator';
 import { sendDigest } from './community-manager';
-import type { PatientProfile } from '@oncovax/shared';
+import type { PatientProfile } from '@iish/shared';
 
 // ============================================================================
 // Types
@@ -36,7 +36,7 @@ export interface SCPDiff {
 // ============================================================================
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
-const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'noreply@oncovax.com';
+const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'noreply@iish.com';
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
 // ============================================================================
@@ -351,7 +351,7 @@ async function processSurveillanceReminders(): Promise<number> {
 <p>Your <strong>${event.title}</strong> is scheduled for <strong>${new Date(event.dueDate!).toLocaleDateString()}</strong> (${daysLabel}).</p>
 ${event.description ? `<p>${event.description}</p>` : ''}
 <p><a href="${APP_URL}/survive/monitoring">View your schedule</a></p>
-<p>Best,<br>OncoVax Care Team</p>`,
+<p>Best,<br>IISH Care Team</p>`,
         dedupeKey,
         referenceId: event.id,
         referenceType: 'surveillance_event',
@@ -403,7 +403,7 @@ async function processSurveillanceOverdue(): Promise<number> {
 <p>Your <strong>${event.title}</strong> was due on <strong>${new Date(event.dueDate!).toLocaleDateString()}</strong> (${daysAfter} days ago).</p>
 <p>If you haven't scheduled it yet, we're here to help. If you've already completed it, you can log it in your dashboard.</p>
 <p><a href="${APP_URL}/survive/monitoring">Update your schedule</a></p>
-<p>Best,<br>OncoVax Care Team</p>`,
+<p>Best,<br>IISH Care Team</p>`,
         dedupeKey,
         referenceId: event.id,
         referenceType: 'surveillance_event',
@@ -469,7 +469,7 @@ async function processJournalReminders(): Promise<number> {
       html: `<p>Hi there,</p>
 <p>Take 60 seconds to log how you're feeling today. Tracking your symptoms helps you and your care team spot patterns early.</p>
 <p><a href="${APP_URL}/survive/journal/entry">Log today's entry</a></p>
-<p>Best,<br>OncoVax Care Team</p>`,
+<p>Best,<br>IISH Care Team</p>`,
       dedupeKey,
     });
     if (sent) count++;
@@ -551,7 +551,7 @@ ${overdueEvents > 0 ? `<li><strong>Overdue items:</strong> ${overdueEvents} — 
 <p><strong>Coming up:</strong></p>
 <ul>${upcomingList}</ul>
 <p><a href="${APP_URL}/survive">View your dashboard</a></p>
-<p>Best,<br>OncoVax Care Team</p>`,
+<p>Best,<br>IISH Care Team</p>`,
       dedupeKey,
     });
     if (sent) count++;
@@ -597,7 +597,7 @@ async function processAppointmentPrep(): Promise<number> {
 <p>Your <strong>${event.title}</strong> is in 3 days (${new Date(event.dueDate!).toLocaleDateString()}).</p>
 <p>We've prepared a summary of your recent symptoms, completed tests, and suggested questions for your doctor.</p>
 <p><a href="${APP_URL}/survive/monitoring/${event.id}">View appointment prep</a></p>
-<p>Best,<br>OncoVax Care Team</p>`,
+<p>Best,<br>IISH Care Team</p>`,
       dedupeKey,
       referenceId: event.id,
       referenceType: 'surveillance_event',
@@ -646,7 +646,7 @@ async function processScpAnnualReview(): Promise<number> {
       html: `<p>Hi there,</p>
 <p>It's been a year since your last care plan review. We've updated your survivorship care plan based on the latest guidelines and your progress.</p>
 <p><a href="${APP_URL}/survive/plan">Review your updated plan</a></p>
-<p>Best,<br>OncoVax Care Team</p>`,
+<p>Best,<br>IISH Care Team</p>`,
       dedupeKey,
     });
     if (sent) count++;
@@ -686,7 +686,7 @@ async function processLifestyleCheckIn(): Promise<number> {
 <p>It's the start of a new month — a great time to revisit your personalized lifestyle recommendations.</p>
 <p>Check in on your exercise goals, nutrition, and overall wellness.</p>
 <p><a href="${APP_URL}/survive/lifestyle">View your recommendations</a></p>
-<p>Best,<br>OncoVax Care Team</p>`,
+<p>Best,<br>IISH Care Team</p>`,
       dedupeKey,
     });
     if (sent) count++;
@@ -743,7 +743,7 @@ async function processPhaseTransitions(): Promise<number> {
 <p>Congratulations — you've transitioned to <strong>${phaseLabels[newPhase]}</strong>. This is a meaningful milestone.</p>
 <p>Your care plan may be adjusted as your monitoring needs evolve. Some surveillance frequencies may change based on your time since treatment.</p>
 <p><a href="${APP_URL}/survive/plan">View your updated plan</a></p>
-<p>Best,<br>OncoVax Care Team</p>`,
+<p>Best,<br>IISH Care Team</p>`,
       dedupeKey,
     });
     if (sent) count++;
@@ -789,7 +789,7 @@ async function processRecurrenceNotifications(): Promise<number> {
 <li>Cancer Support Community: 888-793-9355</li>
 </ul>
 <p><a href="${APP_URL}/survive/recurrence/support">View all support resources</a></p>
-<p>You are not alone in this.<br>OncoVax Care Team</p>`,
+<p>You are not alone in this.<br>IISH Care Team</p>`,
         dedupeKey,
         referenceId: event.id,
         referenceType: 'recurrence_event',
@@ -812,7 +812,7 @@ async function processRecurrenceNotifications(): Promise<number> {
 <p>We've re-searched clinical trials based on your updated situation. ${matchCount > 0 ? `We found <strong>${matchCount} potential matches</strong>.` : 'We\'re still searching for the best options.'}</p>
 <p>Clinical trials — especially for recurrent cancer — are often where the most promising new treatments are available.</p>
 <p><a href="${APP_URL}/survive/recurrence/trials">View updated trial matches</a></p>
-<p>Best,<br>OncoVax Care Team</p>`,
+<p>Best,<br>IISH Care Team</p>`,
         dedupeKey,
         referenceId: event.id,
         referenceType: 'recurrence_event',
@@ -832,7 +832,7 @@ async function processRecurrenceNotifications(): Promise<number> {
 <p>The recurrent tumor may have different genomic characteristics than your original cancer. New mutations can unlock new treatment options.</p>
 <p>We recommend discussing genomic testing with your oncologist.</p>
 <p><a href="${APP_URL}/survive/recurrence/sequencing">Learn about re-sequencing</a></p>
-<p>Best,<br>OncoVax Care Team</p>`,
+<p>Best,<br>IISH Care Team</p>`,
         dedupeKey,
         referenceId: event.id,
         referenceType: 'recurrence_event',
@@ -851,7 +851,7 @@ async function processRecurrenceNotifications(): Promise<number> {
         html: `<p>Hi there,</p>
 <p>We've updated your financial assistance matches for your new treatment situation. Many programs specifically support patients with recurrent cancer.</p>
 <p><a href="${APP_URL}/financial">View updated financial assistance</a></p>
-<p>Best,<br>OncoVax Care Team</p>`,
+<p>Best,<br>IISH Care Team</p>`,
         dedupeKey,
         referenceId: event.id,
         referenceType: 'recurrence_event',

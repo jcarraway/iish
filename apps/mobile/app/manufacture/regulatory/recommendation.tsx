@@ -1,2 +1,2 @@
-import { RegulatoryRecommendationScreen } from '@oncovax/app';
+import { RegulatoryRecommendationScreen } from '@iish/app';
 export default RegulatoryRecommendationScreen;

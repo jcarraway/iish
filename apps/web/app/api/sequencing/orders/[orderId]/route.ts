@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/session';
-import { SEQUENCING_ORDER_STATUSES } from '@oncovax/shared';
+import { SEQUENCING_ORDER_STATUSES } from '@iish/shared';
 
 export async function GET(
   _req: NextRequest,

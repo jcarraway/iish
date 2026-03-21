@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { presignedUrlRequestSchema } from '@oncovax/shared';
+import { presignedUrlRequestSchema } from '@iish/shared';
 import { generatePresignedUploadUrl } from '@/lib/s3';
 import { randomUUID } from 'crypto';
 

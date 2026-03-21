@@ -1,2 +1,2 @@
 'use client';
-export { LearnAdminScreen as default } from '@oncovax/app';
+export { LearnAdminScreen as default } from '@iish/app';

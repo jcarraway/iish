@@ -1240,7 +1240,7 @@ export async function checkRetractionStatus(itemId: string) {
   if (retractionStatus === 'none' && item.doi) {
     try {
       const res = await fetch(`https://api.crossref.org/works/${encodeURIComponent(item.doi)}`, {
-        headers: { 'User-Agent': 'OncoVax/1.0 (mailto:support@oncovax.com)' },
+        headers: { 'User-Agent': 'IISH/1.0 (mailto:support@iish.com)' },
       });
       if (res.ok) {
         const data = await res.json();

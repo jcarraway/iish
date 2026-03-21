@@ -1,7 +1,7 @@
 'use client';
 import { useParams, useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
-import { MonitoringReportScreen } from '@oncovax/app';
+import { MonitoringReportScreen } from '@iish/app';
 
 function Content() {
   const { orderId } = useParams<{ orderId: string }>();

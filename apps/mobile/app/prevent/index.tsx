@@ -1,2 +1,2 @@
-import { PreventiveTrialsScreen } from '@oncovax/app';
+import { PreventiveTrialsScreen } from '@iish/app';
 export default PreventiveTrialsScreen;

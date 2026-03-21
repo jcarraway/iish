@@ -1,7 +1,7 @@
 resource "aws_s3_bucket" "pipeline" {
   bucket = "${var.pipeline_bucket_name}-${var.environment}"
 
-  tags = { Name = "oncovax-pipeline-${var.environment}" }
+  tags = { Name = "iish-pipeline-${var.environment}" }
 }
 
 resource "aws_s3_bucket_versioning" "pipeline" {
@@ -17,8 +17,10 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "pipeline" {
 
   rule {
     apply_server_side_encryption_by_default {
-      sse_algorithm = "AES256"
+      sse_algorithm     = "aws:kms"
+      kms_master_key_id = aws_kms_key.main.arn
     }
+    bucket_key_enabled = true
   }
 }
 

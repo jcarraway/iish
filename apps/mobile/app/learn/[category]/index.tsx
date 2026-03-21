@@ -1,5 +1,5 @@
 import { useLocalSearchParams } from 'expo-router';
-import { LearnCategoryScreen } from '@oncovax/app';
+import { LearnCategoryScreen } from '@iish/app';
 
 export default function LearnCategoryPage() {
   const { category } = useLocalSearchParams<{ category: string }>();

@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/session';
 import { generatePatientReport, generateClinicianReport, generateManufacturerBlueprint } from '@/lib/report-generator';
 import { renderPatientPdf, renderClinicianPdf, renderManufacturerPdf } from '@/lib/report-pdf';
-import { generatePresignedDownloadUrl, multipartUpload, resultsPath } from '@oncovax/pipeline-storage';
+import { generatePresignedDownloadUrl, multipartUpload, resultsPath } from '@iish/pipeline-storage';
 
 const TYPE_TO_FIELD: Record<string, 'patientSummaryPath' | 'fullReportPdfPath' | 'vaccineBlueprintPath'> = {
   patient: 'patientSummaryPath',

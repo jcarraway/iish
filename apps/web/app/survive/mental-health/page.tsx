@@ -1,2 +1,2 @@
 'use client';
-export { MentalHealthScreen as default } from '@oncovax/app';
+export { MentalHealthScreen as default } from '@iish/app';

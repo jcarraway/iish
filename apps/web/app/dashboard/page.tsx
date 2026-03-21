@@ -1,2 +1,2 @@
 'use client';
-export { DashboardScreen as default } from '@oncovax/app';
+export { DashboardScreen as default } from '@iish/app';

@@ -1,5 +1,5 @@
 import { EncryptJWT, jwtDecrypt } from 'jose';
-import type { SmartEndpoints, FhirTokenPair } from '@oncovax/shared';
+import type { SmartEndpoints, FhirTokenPair } from '@iish/shared';
 import type { FhirCapabilityStatement } from './types';
 
 const SMART_OAUTH_EXT_URL = 'http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris';

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { extractionRequestSchema } from '@oncovax/shared';
+import { extractionRequestSchema } from '@iish/shared';
 import { runExtractionPipeline } from '@/lib/extraction';
 import { randomUUID } from 'crypto';
 

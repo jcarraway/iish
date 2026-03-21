@@ -1,2 +1,2 @@
 'use client';
-export { AdvocateDashboardScreen as default } from '@oncovax/app';
+export { AdvocateDashboardScreen as default } from '@iish/app';

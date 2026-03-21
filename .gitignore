@@ -23,6 +23,15 @@ packages/db/src/generated/
 # rust
 target/
 
+# terraform
+*.tfstate
+*.tfstate.backup
+.terraform/
+
+# TLS private keys (certs OK to commit, keys NEVER)
+*-key.pem
+*.key
+
 # misc
 .DS_Store
 *.tsbuildinfo

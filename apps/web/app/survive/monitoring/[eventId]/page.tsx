@@ -1,6 +1,6 @@
 'use client';
 import { useParams } from 'next/navigation';
-import { SurveillanceEventDetailScreen } from '@oncovax/app';
+import { SurveillanceEventDetailScreen } from '@iish/app';
 
 export default function Page() {
   const { eventId } = useParams<{ eventId: string }>();

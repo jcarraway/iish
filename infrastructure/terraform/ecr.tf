@@ -1,7 +1,7 @@
 # ECR repositories for pipeline service containers
 
 resource "aws_ecr_repository" "alignment" {
-  name                 = "oncovax/alignment"
+  name                 = "iish/alignment"
   image_tag_mutability = "MUTABLE"
   force_delete         = false
 
@@ -35,7 +35,7 @@ resource "aws_ecr_lifecycle_policy" "alignment" {
 }
 
 resource "aws_ecr_repository" "variant_caller" {
-  name                 = "oncovax/variant-caller"
+  name                 = "iish/variant-caller"
   image_tag_mutability = "MUTABLE"
   force_delete         = false
 
@@ -69,7 +69,7 @@ resource "aws_ecr_lifecycle_policy" "variant_caller" {
 }
 
 resource "aws_ecr_repository" "hla_typer" {
-  name                 = "oncovax/hla-typer"
+  name                 = "iish/hla-typer"
   image_tag_mutability = "MUTABLE"
   force_delete         = false
 
@@ -103,7 +103,7 @@ resource "aws_ecr_lifecycle_policy" "hla_typer" {
 }
 
 resource "aws_ecr_repository" "peptide_generator" {
-  name                 = "oncovax/peptide-generator"
+  name                 = "iish/peptide-generator"
   image_tag_mutability = "MUTABLE"
   force_delete         = false
 
@@ -137,7 +137,7 @@ resource "aws_ecr_lifecycle_policy" "peptide_generator" {
 }
 
 resource "aws_ecr_repository" "neoantigen_predictor" {
-  name                 = "oncovax/neoantigen-predictor"
+  name                 = "iish/neoantigen-predictor"
   image_tag_mutability = "MUTABLE"
   force_delete         = false
 
@@ -171,7 +171,7 @@ resource "aws_ecr_lifecycle_policy" "neoantigen_predictor" {
 }
 
 resource "aws_ecr_repository" "structure_predictor" {
-  name                 = "oncovax/structure-predictor"
+  name                 = "iish/structure-predictor"
   image_tag_mutability = "MUTABLE"
   force_delete         = false
 
@@ -205,7 +205,7 @@ resource "aws_ecr_lifecycle_policy" "structure_predictor" {
 }
 
 resource "aws_ecr_repository" "ranking" {
-  name                 = "oncovax/ranking"
+  name                 = "iish/ranking"
   image_tag_mutability = "MUTABLE"
   force_delete         = false
 
@@ -239,7 +239,7 @@ resource "aws_ecr_lifecycle_policy" "ranking" {
 }
 
 resource "aws_ecr_repository" "mrna_designer" {
-  name                 = "oncovax/mrna-designer"
+  name                 = "iish/mrna-designer"
   image_tag_mutability = "MUTABLE"
   force_delete         = false
 

@@ -1,2 +1,2 @@
-import { GenomicResultsScreen } from '@oncovax/app';
+import { GenomicResultsScreen } from '@iish/app';
 export default GenomicResultsScreen;

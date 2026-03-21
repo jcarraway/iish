@@ -1,2 +1,2 @@
-import { ManufactureLandingScreen } from '@oncovax/app';
+import { ManufactureLandingScreen } from '@iish/app';
 export default ManufactureLandingScreen;

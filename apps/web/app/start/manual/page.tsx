@@ -1,2 +1,2 @@
 'use client';
-export { ManualIntakeScreen as default } from '@oncovax/app';
+export { ManualIntakeScreen as default } from '@iish/app';

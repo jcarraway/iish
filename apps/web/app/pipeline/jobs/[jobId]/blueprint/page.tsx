@@ -1,6 +1,6 @@
 'use client';
 import { useParams } from 'next/navigation';
-import { PipelineBlueprintScreen } from '@oncovax/app';
+import { PipelineBlueprintScreen } from '@iish/app';
 
 export default function BlueprintPage() {
   const { jobId } = useParams<{ jobId: string }>();

@@ -1,7 +1,7 @@
 import { ApolloClient, ApolloLink, HttpLink } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 import * as SecureStore from 'expo-secure-store';
-import { createCache } from '@oncovax/app';
+import { createCache } from '@iish/app';
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 

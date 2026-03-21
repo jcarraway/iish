@@ -4,7 +4,7 @@ import { resolve } from 'path';
 // Load env from apps/web/.env
 config({ path: resolve(__dirname, '../apps/web/.env') });
 
-import { PrismaClient } from '@oncovax/db/generated/prisma';
+import { PrismaClient } from '@iish/db/generated/prisma';
 import { PrismaPg } from '@prisma/adapter-pg';
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
@@ -698,7 +698,7 @@ const GLOSSARY_TERMS: GlossaryTermSeed[] = [
     term: 'Survivorship Care Plan',
     slug: 'survivorship-care-plan',
     shortDefinition: 'A personalized document created at the end of active treatment that summarizes your cancer history, treatment received, follow-up schedule, and long-term health recommendations.',
-    fullDefinition: 'A survivorship care plan (SCP) is a comprehensive document provided to patients completing active cancer treatment. It typically includes: a summary of diagnosis and treatments received, a schedule for follow-up visits and surveillance tests, information about potential late and long-term effects of treatment, recommendations for healthy living, psychosocial support resources, and when to contact the care team. The Commission on Cancer requires accredited cancer centers to provide SCPs. In the OncoVax platform, SCPs are generated using a two-step Claude AI pipeline that grounds clinical information and then translates it into patient-accessible language.',
+    fullDefinition: 'A survivorship care plan (SCP) is a comprehensive document provided to patients completing active cancer treatment. It typically includes: a summary of diagnosis and treatments received, a schedule for follow-up visits and surveillance tests, information about potential late and long-term effects of treatment, recommendations for healthy living, psychosocial support resources, and when to contact the care team. The Commission on Cancer requires accredited cancer centers to provide SCPs. In the IISH platform, SCPs are generated using a two-step Claude AI pipeline that grounds clinical information and then translates it into patient-accessible language.',
     fullArticleSlug: 'survivorship-care-plan-explained',
     aliases: ['SCP', 'survivorship plan', 'care plan', 'treatment summary'],
     category: 'general',
@@ -707,7 +707,7 @@ const GLOSSARY_TERMS: GlossaryTermSeed[] = [
     term: 'Clinical Trial',
     slug: 'clinical-trial',
     shortDefinition: 'A research study that tests new treatments, drugs, or procedures in people. Clinical trials are how all new cancer treatments are proven to work and gain FDA approval.',
-    fullDefinition: 'Clinical trials are research studies conducted with human participants to evaluate new medical interventions. They proceed through phases: Phase I tests safety and dosing in a small group, Phase II tests effectiveness and side effects, Phase III compares the new treatment to current standard of care in a large group, and Phase IV monitors long-term effects after approval. In breast cancer, clinical trials have led to every treatment advance — trastuzumab, CDK4/6 inhibitors, checkpoint inhibitors, and ADCs were all proven effective through trials. Participating in a clinical trial provides access to cutting-edge treatments and contributes to scientific knowledge. The OncoVax platform helps match patients to eligible trials based on their specific diagnosis.',
+    fullDefinition: 'Clinical trials are research studies conducted with human participants to evaluate new medical interventions. They proceed through phases: Phase I tests safety and dosing in a small group, Phase II tests effectiveness and side effects, Phase III compares the new treatment to current standard of care in a large group, and Phase IV monitors long-term effects after approval. In breast cancer, clinical trials have led to every treatment advance — trastuzumab, CDK4/6 inhibitors, checkpoint inhibitors, and ADCs were all proven effective through trials. Participating in a clinical trial provides access to cutting-edge treatments and contributes to scientific knowledge. The IISH platform helps match patients to eligible trials based on their specific diagnosis.',
     fullArticleSlug: null,
     aliases: ['trial', 'research study', 'clinical study', 'cancer trial'],
     category: 'general',

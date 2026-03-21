@@ -6,6 +6,6 @@ export default defineConfig({
     path: 'prisma/migrations',
   },
   datasource: {
-    url: process.env.DATABASE_URL || 'postgresql://rett:rett@localhost:5432/oncovax_dev',
+    url: process.env.DATABASE_URL || 'postgresql://rett:rett@localhost:5432/iish_dev',
   },
 });

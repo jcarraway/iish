@@ -1,6 +1,6 @@
 'use client';
 import { useParams } from 'next/navigation';
-import { SequencingOrderDetailScreen } from '@oncovax/app';
+import { SequencingOrderDetailScreen } from '@iish/app';
 
 export default function OrderDetailPage() {
   const { orderId } = useParams<{ orderId: string }>();

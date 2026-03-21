@@ -1,7 +1,7 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { LearnSearchScreen } from '@oncovax/app';
+import { LearnSearchScreen } from '@iish/app';
 
 export default function LearnSearchPage() {
   const searchParams = useSearchParams();

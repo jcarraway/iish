@@ -1,2 +1,2 @@
-import { ForYourFamilyScreen } from '@oncovax/app';
+import { ForYourFamilyScreen } from '@iish/app';
 export default ForYourFamilyScreen;

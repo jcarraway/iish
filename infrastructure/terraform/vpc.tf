@@ -7,12 +7,12 @@ resource "aws_vpc" "main" {
   enable_dns_hostnames = true
   enable_dns_support   = true
 
-  tags = { Name = "oncovax-${var.environment}" }
+  tags = { Name = "iish-${var.environment}" }
 }
 
 resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
-  tags   = { Name = "oncovax-${var.environment}-igw" }
+  tags   = { Name = "iish-${var.environment}-igw" }
 }
 
 resource "aws_subnet" "public" {
@@ -22,7 +22,7 @@ resource "aws_subnet" "public" {
   availability_zone       = data.aws_availability_zones.available.names[count.index]
   map_public_ip_on_launch = true
 
-  tags = { Name = "oncovax-${var.environment}-public-${count.index}" }
+  tags = { Name = "iish-${var.environment}-public-${count.index}" }
 }
 
 resource "aws_subnet" "private" {
@@ -31,24 +31,24 @@ resource "aws_subnet" "private" {
   cidr_block        = cidrsubnet(var.vpc_cidr, 8, count.index + 10)
   availability_zone = data.aws_availability_zones.available.names[count.index]
 
-  tags = { Name = "oncovax-${var.environment}-private-${count.index}" }
+  tags = { Name = "iish-${var.environment}-private-${count.index}" }
 }
 
 resource "aws_eip" "nat" {
   domain = "vpc"
-  tags   = { Name = "oncovax-${var.environment}-nat-eip" }
+  tags   = { Name = "iish-${var.environment}-nat-eip" }
 }
 
 resource "aws_nat_gateway" "main" {
   allocation_id = aws_eip.nat.id
   subnet_id     = aws_subnet.public[0].id
 
-  tags = { Name = "oncovax-${var.environment}-nat" }
+  tags = { Name = "iish-${var.environment}-nat" }
 }
 
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
-  tags   = { Name = "oncovax-${var.environment}-public-rt" }
+  tags   = { Name = "iish-${var.environment}-public-rt" }
 }
 
 resource "aws_route" "public_internet" {
@@ -65,7 +65,7 @@ resource "aws_route_table_association" "public" {
 
 resource "aws_route_table" "private" {
   vpc_id = aws_vpc.main.id
-  tags   = { Name = "oncovax-${var.environment}-private-rt" }
+  tags   = { Name = "iish-${var.environment}-private-rt" }
 }
 
 resource "aws_route" "private_nat" {
@@ -81,7 +81,7 @@ resource "aws_route_table_association" "private" {
 }
 
 resource "aws_security_group" "batch" {
-  name_prefix = "oncovax-batch-"
+  name_prefix = "iish-batch-"
   vpc_id      = aws_vpc.main.id
 
   egress {
@@ -91,11 +91,11 @@ resource "aws_security_group" "batch" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = { Name = "oncovax-${var.environment}-batch-sg" }
+  tags = { Name = "iish-${var.environment}-batch-sg" }
 }
 
 resource "aws_security_group" "nats" {
-  name_prefix = "oncovax-nats-"
+  name_prefix = "iish-nats-"
   vpc_id      = aws_vpc.main.id
 
   ingress {
@@ -120,5 +120,5 @@ resource "aws_security_group" "nats" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = { Name = "oncovax-${var.environment}-nats-sg" }
+  tags = { Name = "iish-${var.environment}-nats-sg" }
 }

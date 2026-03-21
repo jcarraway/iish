@@ -1,2 +1,2 @@
-import { AppealRightsScreen } from '@oncovax/app';
+import { AppealRightsScreen } from '@iish/app';
 export default AppealRightsScreen;

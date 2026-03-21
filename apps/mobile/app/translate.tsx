@@ -1,2 +1,2 @@
-import { TranslateScreen } from '@oncovax/app';
+import { TranslateScreen } from '@iish/app';
 export default TranslateScreen;

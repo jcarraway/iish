@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { View, Text, Pressable, ScrollView } from 'dripsy';
 import { ActivityIndicator } from 'react-native';
 import { Link } from 'solito/link';
-import type { SurvivorshipCarePlan } from '@oncovax/shared';
+import type { SurvivorshipCarePlan } from '@iish/shared';
 import {
   useGetSurvivorshipPlanQuery,
   useRefreshScpMutation,

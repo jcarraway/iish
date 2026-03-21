@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { View, Text, TextInput, Pressable } from 'dripsy';
-import type { MonitoringReportType, AdverseEventSeverity, TumorResponse } from '@oncovax/shared';
-import { ADVERSE_EVENT_OPTIONS } from '@oncovax/shared';
+import type { MonitoringReportType, AdverseEventSeverity, TumorResponse } from '@iish/shared';
+import { ADVERSE_EVENT_OPTIONS } from '@iish/shared';
 import { Picker } from './Picker';
 
 interface MonitoringReportFormProps {

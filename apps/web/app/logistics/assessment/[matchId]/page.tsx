@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { LogisticsAssessmentScreen } from '@oncovax/app';
+import { LogisticsAssessmentScreen } from '@iish/app';
 
 export default function LogisticsAssessmentPage() {
   const params = useParams();

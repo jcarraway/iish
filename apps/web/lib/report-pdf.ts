@@ -1,6 +1,6 @@
 import React from 'react';
 import { Document, Page, View, Text, StyleSheet, renderToBuffer } from '@react-pdf/renderer';
-import type { PatientReportData, ClinicianReportData, ManufacturerBlueprintData } from '@oncovax/shared';
+import type { PatientReportData, ClinicianReportData, ManufacturerBlueprintData } from '@iish/shared';
 
 const colors = {
   primary: '#7C3AED',
@@ -44,7 +44,7 @@ export async function renderPatientPdf(data: PatientReportData): Promise<Buffer>
       // Header
       React.createElement(View, { style: patientStyles.header },
         React.createElement(Text, { style: patientStyles.headerTitle }, 'Your Neoantigen Analysis'),
-        React.createElement(Text, { style: patientStyles.headerSub }, `OncoVax Patient Summary | Generated ${new Date(data.generatedAt).toLocaleDateString()}`),
+        React.createElement(Text, { style: patientStyles.headerSub }, `IISH Patient Summary | Generated ${new Date(data.generatedAt).toLocaleDateString()}`),
       ),
       // Summary
       React.createElement(View, { style: patientStyles.section },
@@ -136,7 +136,7 @@ export async function renderClinicianPdf(data: ClinicianReportData): Promise<Buf
       // Header
       React.createElement(View, { style: clinicianStyles.header },
         React.createElement(Text, { style: clinicianStyles.headerTitle }, 'Neoantigen Pipeline Clinical Report'),
-        React.createElement(Text, { style: clinicianStyles.headerSub }, `OncoVax | Generated ${new Date(data.generatedAt).toLocaleDateString()}`),
+        React.createElement(Text, { style: clinicianStyles.headerSub }, `IISH | Generated ${new Date(data.generatedAt).toLocaleDateString()}`),
       ),
       // Sample Info
       React.createElement(View, { style: clinicianStyles.section },
@@ -191,7 +191,7 @@ export async function renderClinicianPdf(data: ClinicianReportData): Promise<Buf
       ),
       // Footer
       React.createElement(View, { style: clinicianStyles.footer, fixed: true },
-        React.createElement(Text, { style: clinicianStyles.footerText }, 'For research use only. Not a diagnostic report. OncoVax Neoantigen Pipeline.'),
+        React.createElement(Text, { style: clinicianStyles.footerText }, 'For research use only. Not a diagnostic report. IISH Neoantigen Pipeline.'),
         React.createElement(Text, { style: clinicianStyles.pageNumber, render: ({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) => `Page ${pageNumber} of ${totalPages}` }),
       ),
     ),
@@ -247,7 +247,7 @@ export async function renderClinicianPdf(data: ClinicianReportData): Promise<Buf
       ),
       // Footer
       React.createElement(View, { style: clinicianStyles.footer, fixed: true },
-        React.createElement(Text, { style: clinicianStyles.footerText }, 'For research use only. Not a diagnostic report. OncoVax Neoantigen Pipeline.'),
+        React.createElement(Text, { style: clinicianStyles.footerText }, 'For research use only. Not a diagnostic report. IISH Neoantigen Pipeline.'),
         React.createElement(Text, { style: clinicianStyles.pageNumber, render: ({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) => `Page ${pageNumber} of ${totalPages}` }),
       ),
     ),
@@ -285,7 +285,7 @@ export async function renderManufacturerPdf(data: ManufacturerBlueprintData): Pr
       // Header
       React.createElement(View, { style: mfgStyles.header },
         React.createElement(Text, { style: mfgStyles.headerTitle }, 'Vaccine Manufacturing Blueprint'),
-        React.createElement(Text, { style: mfgStyles.headerSub }, `OncoVax Technical Specification | Generated ${new Date(data.generatedAt).toLocaleDateString()}`),
+        React.createElement(Text, { style: mfgStyles.headerSub }, `IISH Technical Specification | Generated ${new Date(data.generatedAt).toLocaleDateString()}`),
       ),
       // mRNA Sequence Spec
       React.createElement(View, { style: mfgStyles.section },
@@ -342,7 +342,7 @@ export async function renderManufacturerPdf(data: ManufacturerBlueprintData): Pr
       ),
       // Footer
       React.createElement(View, { style: mfgStyles.footer, fixed: true },
-        React.createElement(Text, { style: mfgStyles.footerText }, 'Confidential - For authorized manufacturing use only. OncoVax Neoantigen Pipeline.'),
+        React.createElement(Text, { style: mfgStyles.footerText }, 'Confidential - For authorized manufacturing use only. IISH Neoantigen Pipeline.'),
         React.createElement(Text, { style: mfgStyles.pageNumber, render: ({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) => `Page ${pageNumber} of ${totalPages}` }),
       ),
     ),
@@ -398,7 +398,7 @@ export async function renderManufacturerPdf(data: ManufacturerBlueprintData): Pr
       ),
       // Footer
       React.createElement(View, { style: mfgStyles.footer, fixed: true },
-        React.createElement(Text, { style: mfgStyles.footerText }, 'Confidential - For authorized manufacturing use only. OncoVax Neoantigen Pipeline.'),
+        React.createElement(Text, { style: mfgStyles.footerText }, 'Confidential - For authorized manufacturing use only. IISH Neoantigen Pipeline.'),
         React.createElement(Text, { style: mfgStyles.pageNumber, render: ({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) => `Page ${pageNumber} of ${totalPages}` }),
       ),
     ),

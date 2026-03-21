@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/session';
 import { checkSequencingCoverage } from '@/lib/coverage';
 import { generateSequencingBrief } from '@/lib/sequencing-brief';
-import type { PatientProfile, SequencingProviderDetails } from '@oncovax/shared';
+import type { PatientProfile, SequencingProviderDetails } from '@iish/shared';
 
 export async function POST(req: NextRequest) {
   try {

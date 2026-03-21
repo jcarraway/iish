@@ -1,2 +1,2 @@
 'use client';
-export { NotificationSettingsScreen as default } from '@oncovax/app';
+export { NotificationSettingsScreen as default } from '@iish/app';

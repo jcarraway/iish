@@ -1,6 +1,6 @@
 import { prisma } from './db';
 import { anthropic, CLAUDE_MODEL } from './ai';
-import type { PatientProfile, InsuranceCoverageResult, LetterOfMedicalNecessity } from '@oncovax/shared';
+import type { PatientProfile, InsuranceCoverageResult, LetterOfMedicalNecessity } from '@iish/shared';
 
 export async function checkSequencingCoverage(
   patientId: string,

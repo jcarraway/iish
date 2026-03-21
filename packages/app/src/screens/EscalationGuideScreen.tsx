@@ -44,7 +44,7 @@ const STRATEGIES: EscalationStrategy[] = [
         name: 'Peer-to-Peer Review',
         description: 'Request a phone call between your oncologist and the insurance company\'s medical director. Your doctor explains the clinical rationale in real-time.',
         successRate: '~30-40% additional',
-        what: 'Use OncoVax\'s Peer-to-Peer Prep tool. Ensure your oncologist has NCCN guidelines, your pathology report, and published outcomes data ready. The reviewing physician often lacks specialty knowledge — your doctor fills that gap.',
+        what: 'Use IISH\'s Peer-to-Peer Prep tool. Ensure your oncologist has NCCN guidelines, your pathology report, and published outcomes data ready. The reviewing physician often lacks specialty knowledge — your doctor fills that gap.',
       },
       {
         step: 3,

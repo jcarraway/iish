@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { redis } from '@/lib/redis';
-import { verifyMagicLinkToken } from '@oncovax/shared';
+import { verifyMagicLinkToken } from '@iish/shared';
 import { randomBytes } from 'crypto';
 
 export async function GET(req: NextRequest) {

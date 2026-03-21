@@ -8,7 +8,7 @@ export default function UploadPage() {
   const router = useRouter();
 
   const handleUploadComplete = (files: UploadedFile[]) => {
-    sessionStorage.setItem('oncovax_uploaded_files', JSON.stringify(files));
+    sessionStorage.setItem('iish_uploaded_files', JSON.stringify(files));
     router.push('/start/confirm?path=upload');
   };
 

@@ -1,5 +1,5 @@
 import { View, Text } from 'dripsy';
-import { SEQUENCING_ORDER_STATUSES } from '@oncovax/shared';
+import { SEQUENCING_ORDER_STATUSES } from '@iish/shared';
 
 const STATUS_STEPS = [
   { key: SEQUENCING_ORDER_STATUSES.PENDING, label: 'Pending' },

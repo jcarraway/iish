@@ -1,2 +1,2 @@
 'use client';
-export { FertilityAssessmentScreen as default } from '@oncovax/app';
+export { FertilityAssessmentScreen as default } from '@iish/app';

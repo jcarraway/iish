@@ -2,7 +2,7 @@
 
 import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { MyChartScreen } from '@oncovax/app';
+import { MyChartScreen } from '@iish/app';
 
 function MyChartPageInner() {
   const searchParams = useSearchParams();

@@ -3,7 +3,7 @@ import { View, Text, Pressable, ScrollView } from 'dripsy';
 import { ActivityIndicator } from 'react-native';
 import { Link } from 'solito/link';
 import { OrderProgressBar } from '../components';
-import { SEQUENCING_ORDER_STATUSES } from '@oncovax/shared';
+import { SEQUENCING_ORDER_STATUSES } from '@iish/shared';
 import {
   useGetSequencingOrderQuery,
   useUpdateSequencingOrderStatusMutation,

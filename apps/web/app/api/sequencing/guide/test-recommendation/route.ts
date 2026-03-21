@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/session';
 import { generateTestRecommendation } from '@/lib/test-recommendation';
-import type { PatientProfile } from '@oncovax/shared';
+import type { PatientProfile } from '@iish/shared';
 
 export async function POST(req: NextRequest) {
   try {

@@ -1,4 +1,4 @@
-import { LearnGlossaryScreen } from '@oncovax/app';
+import { LearnGlossaryScreen } from '@iish/app';
 
 export default function GlossaryPage() {
   return <LearnGlossaryScreen />;

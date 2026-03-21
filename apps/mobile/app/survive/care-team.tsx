@@ -1,4 +1,4 @@
-import { CareTeamScreen } from '@oncovax/app';
+import { CareTeamScreen } from '@iish/app';
 export default function CareTeamRoute() {
   return <CareTeamScreen />;
 }

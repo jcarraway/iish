@@ -1,7 +1,7 @@
 'use client';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
-import { RegulatoryRecommendationScreen } from '@oncovax/app';
+import { RegulatoryRecommendationScreen } from '@iish/app';
 
 function Content() {
   const searchParams = useSearchParams();

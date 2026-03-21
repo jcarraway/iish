@@ -1,2 +1,2 @@
 'use client';
-export { RegulatoryAssessmentScreen as default } from '@oncovax/app';
+export { RegulatoryAssessmentScreen as default } from '@iish/app';

@@ -43,7 +43,7 @@ export function AuthScreen() {
 
   return (
     <View sx={{ mx: 'auto', maxWidth: 448, px: '$6', py: '$24', alignSelf: 'center', width: '100%' }}>
-      <Text sx={{ fontSize: '$2xl', fontWeight: '700', color: '$foreground' }}>Sign in to OncoVax</Text>
+      <Text sx={{ fontSize: '$2xl', fontWeight: '700', color: '$foreground' }}>Sign in to IISH</Text>
       <Text sx={{ mt: '$2', color: '$mutedForeground' }}>
         Enter your email and we&apos;ll send you a magic link to sign in.
       </Text>

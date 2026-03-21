@@ -1,2 +1,2 @@
-import { AdvocateDashboardScreen } from '@oncovax/app';
+import { AdvocateDashboardScreen } from '@iish/app';
 export default AdvocateDashboardScreen;

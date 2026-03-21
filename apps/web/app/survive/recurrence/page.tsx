@@ -1,2 +1,2 @@
 'use client';
-export { RecurrenceAcknowledgeScreen as default } from '@oncovax/app';
+export { RecurrenceAcknowledgeScreen as default } from '@iish/app';

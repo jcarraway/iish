@@ -1,2 +1,2 @@
 'use client';
-export { LogisticsApplicationsScreen as default } from '@oncovax/app';
+export { LogisticsApplicationsScreen as default } from '@iish/app';

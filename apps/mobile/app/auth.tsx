@@ -1,2 +1,2 @@
-import { AuthScreen } from '@oncovax/app';
+import { AuthScreen } from '@iish/app';
 export default AuthScreen;

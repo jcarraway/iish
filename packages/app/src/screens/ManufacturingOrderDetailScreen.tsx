@@ -4,8 +4,8 @@ import { ActivityIndicator, TextInput } from 'react-native';
 import { Link } from 'solito/link';
 import { OrderTimeline } from '../components';
 import { openExternalUrl } from '../utils';
-import { ORDER_STATUS_LABELS, getOrderTimeline } from '@oncovax/shared';
-import type { ManufacturingOrderStatus } from '@oncovax/shared';
+import { ORDER_STATUS_LABELS, getOrderTimeline } from '@iish/shared';
+import type { ManufacturingOrderStatus } from '@iish/shared';
 import {
   useGetManufacturingOrderQuery,
   useAcceptQuoteMutation,

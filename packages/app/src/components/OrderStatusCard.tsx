@@ -1,6 +1,6 @@
 import { View, Text } from 'dripsy';
 import { Link } from 'solito/link';
-import type { ManufacturingOrderStatus } from '@oncovax/shared';
+import type { ManufacturingOrderStatus } from '@iish/shared';
 
 interface OrderStatusCardProps {
   order: {

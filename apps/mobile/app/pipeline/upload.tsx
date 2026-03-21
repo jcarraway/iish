@@ -9,7 +9,7 @@ export default function PipelineUploadPlaceholder() {
         Document upload requires a web browser
       </Text>
       <Text sx={{ fontSize: 14, color: 'muted', mb: '$5', textAlign: 'center' }}>
-        Please use the OncoVax website to upload pipeline input files.
+        Please use the IISH website to upload pipeline input files.
       </Text>
       <Pressable
         onPress={() => router.back()}

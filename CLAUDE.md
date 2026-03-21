@@ -1,4 +1,4 @@
-# OncoVax — Project Knowledge Base
+# IISH — Project Knowledge Base
 
 ## What This Is
 
@@ -7,7 +7,7 @@ Personalized cancer vaccine intelligence platform. Monorepo covering the full pa
 ## Architecture (As-Built)
 
 ```
-oncovax/
+iish/
 ├── apps/
 │   ├── web/                    # Next.js 15.0.0, React 19.0.0, Tailwind CSS 3.4
 │   │   ├── app/                # App Router — pages + 89 API route files + 3 cron endpoints
@@ -19,10 +19,10 @@ oncovax/
 │       └── lib/                # apollo.ts (GraphQL client), auth.ts (SecureStore guard)
 ├── docker-compose.yml          # Local dev: postgres:15-alpine + redis:7-alpine
 ├── packages/
-│   ├── ui/                     # Thin RN + Solito re-exports (@oncovax/ui)
-│   ├── app/                    # 106 shared screens, 24 Dripsy components, theme, 170+ generated hooks (@oncovax/app)
+│   ├── ui/                     # Thin RN + Solito re-exports (@iish/ui)
+│   ├── app/                    # 106 shared screens, 24 Dripsy components, theme, 170+ generated hooks (@iish/app)
 │   │   └── src/{screens[96],components[24],providers,theme,graphql,generated,utils,index}.ts
-│   ├── api/                    # Apollo Server schema (156+ types, 97Q, 94M) + 27 resolver files (@oncovax/api)
+│   ├── api/                    # Apollo Server schema (156+ types, 97Q, 94M) + 27 resolver files (@iish/api)
 │   │   └── src/{schema,resolvers[24 files],context,index}.ts
 │   ├── db/                     # Prisma 7 + PostgreSQL (51 models)
 │   │   ├── prisma/schema.prisma
@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
 ### UI: Dripsy + Solito (Cross-Platform, Screen Migration Complete)
 - **Shared components:** 22 Dripsy components in `packages/app/src/components/` — cross-platform ready
 - **Shared screens:** 106 screens in `packages/app/src/screens/` — 46 migratable (D3-D6) + 4 survivorship (S1) + 2 surveillance (S2) + 3 journal/effects (S3) + 1 lifestyle (S4) + 2 care team (S5) + 2 ctDNA (S6) + 1 notifications (S7) + 8 recurrence (S8) + 5 fertility + 5 advocate + 5 logistics + 5 second opinion + 8 learn (L1-L4) + 4 intel (I1) + 2 community (I5) + 1 intel landscape (I6) + 3 preventive (PTM)
-- **Web pages:** Most pages are thin re-exports: `'use client'; export { XxxScreen as default } from '@oncovax/app';`. Exception: `/learn/[category]/[slug]/page.tsx` is a server component with `generateMetadata` + `generateStaticParams` + JSON-LD that renders a client component wrapper.
+- **Web pages:** Most pages are thin re-exports: `'use client'; export { XxxScreen as default } from '@iish/app';`. Exception: `/learn/[category]/[slug]/page.tsx` is a server component with `generateMetadata` + `generateStaticParams` + JSON-LD that renders a client component wrapper.
 - **Mobile routes:** All 106 screens wired via Expo Router — 113 route files across 28 directories
 - **Mobile tabs:** 5-tab layout (Home, Matches, Sequencing, Pipeline, More) with Ionicons
 - **Mobile auth:** `useProtectedRoute()` hook — SecureStore token check + redirect to `/auth` modal
@@ -227,7 +227,7 @@ export async function POST(req: NextRequest) {
 - Turborepo for monorepo orchestration
 - Docker Compose for local dev (postgres:15-alpine + redis:7-alpine)
 - Railway for PostgreSQL + Redis (production)
-- AWS S3 (2 buckets: `oncovax-documents`, `oncovax-pipeline`)
+- AWS S3 (2 buckets: `iish-documents`, `iish-pipeline`)
 - AWS Batch + ECR (8 pipeline step containers)
 - NATS JetStream (pipeline event bus)
 - Terraform for infrastructure

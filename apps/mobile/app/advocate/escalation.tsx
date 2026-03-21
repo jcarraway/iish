@@ -1,2 +1,2 @@
-import { EscalationGuideScreen } from '@oncovax/app';
+import { EscalationGuideScreen } from '@iish/app';
 export default EscalationGuideScreen;

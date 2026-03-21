@@ -683,7 +683,7 @@ export async function fetchInstitutionNews(sinceDate: Date): Promise<NewsItem[]>
 
     try {
       const res = await fetch(feed.url, {
-        headers: { 'User-Agent': 'OncoVax/1.0 (research-aggregator)' },
+        headers: { 'User-Agent': 'IISH/1.0 (research-aggregator)' },
       });
       if (!res.ok) continue;
 

@@ -1,2 +1,2 @@
-import { RegulatoryAssessmentScreen } from '@oncovax/app';
+import { RegulatoryAssessmentScreen } from '@iish/app';
 export default RegulatoryAssessmentScreen;

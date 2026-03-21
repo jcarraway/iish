@@ -1,2 +1,2 @@
-import { ManufacturingPartnersScreen } from '@oncovax/app';
+import { ManufacturingPartnersScreen } from '@iish/app';
 export default ManufacturingPartnersScreen;

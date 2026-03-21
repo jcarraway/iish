@@ -1,2 +1,2 @@
-import { SecondOpinionCentersScreen } from '@oncovax/app';
+import { SecondOpinionCentersScreen } from '@iish/app';
 export default SecondOpinionCentersScreen;

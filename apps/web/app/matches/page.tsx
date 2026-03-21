@@ -1,2 +1,2 @@
 'use client';
-export { MatchesScreen as default } from '@oncovax/app';
+export { MatchesScreen as default } from '@iish/app';

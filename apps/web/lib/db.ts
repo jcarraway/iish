@@ -1,4 +1,4 @@
-import { PrismaClient } from '@oncovax/db/generated/prisma';
+import { PrismaClient } from '@iish/db/generated/prisma';
 import { PrismaPg } from '@prisma/adapter-pg';
 
 function createPrismaClient() {

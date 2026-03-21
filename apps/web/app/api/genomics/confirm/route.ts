@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/session';
-import type { PatientProfile, GenomicAlteration, GenomicBiomarkers, GermlineFinding } from '@oncovax/shared';
+import type { PatientProfile, GenomicAlteration, GenomicBiomarkers, GermlineFinding } from '@iish/shared';
 
 export async function POST(req: NextRequest) {
   try {

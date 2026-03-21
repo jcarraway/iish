@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/session';
 import { generateConversationGuide } from '@/lib/conversation-guide';
 import { generateTestRecommendation } from '@/lib/test-recommendation';
-import type { PatientProfile, TestRecommendation } from '@oncovax/shared';
+import type { PatientProfile, TestRecommendation } from '@iish/shared';
 
 export async function POST(req: NextRequest) {
   try {

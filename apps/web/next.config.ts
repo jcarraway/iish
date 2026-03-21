@@ -2,11 +2,11 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   transpilePackages: [
-    // Workspace packages (excluding @oncovax/db — it's server-external)
-    '@oncovax/shared',
-    '@oncovax/ui',
-    '@oncovax/app',
-    '@oncovax/api',
+    // Workspace packages (excluding @iish/db — it's server-external)
+    '@iish/shared',
+    '@iish/ui',
+    '@iish/app',
+    '@iish/api',
 
     // Core RN Web
     'react-native',
@@ -42,7 +42,7 @@ const nextConfig: NextConfig = {
 
   serverExternalPackages: [
     '@prisma/client',
-    '@oncovax/db',
+    '@iish/db',
     '@apollo/server',
     '@react-pdf/renderer',
     '@react-pdf/font',

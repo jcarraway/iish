@@ -1,2 +1,2 @@
 'use client';
-export { FhirRecordsScreen as default } from '@oncovax/app';
+export { FhirRecordsScreen as default } from '@iish/app';

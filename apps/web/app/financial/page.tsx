@@ -1,2 +1,2 @@
 'use client';
-export { FinancialScreen as default } from '@oncovax/app';
+export { FinancialScreen as default } from '@iish/app';

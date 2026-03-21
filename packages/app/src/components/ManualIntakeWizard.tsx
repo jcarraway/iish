@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { View, Text, TextInput, Pressable } from 'dripsy';
-import type { PatientProfile } from '@oncovax/shared';
+import type { PatientProfile } from '@iish/shared';
 import { Picker } from './Picker';
 
 interface Props {

@@ -1,2 +1,2 @@
-import { FhirRecordsScreen } from '@oncovax/app';
+import { FhirRecordsScreen } from '@iish/app';
 export default FhirRecordsScreen;

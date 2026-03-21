@@ -1,2 +1,2 @@
 'use client';
-export { StartScreen as default } from '@oncovax/app';
+export { StartScreen as default } from '@iish/app';

@@ -1,2 +1,2 @@
 'use client';
-export { MyReadingPlanScreen as default } from '@oncovax/app';
+export { MyReadingPlanScreen as default } from '@iish/app';

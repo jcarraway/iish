@@ -1,5 +1,5 @@
 {
-  "name": "@oncovax/mobile",
+  "name": "@iish/mobile",
   "version": "0.0.0",
   "private": true,
   "main": "expo-router/entry",
@@ -10,9 +10,9 @@
   },
   "dependencies": {
     "@apollo/client": "^3.12.3",
-    "@oncovax/app": "workspace:*",
-    "@oncovax/shared": "workspace:*",
-    "@oncovax/ui": "workspace:*",
+    "@iish/app": "workspace:*",
+    "@iish/shared": "workspace:*",
+    "@iish/ui": "workspace:*",
     "@expo/vector-icons": "^15.1.1",
     "dripsy": "^4.3.8",
     "expo": "~54.0.0",

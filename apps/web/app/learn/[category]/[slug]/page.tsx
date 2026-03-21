@@ -42,7 +42,7 @@ export async function generateMetadata({
       description: article.metaDescription,
       type: 'article',
       publishedTime: article.publishedAt?.toISOString(),
-      siteName: 'OncoVax',
+      siteName: 'IISH',
     },
     twitter: {
       card: 'summary_large_image',
@@ -80,7 +80,7 @@ export default async function ArticlePage({
     dateModified: article?.updatedAt?.toISOString(),
     publisher: {
       '@type': 'Organization',
-      name: 'OncoVax',
+      name: 'IISH',
     },
   };
 

@@ -1,6 +1,6 @@
 'use client';
 import { useSearchParams } from 'next/navigation';
-import { JournalEntryScreen } from '@oncovax/app';
+import { JournalEntryScreen } from '@iish/app';
 
 export default function Page() {
   const searchParams = useSearchParams();

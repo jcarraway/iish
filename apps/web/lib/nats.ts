@@ -9,7 +9,7 @@ async function getNatsConnection(): Promise<NatsConnection> {
 
   const nc = await connect({
     servers: process.env.NATS_URL || 'nats://localhost:4222',
-    name: 'oncovax-web',
+    name: 'iish-web',
   });
 
   if (process.env.NODE_ENV !== 'production') {

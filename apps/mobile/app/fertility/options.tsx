@@ -1,2 +1,2 @@
-import { FertilityOptionsScreen } from '@oncovax/app';
+import { FertilityOptionsScreen } from '@iish/app';
 export default FertilityOptionsScreen;

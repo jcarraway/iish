@@ -1,2 +1,2 @@
-import { FinancialScreen } from '@oncovax/app';
+import { FinancialScreen } from '@iish/app';
 export default FinancialScreen;

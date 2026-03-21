@@ -1,5 +1,5 @@
 import { useLocalSearchParams } from 'expo-router';
-import { IntelSubtypeLandscapeScreen } from '@oncovax/app';
+import { IntelSubtypeLandscapeScreen } from '@iish/app';
 
 export default function IntelSubtypeLandscapeRoute() {
   const { subtype } = useLocalSearchParams<{ subtype: string }>();

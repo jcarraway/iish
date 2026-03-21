@@ -1,5 +1,5 @@
 import { useLocalSearchParams } from 'expo-router';
-import { SurveillanceEventDetailScreen } from '@oncovax/app';
+import { SurveillanceEventDetailScreen } from '@iish/app';
 
 export default function SurveillanceEventDetailPage() {
   const { eventId } = useLocalSearchParams<{ eventId: string }>();

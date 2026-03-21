@@ -1,2 +1,2 @@
-import { ManufacturingOrdersScreen } from '@oncovax/app';
+import { ManufacturingOrdersScreen } from '@iish/app';
 export default ManufacturingOrdersScreen;

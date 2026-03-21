@@ -1,2 +1,2 @@
 'use client';
-export { SCPReadingScreen as default } from '@oncovax/app';
+export { SCPReadingScreen as default } from '@iish/app';

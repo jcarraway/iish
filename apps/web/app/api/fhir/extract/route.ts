@@ -5,7 +5,7 @@ import { decryptToken } from '@/lib/fhir/smart-auth';
 import { FhirClient } from '@/lib/fhir/client';
 import { extractFhirResources } from '@/lib/fhir/extract-resources';
 import { mapFhirToPatientProfile } from '@/lib/fhir/mapper';
-import type { PatientProfile } from '@oncovax/shared';
+import type { PatientProfile } from '@iish/shared';
 
 export async function POST(req: NextRequest) {
   try {

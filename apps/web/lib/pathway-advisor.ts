@@ -3,7 +3,7 @@ import type {
   PathwayRecommendation,
   RegulatoryPathwayType,
   RegulatoryDocumentType,
-} from '@oncovax/shared';
+} from '@iish/shared';
 
 interface PathwayOption {
   pathway: RegulatoryPathwayType;

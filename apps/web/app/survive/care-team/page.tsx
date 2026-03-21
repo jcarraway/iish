@@ -1,2 +1,2 @@
 'use client';
-export { CareTeamScreen as default } from '@oncovax/app';
+export { CareTeamScreen as default } from '@iish/app';

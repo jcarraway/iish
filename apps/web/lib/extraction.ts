@@ -6,7 +6,7 @@ import {
   labExtractionSchema,
   treatmentExtractionSchema,
   DOCUMENT_TYPES,
-} from '@oncovax/shared';
+} from '@iish/shared';
 import type {
   PatientProfile,
   DocumentExtractionResult,
@@ -14,7 +14,7 @@ import type {
   LabExtraction,
   TreatmentExtraction,
   ExtractionPipelineResult,
-} from '@oncovax/shared';
+} from '@iish/shared';
 
 // --- Cost estimation ---
 // Approximate pricing per token (Claude Opus)

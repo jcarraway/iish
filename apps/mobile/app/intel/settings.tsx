@@ -1,4 +1,4 @@
-import { IntelSettingsScreen } from '@oncovax/app';
+import { IntelSettingsScreen } from '@iish/app';
 export default function IntelSettingsRoute() {
   return <IntelSettingsScreen />;
 }

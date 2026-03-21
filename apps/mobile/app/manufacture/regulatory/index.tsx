@@ -1,2 +1,2 @@
-import { RegulatoryLandingScreen } from '@oncovax/app';
+import { RegulatoryLandingScreen } from '@iish/app';
 export default RegulatoryLandingScreen;

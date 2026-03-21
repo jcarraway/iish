@@ -1,2 +1,2 @@
 'use client';
-export { CommunitySubmitScreen as default } from '@oncovax/app';
+export { CommunitySubmitScreen as default } from '@iish/app';

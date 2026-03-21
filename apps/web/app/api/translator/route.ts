@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/session';
 import { redis } from '@/lib/redis';
 import { generateTranslation } from '@/lib/translator';
-import type { PatientProfile } from '@oncovax/shared';
+import type { PatientProfile } from '@iish/shared';
 
 export async function GET() {
   try {

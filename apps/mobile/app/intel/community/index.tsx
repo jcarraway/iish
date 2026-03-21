@@ -1,4 +1,4 @@
-import { CommunityFeedScreen } from '@oncovax/app';
+import { CommunityFeedScreen } from '@iish/app';
 
 export default function CommunityFeedRoute() {
   return <CommunityFeedScreen />;

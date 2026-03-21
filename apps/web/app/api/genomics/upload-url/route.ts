@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/session';
 import { generatePresignedUploadUrl } from '@/lib/s3';
-import { presignedUrlRequestSchema, DOCUMENT_TYPES } from '@oncovax/shared';
+import { presignedUrlRequestSchema, DOCUMENT_TYPES } from '@iish/shared';
 import { randomUUID } from 'crypto';
 
 export async function POST(req: NextRequest) {

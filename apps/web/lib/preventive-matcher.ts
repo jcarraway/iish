@@ -1,4 +1,4 @@
-import { type PrismaClient } from '@oncovax/db/generated/prisma';
+import { type PrismaClient } from '@iish/db/generated/prisma';
 import { randomBytes } from 'crypto';
 
 const BASE62 = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
@@ -405,7 +405,7 @@ export async function generateReferralLink(
     url,
     textMessage: `I wanted to share this with you — there are clinical trials studying breast cancer prevention vaccines. Because of our family history, you might be eligible. Check it out: ${url}`,
     emailSubject: 'Breast cancer prevention trials — for our family',
-    emailBody: `Hi,\n\nI've been learning about breast cancer prevention vaccine trials through OncoVax. Given our family history, I thought you might want to take a look.\n\nYou can take a quick eligibility quiz here: ${url}\n\nIt only takes a minute, and it's completely free. No diagnosis needed — these trials are specifically for people who haven't been diagnosed but may be at higher risk.\n\nLove`,
+    emailBody: `Hi,\n\nI've been learning about breast cancer prevention vaccine trials through IISH. Given our family history, I thought you might want to take a look.\n\nYou can take a quick eligibility quiz here: ${url}\n\nIt only takes a minute, and it's completely free. No diagnosis needed — these trials are specifically for people who haven't been diagnosed but may be at higher risk.\n\nLove`,
   };
 }
 

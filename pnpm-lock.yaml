@@ -25,13 +25,13 @@ importers:
       '@expo/vector-icons':
         specifier: ^15.1.1
         version: 15.1.1(expo-font@14.0.11)(react-native@0.76.9)(react@19.0.0)
-      '@oncovax/app':
+      '@iish/app':
         specifier: workspace:*
         version: link:../../packages/app
-      '@oncovax/shared':
+      '@iish/shared':
         specifier: workspace:*
         version: link:../../packages/shared
-      '@oncovax/ui':
+      '@iish/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       dripsy:
@@ -110,22 +110,22 @@ importers:
       '@aws-sdk/s3-request-presigner':
         specifier: ^3.0.0
         version: 3.0.0
-      '@oncovax/api':
+      '@iish/api':
         specifier: workspace:*
         version: link:../../packages/api
-      '@oncovax/app':
+      '@iish/app':
         specifier: workspace:*
         version: link:../../packages/app
-      '@oncovax/db':
+      '@iish/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@oncovax/pipeline-storage':
+      '@iish/pipeline-storage':
         specifier: workspace:*
         version: link:../../packages/pipeline-storage
-      '@oncovax/shared':
+      '@iish/shared':
         specifier: workspace:*
         version: link:../../packages/shared
-      '@oncovax/ui':
+      '@iish/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       '@prisma/adapter-pg':
@@ -216,10 +216,10 @@ importers:
       '@as-integrations/next':
         specifier: ^3.1.0
         version: 3.1.0(@apollo/server@4.11.0)(next@14.2.35)
-      '@oncovax/db':
+      '@iish/db':
         specifier: workspace:*
         version: link:../db
-      '@oncovax/shared':
+      '@iish/shared':
         specifier: workspace:*
         version: link:../shared
       graphql:
@@ -238,10 +238,10 @@ importers:
       '@apollo/client':
         specifier: ^3.12.3
         version: 3.12.3(@types/react@19.0.0)(graphql@16.9.0)(react-dom@19.0.0)(react@19.0.0)
-      '@oncovax/shared':
+      '@iish/shared':
         specifier: workspace:*
         version: link:../shared
-      '@oncovax/ui':
+      '@iish/ui':
         specifier: workspace:*
         version: link:../ui
       '@react-native-community/slider':
@@ -309,13 +309,13 @@ importers:
       '@aws-sdk/client-s3':
         specifier: ^3.0.0
         version: 3.0.0(react-native@0.76.9)
-      '@oncovax/db':
+      '@iish/db':
         specifier: workspace:*
         version: link:../db
-      '@oncovax/pipeline-storage':
+      '@iish/pipeline-storage':
         specifier: workspace:*
         version: link:../pipeline-storage
-      '@oncovax/shared':
+      '@iish/shared':
         specifier: workspace:*
         version: link:../shared
       '@prisma/adapter-pg':

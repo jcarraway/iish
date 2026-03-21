@@ -1,6 +1,6 @@
 import { View, Text, Pressable } from 'dripsy';
 import { Link } from 'solito/link';
-import type { MatchBreakdownItem } from '@oncovax/shared';
+import type { MatchBreakdownItem } from '@iish/shared';
 
 interface MatchCardProps {
   matchId: string;

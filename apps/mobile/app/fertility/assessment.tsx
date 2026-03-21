@@ -1,2 +1,2 @@
-import { FertilityAssessmentScreen } from '@oncovax/app';
+import { FertilityAssessmentScreen } from '@iish/app';
 export default FertilityAssessmentScreen;

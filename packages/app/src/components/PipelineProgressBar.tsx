@@ -1,5 +1,5 @@
 import { View, Text } from 'dripsy';
-import { PIPELINE_STEP_ORDER } from '@oncovax/shared';
+import { PIPELINE_STEP_ORDER } from '@iish/shared';
 
 const STEP_LABELS: Record<string, string> = {
   alignment: 'Alignment',

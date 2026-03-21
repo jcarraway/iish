@@ -375,7 +375,7 @@ export function SecondOpinionCentersScreen() {
             Important disclaimer
           </Text>
           <Text sx={{ mt: '$2', fontSize: 12, color: '#78350F', lineHeight: 18 }}>
-            Center listings are for informational purposes. OncoVax does not endorse specific
+            Center listings are for informational purposes. IISH does not endorse specific
             centers or providers. Always verify insurance acceptance, wait times, and availability
             directly with the center.
           </Text>

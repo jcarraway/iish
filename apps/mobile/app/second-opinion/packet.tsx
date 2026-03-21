@@ -1,2 +1,2 @@
-import { SecondOpinionPacketScreen } from '@oncovax/app';
+import { SecondOpinionPacketScreen } from '@iish/app';
 export default SecondOpinionPacketScreen;

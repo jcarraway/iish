@@ -1,5 +1,5 @@
 import { useLocalSearchParams } from 'expo-router';
-import { ManufacturingOrderDetailScreen } from '@oncovax/app';
+import { ManufacturingOrderDetailScreen } from '@iish/app';
 
 export default function ManufacturingOrderDetailPage() {
   const { orderId } = useLocalSearchParams<{ orderId: string }>();

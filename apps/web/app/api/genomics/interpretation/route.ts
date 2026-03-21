@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/session';
 import { generateGenomicInterpretation } from '@/lib/genomic-interpreter';
-import type { PatientProfile, GenomicReportExtraction, GenomicAlteration, GenomicBiomarkers, GermlineFinding } from '@oncovax/shared';
+import type { PatientProfile, GenomicReportExtraction, GenomicAlteration, GenomicBiomarkers, GermlineFinding } from '@iish/shared';
 
 export async function POST(req: NextRequest) {
   try {

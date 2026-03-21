@@ -188,7 +188,7 @@ export function CtdnaGuideScreen() {
         }}>
           <Text sx={{ fontSize: 12, color: '$mutedForeground', fontStyle: 'italic' }}>
             This information is for educational purposes only. ctDNA test results should always be
-            interpreted by your oncologist in the context of your complete clinical picture. OncoVax
+            interpreted by your oncologist in the context of your complete clinical picture. IISH
             does not provide medical diagnoses.
           </Text>
         </View>

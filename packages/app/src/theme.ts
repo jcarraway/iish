@@ -1,5 +1,5 @@
 /**
- * OncoVax Dripsy Theme
+ * IISH Dripsy Theme
  *
  * Medical/clinical palette used across both web (Next.js) and native (Expo).
  * Colors mapped from the existing Tailwind CSS variables + component usage.
@@ -364,11 +364,11 @@ export const theme = makeTheme({
 // Type Augmentation
 // =============================================================================
 
-type OncoVaxTheme = typeof theme;
+type IISHTheme = typeof theme;
 
 declare module 'dripsy' {
   // eslint-disable-next-line @typescript-eslint/no-empty-interface
-  interface DripsyCustomTheme extends OncoVaxTheme {}
+  interface DripsyCustomTheme extends IISHTheme {}
 }
 
-export type { OncoVaxTheme };
+export type { IISHTheme };

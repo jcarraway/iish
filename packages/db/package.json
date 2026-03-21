@@ -1,5 +1,5 @@
 {
-  "name": "@oncovax/db",
+  "name": "@iish/db",
   "version": "0.0.0",
   "private": true,
   "main": "./src/index.ts",

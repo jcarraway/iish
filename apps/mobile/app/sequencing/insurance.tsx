@@ -1,2 +1,2 @@
-import { InsuranceCoverageScreen } from '@oncovax/app';
+import { InsuranceCoverageScreen } from '@iish/app';
 export default InsuranceCoverageScreen;

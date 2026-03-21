@@ -2,7 +2,7 @@ import { View, Text, Pressable, ScrollView } from 'dripsy';
 import { ActivityIndicator } from 'react-native';
 import { Link } from 'solito/link';
 import { PathwayRecommendation } from '../components';
-import type { RegulatoryPathwayType, RegulatoryDocumentType } from '@oncovax/shared';
+import type { RegulatoryPathwayType, RegulatoryDocumentType } from '@iish/shared';
 import {
   useGetRegulatoryAssessmentQuery,
   useGenerateRegulatoryDocumentMutation,

@@ -1,4 +1,4 @@
-import { CtdnaGuideScreen } from '@oncovax/app';
+import { CtdnaGuideScreen } from '@iish/app';
 
 export default function CtdnaGuideRoute() {
   return <CtdnaGuideScreen />;

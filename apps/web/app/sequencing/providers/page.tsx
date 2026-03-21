@@ -1,2 +1,2 @@
 'use client';
-export { ProvidersScreen as default } from '@oncovax/app';
+export { ProvidersScreen as default } from '@iish/app';

@@ -1,2 +1,2 @@
 'use client';
-export { TranslateScreen as default } from '@oncovax/app';
+export { TranslateScreen as default } from '@iish/app';

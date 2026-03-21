@@ -1,5 +1,5 @@
 import { useLocalSearchParams } from 'expo-router';
-import { GenomicConfirmScreen } from '@oncovax/app';
+import { GenomicConfirmScreen } from '@iish/app';
 
 export default function GenomicConfirmPage() {
   const { resultId } = useLocalSearchParams<{ resultId: string }>();

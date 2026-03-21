@@ -1,4 +1,4 @@
-import { CommunitySubmitScreen } from '@oncovax/app';
+import { CommunitySubmitScreen } from '@iish/app';
 
 export default function CommunitySubmitRoute() {
   return <CommunitySubmitScreen />;

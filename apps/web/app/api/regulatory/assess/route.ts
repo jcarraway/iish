@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/session';
 import { trackEvent } from '@/lib/events';
 import { assessPathway } from '@/lib/pathway-advisor';
-import type { PathwayAssessmentInput } from '@oncovax/shared';
+import type { PathwayAssessmentInput } from '@iish/shared';
 
 export async function POST(req: NextRequest) {
   try {

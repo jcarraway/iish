@@ -1,2 +1,2 @@
 'use client';
-export { SecondOpinionPacketScreen as default } from '@oncovax/app';
+export { SecondOpinionPacketScreen as default } from '@iish/app';

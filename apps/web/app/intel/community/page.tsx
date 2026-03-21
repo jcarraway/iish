@@ -1,2 +1,2 @@
 'use client';
-export { CommunityFeedScreen as default } from '@oncovax/app';
+export { CommunityFeedScreen as default } from '@iish/app';

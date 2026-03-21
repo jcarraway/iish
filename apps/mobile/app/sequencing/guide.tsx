@@ -1,2 +1,2 @@
-import { SequencingGuideScreen } from '@oncovax/app';
+import { SequencingGuideScreen } from '@iish/app';
 export default SequencingGuideScreen;

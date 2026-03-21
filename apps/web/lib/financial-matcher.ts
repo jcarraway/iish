@@ -1,5 +1,5 @@
 import { prisma } from './db';
-import type { PatientProfile, FinancialProfile, FinancialProgramEligibility, FinancialMatchResult } from '@oncovax/shared';
+import type { PatientProfile, FinancialProfile, FinancialProgramEligibility, FinancialMatchResult } from '@iish/shared';
 
 // FPL 2024 guideline for 48 contiguous states
 const FPL_BASE = 15060;

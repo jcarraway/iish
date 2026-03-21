@@ -9,7 +9,7 @@ export default function UploadPlaceholder() {
         Document upload requires a web browser
       </Text>
       <Text sx={{ fontSize: 14, color: 'muted', mb: '$5', textAlign: 'center' }}>
-        Please use the OncoVax website to upload pathology reports and medical documents.
+        Please use the IISH website to upload pathology reports and medical documents.
       </Text>
       <Pressable
         onPress={() => router.back()}

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/session';
-import { MATCH_STATUSES } from '@oncovax/shared';
+import { MATCH_STATUSES } from '@iish/shared';
 import { z } from 'zod';
 
 export async function GET(

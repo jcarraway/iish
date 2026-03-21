@@ -1,2 +1,2 @@
 'use client';
-export { SequencingOrdersScreen as default } from '@oncovax/app';
+export { SequencingOrdersScreen as default } from '@iish/app';

@@ -1,2 +1,2 @@
 'use client';
-export { PipelineLandingScreen as default } from '@oncovax/app';
+export { PipelineLandingScreen as default } from '@iish/app';

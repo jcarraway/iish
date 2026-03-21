@@ -1,5 +1,5 @@
 {
-  "name": "@oncovax/app",
+  "name": "@iish/app",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -21,8 +21,8 @@
   },
   "dependencies": {
     "@apollo/client": "^3.12.3",
-    "@oncovax/shared": "workspace:*",
-    "@oncovax/ui": "workspace:*",
+    "@iish/shared": "workspace:*",
+    "@iish/ui": "workspace:*",
     "@react-native-community/slider": "^5.1.2",
     "dripsy": "^4.3.8",
     "graphql": "^16.9.0",

@@ -1,7 +1,7 @@
 'use client';
 import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { GenomicConfirmScreen } from '@oncovax/app';
+import { GenomicConfirmScreen } from '@iish/app';
 
 function ConfirmContent() {
   const searchParams = useSearchParams();

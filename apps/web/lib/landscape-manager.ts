@@ -2,7 +2,7 @@ import { prisma } from './db';
 import { redis } from './redis';
 import { anthropic, CLAUDE_MODEL } from './ai';
 import { profileToSubtype, getCurrentDrugs } from './feed-personalization';
-import type { PatientProfile } from '@oncovax/shared';
+import type { PatientProfile } from '@iish/shared';
 
 // ============================================================================
 // Constants

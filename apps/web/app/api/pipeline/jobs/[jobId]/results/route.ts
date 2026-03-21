@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/session';
-import { generatePresignedDownloadUrl } from '@oncovax/pipeline-storage';
+import { generatePresignedDownloadUrl } from '@iish/pipeline-storage';
 
 export async function GET(
   _req: NextRequest,

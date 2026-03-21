@@ -1,6 +1,6 @@
 'use client';
 import { useParams } from 'next/navigation';
-import { PipelineJobDetailScreen } from '@oncovax/app';
+import { PipelineJobDetailScreen } from '@iish/app';
 
 export default function PipelineJobDetailPage() {
   const { jobId } = useParams<{ jobId: string }>();

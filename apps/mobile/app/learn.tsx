@@ -1,2 +1,2 @@
-import { LearnScreen } from '@oncovax/app';
+import { LearnScreen } from '@iish/app';
 export default LearnScreen;

@@ -1,2 +1,2 @@
 'use client';
-export { RecurrenceReportScreen as default } from '@oncovax/app';
+export { RecurrenceReportScreen as default } from '@iish/app';

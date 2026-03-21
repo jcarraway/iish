@@ -1,8 +1,8 @@
-import type { ManufacturingOrderStatus } from '@oncovax/shared';
+import type { ManufacturingOrderStatus } from '@iish/shared';
 
 // Re-export from shared package
-export { ORDER_STATUS_LABELS, getOrderTimeline } from '@oncovax/shared';
-export type { TimelineEntry } from '@oncovax/shared';
+export { ORDER_STATUS_LABELS, getOrderTimeline } from '@iish/shared';
+export type { TimelineEntry } from '@iish/shared';
 
 const STATUS_ORDER: ManufacturingOrderStatus[] = [
   'inquiry_sent',
@@ -49,6 +49,6 @@ export function packageBlueprint(pipelineJob: {
     hlaGenotype: pipelineJob.hlaGenotype,
     neoantigenCount: pipelineJob.neoantigenCount,
     exportedAt: new Date().toISOString(),
-    format: 'oncovax_blueprint_v1',
+    format: 'iish_blueprint_v1',
   };
 }

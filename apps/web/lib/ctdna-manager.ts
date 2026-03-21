@@ -2,7 +2,7 @@ import { anthropic, CLAUDE_MODEL } from './ai';
 import { redis } from './redis';
 import { prisma } from './db';
 import { generateMatchesForPatient } from './matcher';
-import type { PatientProfile } from '@oncovax/shared';
+import type { PatientProfile } from '@iish/shared';
 
 // ============================================================================
 // Types

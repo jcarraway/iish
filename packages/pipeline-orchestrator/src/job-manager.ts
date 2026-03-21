@@ -1,7 +1,7 @@
-import { PrismaClient } from '@oncovax/db/generated/prisma';
+import { PrismaClient } from '@iish/db/generated/prisma';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
-import { PIPELINE_STEP_ORDER, PIPELINE_STEP_GRAPH, PIPELINE_STEP_PREREQUISITES } from '@oncovax/shared';
+import { PIPELINE_STEP_ORDER, PIPELINE_STEP_GRAPH, PIPELINE_STEP_PREREQUISITES } from '@iish/shared';
 
 const s3 = new S3Client({});
 

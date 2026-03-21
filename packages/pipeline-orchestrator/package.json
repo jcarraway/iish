@@ -1,5 +1,5 @@
 {
-  "name": "@oncovax/pipeline-orchestrator",
+  "name": "@iish/pipeline-orchestrator",
   "version": "0.0.0",
   "private": true,
   "main": "./src/index.ts",
@@ -12,9 +12,9 @@
   },
   "dependencies": {
     "nats": "^2.28.0",
-    "@oncovax/db": "workspace:*",
-    "@oncovax/shared": "workspace:*",
-    "@oncovax/pipeline-storage": "workspace:*",
+    "@iish/db": "workspace:*",
+    "@iish/shared": "workspace:*",
+    "@iish/pipeline-storage": "workspace:*",
     "@aws-sdk/client-batch": "^3.0.0",
     "@aws-sdk/client-s3": "^3.0.0",
     "@prisma/adapter-pg": "^7.0.0",

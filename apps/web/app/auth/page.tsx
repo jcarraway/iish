@@ -1,2 +1,2 @@
 'use client';
-export { AuthScreen as default } from '@oncovax/app';
+export { AuthScreen as default } from '@iish/app';

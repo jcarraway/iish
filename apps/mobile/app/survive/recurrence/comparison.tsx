@@ -1,1 +1,1 @@
-export { RecurrenceComparisonScreen as default } from '@oncovax/app';
+export { RecurrenceComparisonScreen as default } from '@iish/app';

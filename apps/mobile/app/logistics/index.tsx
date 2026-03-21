@@ -1,2 +1,2 @@
-import { LogisticsDashboardScreen } from '@oncovax/app';
+import { LogisticsDashboardScreen } from '@iish/app';
 export default LogisticsDashboardScreen;

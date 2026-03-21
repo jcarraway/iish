@@ -1,6 +1,6 @@
 'use client';
 
-import { LearnArticleScreen } from '@oncovax/app';
+import { LearnArticleScreen } from '@iish/app';
 import { VisualizationEmbed, getVisualizationsForArticle } from '@/components/visualizations';
 
 export function LearnArticleClient({ slug, category }: { slug: string; category: string }) {

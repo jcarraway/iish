@@ -3,7 +3,7 @@
 import React from 'react';
 import { ApolloProvider } from '@apollo/client';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { DripsyProvider } from '@oncovax/app';
+import { DripsyProvider } from '@iish/app';
 import { apolloClient } from '../lib/apollo';
 
 interface ProvidersProps {

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createMagicLinkToken } from '@oncovax/shared';
+import { createMagicLinkToken } from '@iish/shared';
 import { Resend } from 'resend';
 import { z } from 'zod';
 

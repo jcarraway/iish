@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Setup Reference Genome for OncoVax Pipeline
+# Setup Reference Genome for IISH Pipeline
 #
 # Downloads GRCh38 reference genome and VEP cache, indexes them,
 # and uploads to the pipeline S3 bucket.
@@ -30,7 +30,7 @@ S3_PREFIX="reference/GRCh38"
 REFERENCE_URL="https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/001/405/GCA_000001405.15_GRCh38/seqs_for_alignment_pipelines.ucsc_ids/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.gz"
 VEP_CACHE_URL="https://ftp.ensembl.org/pub/release-112/variation/vep/homo_sapiens_vep_112_GRCh38.tar.gz"
 
-echo "=== OncoVax Reference Genome Setup ==="
+echo "=== IISH Reference Genome Setup ==="
 echo "Bucket: s3://${BUCKET}/${S3_PREFIX}"
 echo "Work dir: ${WORK_DIR}"
 echo ""

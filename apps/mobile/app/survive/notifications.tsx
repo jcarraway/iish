@@ -1,4 +1,4 @@
-import { NotificationSettingsScreen } from '@oncovax/app';
+import { NotificationSettingsScreen } from '@iish/app';
 export default function NotificationsRoute() {
   return <NotificationSettingsScreen />;
 }

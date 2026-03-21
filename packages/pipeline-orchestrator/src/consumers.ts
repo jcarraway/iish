@@ -1,5 +1,5 @@
 import { StringCodec, JetStreamClient, ConsumerMessages } from 'nats';
-import { PIPELINE_STEP_ORDER } from '@oncovax/shared';
+import { PIPELINE_STEP_ORDER } from '@iish/shared';
 import { getJetStream, connectNats } from './nats';
 import { SUBJECTS, jobSubmittedSchema, stepCompleteSchema, stepFailedSchema } from './events';
 import { dispatchStep } from './dispatcher';

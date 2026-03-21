@@ -1,2 +1,2 @@
 'use client';
-export { SecondOpinionCommunicationScreen as default } from '@oncovax/app';
+export { SecondOpinionCommunicationScreen as default } from '@iish/app';

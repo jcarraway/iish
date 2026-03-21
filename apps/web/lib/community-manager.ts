@@ -2,7 +2,7 @@ import { Resend } from 'resend';
 import { prisma } from './db';
 import { redis } from './redis';
 import { anthropic, CLAUDE_MODEL } from './ai';
-import type { PatientProfile } from '@oncovax/shared';
+import type { PatientProfile } from '@iish/shared';
 
 // ============================================================================
 // Types
@@ -74,7 +74,7 @@ interface TrialInsight {
 // ============================================================================
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
-const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'noreply@oncovax.com';
+const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'noreply@iish.com';
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
 // ============================================================================
@@ -695,7 +695,7 @@ export async function sendDigest(userId: string): Promise<boolean> {
   }
 
   html += `<p><a href="${APP_URL}/intel">View your full research feed</a></p>
-<p>Best,<br>OncoVax Care Team</p>`;
+<p>Best,<br>IISH Care Team</p>`;
 
   // 8. Get user email, send via Resend
   const user = await prisma.user.findUnique({

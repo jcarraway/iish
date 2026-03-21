@@ -311,7 +311,7 @@ export function AdvocateDashboardScreen() {
           </Text>
           <Text sx={{ mt: '$2', fontSize: 12, color: '#78350F', lineHeight: 18 }}>
             Appeal letters are AI-generated and must be reviewed and signed by your physician
-            before submission. OncoVax does not provide legal advice. All generated documents
+            before submission. IISH does not provide legal advice. All generated documents
             carry a physician review requirement.
           </Text>
         </View>

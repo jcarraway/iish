@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/session';
 import { trackEvent } from '@/lib/events';
 import { generateRegulatoryDocument } from '@/lib/regulatory-documents';
-import type { RegulatoryDocumentType } from '@oncovax/shared';
+import type { RegulatoryDocumentType } from '@iish/shared';
 
 const VALID_TYPES: RegulatoryDocumentType[] = [
   'fda_form_3926',

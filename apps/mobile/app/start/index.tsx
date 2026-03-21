@@ -1,2 +1,2 @@
-import { StartScreen } from '@oncovax/app';
+import { StartScreen } from '@iish/app';
 export default StartScreen;

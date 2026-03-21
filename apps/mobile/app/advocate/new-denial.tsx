@@ -1,2 +1,2 @@
-import { NewDenialScreen } from '@oncovax/app';
+import { NewDenialScreen } from '@iish/app';
 export default NewDenialScreen;

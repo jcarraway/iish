@@ -1,2 +1,2 @@
 'use client';
-export { AppealRightsScreen as default } from '@oncovax/app';
+export { AppealRightsScreen as default } from '@iish/app';

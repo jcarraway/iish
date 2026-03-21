@@ -4,7 +4,7 @@ import { resolve } from 'path';
 // Load env from apps/web/.env
 config({ path: resolve(__dirname, '../apps/web/.env') });
 
-import { PrismaClient } from '@oncovax/db/generated/prisma';
+import { PrismaClient } from '@iish/db/generated/prisma';
 import { PrismaPg } from '@prisma/adapter-pg';
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
@@ -53,7 +53,7 @@ const CURATED_TRIALS = [
       specificSubtype: 'tnbc',
     },
     editorNote:
-      'Patients with existing genomic profiles from OncoVax pipeline may have an advantage — neoantigen identification could be accelerated.',
+      'Patients with existing genomic profiles from IISH pipeline may have an advantage — neoantigen identification could be accelerated.',
   },
   {
     nctId: 'NCT05142189',

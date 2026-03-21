@@ -3,7 +3,7 @@ import { redis } from './redis';
 import { prisma } from './db';
 import { generateMatchesForPatient } from './matcher';
 import { matchFinancialPrograms } from './financial-matcher';
-import type { PatientProfile } from '@oncovax/shared';
+import type { PatientProfile } from '@iish/shared';
 
 // ============================================================================
 // Types

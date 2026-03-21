@@ -13,7 +13,7 @@ variable "environment" {
 variable "pipeline_bucket_name" {
   description = "S3 bucket name for pipeline data"
   type        = string
-  default     = "oncovax-pipeline"
+  default     = "iish-pipeline"
 }
 
 variable "vpc_cidr" {

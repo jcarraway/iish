@@ -1,5 +1,5 @@
 import { useLocalSearchParams } from 'expo-router';
-import { LogisticsAssessmentScreen } from '@oncovax/app';
+import { LogisticsAssessmentScreen } from '@iish/app';
 
 export default function LogisticsAssessmentRoute() {
   const { matchId } = useLocalSearchParams<{ matchId: string }>();

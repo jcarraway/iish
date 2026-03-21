@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/session';
 import { trackEvent } from '@/lib/events';
 import { generateMatchesForPatient } from '@/lib/matcher';
-import { patientProfileSchema, INTAKE_PATHS, EVENT_NAMES, DOCUMENT_TYPES } from '@oncovax/shared';
+import { patientProfileSchema, INTAKE_PATHS, EVENT_NAMES, DOCUMENT_TYPES } from '@iish/shared';
 import { z } from 'zod';
 
 const createPatientSchema = z.object({

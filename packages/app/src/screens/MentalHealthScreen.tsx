@@ -458,7 +458,7 @@ const SCANXIETY_TIPS = [
   },
   {
     title: 'Write down your questions beforehand',
-    description: 'Anxiety can make your mind go blank in the exam room. Write down questions ahead of time. Your OncoVax appointment prep tool can help with this.',
+    description: 'Anxiety can make your mind go blank in the exam room. Write down questions ahead of time. Your IISH appointment prep tool can help with this.',
   },
 ];
 

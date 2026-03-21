@@ -1,4 +1,4 @@
-import type { MonitoringReportType } from '@oncovax/shared';
+import type { MonitoringReportType } from '@iish/shared';
 
 export interface MonitoringScheduleItem {
   reportType: MonitoringReportType;

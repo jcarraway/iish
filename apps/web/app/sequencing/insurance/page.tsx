@@ -1,2 +1,2 @@
 'use client';
-export { InsuranceCoverageScreen as default } from '@oncovax/app';
+export { InsuranceCoverageScreen as default } from '@iish/app';

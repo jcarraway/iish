@@ -6,7 +6,7 @@ import { Link } from 'solito/link';
 import { TranslationSection } from '../components';
 import { copyToClipboard } from '../utils';
 import { useGetMatchesQuery, useTranslateTreatmentMutation, useGetTranslatorUpdatesQuery } from '../generated/graphql';
-import type { TreatmentTranslation } from '@oncovax/shared';
+import type { TreatmentTranslation } from '@iish/shared';
 
 type LoadingStep = 'checking' | 'analyzing' | 'reviewing' | 'creating' | 'done';
 

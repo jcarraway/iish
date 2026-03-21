@@ -1,5 +1,5 @@
 import { ApolloClient, HttpLink } from '@apollo/client';
-import { createCache } from '@oncovax/app';
+import { createCache } from '@iish/app';
 
 function createApolloClient() {
   const httpLink = new HttpLink({

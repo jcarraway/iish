@@ -1,5 +1,5 @@
 import { View, Text } from 'dripsy';
-import type { MatchBreakdownItem, LLMAssessment } from '@oncovax/shared';
+import type { MatchBreakdownItem, LLMAssessment } from '@iish/shared';
 
 interface EligibilityBreakdownProps {
   items: MatchBreakdownItem[];

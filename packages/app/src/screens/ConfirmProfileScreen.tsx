@@ -5,8 +5,8 @@ import { useRouter } from 'solito/router';
 import { InlineMagicLink } from '../components';
 import { Picker } from '../components/Picker';
 import { useMeQuery, useGetPatientQuery, useSavePatientIntakeMutation, useExtractDocumentsMutation } from '../generated/graphql';
-import type { PatientProfile, FinancialProfile } from '@oncovax/shared';
-import { INSURANCE_TYPES, INCOME_RANGES, ASSISTANCE_CATEGORIES } from '@oncovax/shared';
+import type { PatientProfile, FinancialProfile } from '@iish/shared';
+import { INSURANCE_TYPES, INCOME_RANGES, ASSISTANCE_CATEGORIES } from '@iish/shared';
 
 type PageState = 'loading' | 'extracting' | 'editing' | 'auth_required' | 'saving' | 'error';
 
@@ -71,7 +71,7 @@ export function ConfirmProfileScreen({ path = 'upload' }: { path?: string }) {
   useEffect(() => {
     if (path === 'manual') {
       if (Platform.OS === 'web') {
-        const stored = sessionStorage.getItem('oncovax_manual_profile');
+        const stored = sessionStorage.getItem('iish_manual_profile');
         if (!stored) { router.push('/start/manual'); return; }
         const parsed = JSON.parse(stored) as PatientProfile;
         setProfile(parsed);
@@ -84,10 +84,10 @@ export function ConfirmProfileScreen({ path = 'upload' }: { path?: string }) {
       if (patientData?.patient?.profile) {
         setProfile(patientData.patient.profile as unknown as PatientProfile);
         if (Platform.OS === 'web') {
-          const missing = sessionStorage.getItem('oncovax_fhir_missing');
+          const missing = sessionStorage.getItem('iish_fhir_missing');
           if (missing) {
             setCouldNotExtract(JSON.parse(missing));
-            sessionStorage.removeItem('oncovax_fhir_missing');
+            sessionStorage.removeItem('iish_fhir_missing');
           }
         }
         setState('editing');
@@ -97,7 +97,7 @@ export function ConfirmProfileScreen({ path = 'upload' }: { path?: string }) {
     } else {
       // Upload path
       if (Platform.OS === 'web') {
-        const stored = sessionStorage.getItem('oncovax_uploaded_files');
+        const stored = sessionStorage.getItem('iish_uploaded_files');
         if (!stored) { router.push('/start/upload'); return; }
         const files = JSON.parse(stored) as UploadedFile[];
         setUploadedFiles(files);
@@ -170,8 +170,8 @@ export function ConfirmProfileScreen({ path = 'upload' }: { path?: string }) {
         },
       });
       if (Platform.OS === 'web') {
-        sessionStorage.removeItem('oncovax_uploaded_files');
-        sessionStorage.removeItem('oncovax_manual_profile');
+        sessionStorage.removeItem('iish_uploaded_files');
+        sessionStorage.removeItem('iish_manual_profile');
       }
       router.push('/matches');
     } catch (err) {

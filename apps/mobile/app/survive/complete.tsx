@@ -1,2 +1,2 @@
-import { TreatmentCompleteScreen } from '@oncovax/app';
+import { TreatmentCompleteScreen } from '@iish/app';
 export default TreatmentCompleteScreen;

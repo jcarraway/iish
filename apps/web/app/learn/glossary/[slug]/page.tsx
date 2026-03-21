@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { LearnGlossaryTermScreen } from '@oncovax/app';
+import { LearnGlossaryTermScreen } from '@iish/app';
 
 export default function GlossaryTermPage() {
   const params = useParams();

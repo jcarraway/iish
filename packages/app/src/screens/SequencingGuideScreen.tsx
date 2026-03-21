@@ -15,7 +15,7 @@ import type {
   SequencingExplanation,
   TestRecommendation,
   ConversationGuide,
-} from '@oncovax/shared';
+} from '@iish/shared';
 
 type Step = 1 | 2 | 3 | 4 | 5;
 
@@ -444,7 +444,7 @@ export function SequencingGuideScreen() {
                       'Send the email template to your oncologist or bring the talking points to your next appointment',
                       'Your oncologist orders the test and your sample is collected',
                       `Results typically arrive in ${testRec.primary.turnaroundDays} days`,
-                      'Upload your results to OncoVax for personalized analysis and trial matching',
+                      'Upload your results to IISH for personalized analysis and trial matching',
                     ].map((text, i) => (
                       <View key={i} sx={{ flexDirection: 'row', gap: '$3' }}>
                         <View sx={{ width: 24, height: 24, borderRadius: 12, backgroundColor: '#DBEAFE', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>

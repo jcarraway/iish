@@ -1,2 +1,2 @@
-import { MyChartScreen } from '@oncovax/app';
+import { MyChartScreen } from '@iish/app';
 export default MyChartScreen;

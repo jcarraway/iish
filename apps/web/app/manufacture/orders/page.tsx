@@ -1,2 +1,2 @@
 'use client';
-export { ManufacturingOrdersScreen as default } from '@oncovax/app';
+export { ManufacturingOrdersScreen as default } from '@iish/app';

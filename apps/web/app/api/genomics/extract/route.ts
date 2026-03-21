@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/session';
 import { generatePresignedDownloadUrl } from '@/lib/s3';
 import { extractGenomicReport } from '@/lib/genomic-extraction';
-import { extractionRequestSchema } from '@oncovax/shared';
+import { extractionRequestSchema } from '@iish/shared';
 
 export async function POST(req: NextRequest) {
   try {

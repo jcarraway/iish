@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/session';
-import { objectExists } from '@oncovax/pipeline-storage';
-import { pipelineSubmitJobSchema } from '@oncovax/shared';
+import { objectExists } from '@iish/pipeline-storage';
+import { pipelineSubmitJobSchema } from '@iish/shared';
 import { publishEvent } from '@/lib/nats';
 
 export async function POST(req: NextRequest) {

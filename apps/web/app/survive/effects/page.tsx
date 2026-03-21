@@ -1,2 +1,2 @@
 'use client';
-export { LateEffectsScreen as default } from '@oncovax/app';
+export { LateEffectsScreen as default } from '@iish/app';

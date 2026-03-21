@@ -1,5 +1,5 @@
 import { useLocalSearchParams } from 'expo-router';
-import { ManufacturingPartnerDetailScreen } from '@oncovax/app';
+import { ManufacturingPartnerDetailScreen } from '@iish/app';
 
 export default function ManufacturingPartnerDetailPage() {
   const { partnerId } = useLocalSearchParams<{ partnerId: string }>();

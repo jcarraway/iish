@@ -1,4 +1,4 @@
-import { TRIAL_SEARCH_TERMS, TRIAL_SYNC_STATUSES } from '@oncovax/shared';
+import { TRIAL_SEARCH_TERMS, TRIAL_SYNC_STATUSES } from '@iish/shared';
 
 const BASE_URL = 'https://clinicaltrials.gov/api/v2/studies';
 

@@ -1,6 +1,6 @@
 import { analyzeMultipleImages } from './ai';
-import { genomicReportExtractionSchema } from '@oncovax/shared';
-import type { GenomicReportExtraction } from '@oncovax/shared';
+import { genomicReportExtractionSchema } from '@iish/shared';
+import type { GenomicReportExtraction } from '@iish/shared';
 
 const INPUT_COST_PER_TOKEN = 0.000015;
 const OUTPUT_COST_PER_TOKEN = 0.000075;

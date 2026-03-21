@@ -1,14 +1,15 @@
 # ECS Cluster for NATS
 resource "aws_ecs_cluster" "nats" {
-  name = "oncovax-nats-${var.environment}"
+  name = "iish-nats-${var.environment}"
 }
 
-# EFS for NATS JetStream persistence
+# EFS for NATS JetStream persistence (KMS-encrypted for HIPAA)
 resource "aws_efs_file_system" "nats" {
-  creation_token = "oncovax-nats-${var.environment}"
+  creation_token = "iish-nats-${var.environment}"
   encrypted      = true
+  kms_key_id     = aws_kms_key.main.arn
 
-  tags = { Name = "oncovax-nats-${var.environment}" }
+  tags = { Name = "iish-nats-${var.environment}" }
 }
 
 resource "aws_efs_mount_target" "nats" {
@@ -20,13 +21,13 @@ resource "aws_efs_mount_target" "nats" {
 
 # CloudWatch log group
 resource "aws_cloudwatch_log_group" "nats" {
-  name              = "/ecs/oncovax-nats-${var.environment}"
+  name              = "/ecs/iish-nats-${var.environment}"
   retention_in_days = 30
 }
 
 # NATS task definition
 resource "aws_ecs_task_definition" "nats" {
-  family                   = "oncovax-nats-${var.environment}"
+  family                   = "iish-nats-${var.environment}"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = 512
@@ -37,8 +38,6 @@ resource "aws_ecs_task_definition" "nats" {
     name      = "nats"
     image     = var.nats_image
     essential = true
-    command   = ["-js", "-sd", "/data"]
-
     portMappings = [
       { containerPort = 4222, protocol = "tcp" },
       { containerPort = 8222, protocol = "tcp" },
@@ -48,6 +47,29 @@ resource "aws_ecs_task_definition" "nats" {
       sourceVolume  = "nats-data"
       containerPath = "/data"
     }]
+
+    secrets = [
+      {
+        name      = "NATS_CA_CERT"
+        valueFrom = aws_secretsmanager_secret.nats_ca_cert.arn
+      },
+      {
+        name      = "NATS_SERVER_CERT"
+        valueFrom = aws_secretsmanager_secret.nats_server_cert.arn
+      },
+      {
+        name      = "NATS_SERVER_KEY"
+        valueFrom = aws_secretsmanager_secret.nats_server_key.arn
+      }
+    ]
+
+    entryPoint = ["/bin/sh", "-c", join(" && ", [
+      "mkdir -p /certs",
+      "echo \"$NATS_CA_CERT\" > /certs/ca-cert.pem",
+      "echo \"$NATS_SERVER_CERT\" > /certs/server-cert.pem",
+      "echo \"$NATS_SERVER_KEY\" > /certs/server-key.pem",
+      "exec nats-server -js -sd /data --tls --tlscert=/certs/server-cert.pem --tlskey=/certs/server-key.pem --tlscacert=/certs/ca-cert.pem --tlsverify"
+    ])]
 
     logConfiguration = {
       logDriver = "awslogs"
@@ -63,14 +85,39 @@ resource "aws_ecs_task_definition" "nats" {
     name = "nats-data"
 
     efs_volume_configuration {
-      file_system_id = aws_efs_file_system.nats.id
+      file_system_id     = aws_efs_file_system.nats.id
+      transit_encryption = "ENABLED"
     }
   }
 }
 
-# NATS ECS Service
+# NATS ECS Service (Cloud Map service discovery instead of NLB)
+resource "aws_service_discovery_private_dns_namespace" "main" {
+  name = "iish.internal"
+  vpc  = aws_vpc.main.id
+}
+
+resource "aws_service_discovery_service" "nats" {
+  name = "nats"
+
+  dns_config {
+    namespace_id = aws_service_discovery_private_dns_namespace.main.id
+
+    dns_records {
+      ttl  = 10
+      type = "A"
+    }
+
+    routing_policy = "MULTIVALUE"
+  }
+
+  health_check_custom_config {
+    failure_threshold = 1
+  }
+}
+
 resource "aws_ecs_service" "nats" {
-  name            = "oncovax-nats-${var.environment}"
+  name            = "iish-nats-${var.environment}"
   cluster         = aws_ecs_cluster.nats.id
   task_definition = aws_ecs_task_definition.nats.arn
   desired_count   = 1
@@ -82,43 +129,13 @@ resource "aws_ecs_service" "nats" {
     assign_public_ip = false
   }
 
-  load_balancer {
-    target_group_arn = aws_lb_target_group.nats.arn
-    container_name   = "nats"
-    container_port   = 4222
+  service_registries {
+    registry_arn = aws_service_discovery_service.nats.arn
   }
 }
 
-# NLB for NATS
-resource "aws_lb" "nats" {
-  name               = "oncovax-nats-${var.environment}"
-  internal           = true
-  load_balancer_type = "network"
-  subnets            = aws_subnet.private[*].id
-
-  tags = { Name = "oncovax-nats-${var.environment}" }
-}
-
-resource "aws_lb_target_group" "nats" {
-  name        = "oncovax-nats-${var.environment}"
-  port        = 4222
-  protocol    = "TCP"
-  vpc_id      = aws_vpc.main.id
-  target_type = "ip"
-
-  health_check {
-    port     = 8222
-    protocol = "TCP"
-  }
-}
-
-resource "aws_lb_listener" "nats" {
-  load_balancer_arn = aws_lb.nats.arn
-  port              = 4222
-  protocol          = "TCP"
-
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.nats.arn
-  }
+# NATS is reachable at nats.iish.internal:4222 within the VPC
+output "nats_tls_url" {
+  description = "NATS connection URL (TLS, via Cloud Map)"
+  value       = "tls://nats.iish.internal:4222"
 }

@@ -19,8 +19,8 @@ output "batch_standard_queue_arn" {
 }
 
 output "nats_url" {
-  description = "NATS connection URL"
-  value       = "nats://${aws_lb.nats.dns_name}:4222"
+  description = "NATS connection URL (Cloud Map service discovery)"
+  value       = "tls://nats.iish.internal:4222"
 }
 
 output "vpc_id" {

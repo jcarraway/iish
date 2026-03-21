@@ -5,7 +5,7 @@ import { useRouter } from 'solito/router';
 import { Link } from 'solito/link';
 import { MonitoringReportForm } from '../components';
 import type { ReportFormData } from '../components';
-import type { MonitoringReportType } from '@oncovax/shared';
+import type { MonitoringReportType } from '@iish/shared';
 import {
   useGetMonitoringScheduleQuery,
   useSubmitMonitoringReportMutation,

@@ -1,2 +1,2 @@
-import { SequencingHubScreen } from '@oncovax/app';
+import { SequencingHubScreen } from '@iish/app';
 export default SequencingHubScreen;

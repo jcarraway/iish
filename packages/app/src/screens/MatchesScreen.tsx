@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { View, Text, Pressable } from 'dripsy';
 import { ActivityIndicator } from 'react-native';
 import { MatchCard } from '../components';
-import type { MatchBreakdownItem } from '@oncovax/shared';
+import type { MatchBreakdownItem } from '@iish/shared';
 import {
   useGetMatchesQuery,
   useUpdateMatchStatusMutation,

@@ -1,5 +1,5 @@
 {
-  "name": "@oncovax/api",
+  "name": "@iish/api",
   "version": "0.0.1",
   "private": true,
   "main": "./src/index.ts",
@@ -16,8 +16,8 @@
     "@apollo/server": "^4.11.0",
     "@as-integrations/next": "^3.1.0",
     "graphql": "^16.9.0",
-    "@oncovax/shared": "workspace:*",
-    "@oncovax/db": "workspace:*"
+    "@iish/shared": "workspace:*",
+    "@iish/db": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.7.2",

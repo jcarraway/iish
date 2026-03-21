@@ -1,2 +1,2 @@
-import { ProvidersScreen } from '@oncovax/app';
+import { ProvidersScreen } from '@iish/app';
 export default ProvidersScreen;

@@ -1,5 +1,5 @@
 {
-  "name": "oncovax",
+  "name": "iish",
   "private": true,
   "packageManager": "pnpm@9.14.2",
   "scripts": {
@@ -11,7 +11,7 @@
     "db:migrate": "turbo run db:migrate",
     "db:push": "turbo run db:push",
     "trial-sync": "tsx scripts/trial-sync.ts",
-    "orchestrator:dev": "turbo run orchestrator:dev --filter=@oncovax/pipeline-orchestrator"
+    "orchestrator:dev": "turbo run orchestrator:dev --filter=@iish/pipeline-orchestrator"
   },
   "devDependencies": {
     "dotenv": "^16.0.0",

@@ -1,2 +1,2 @@
 'use client';
-export { ManufacturingPartnersScreen as default } from '@oncovax/app';
+export { ManufacturingPartnersScreen as default } from '@iish/app';

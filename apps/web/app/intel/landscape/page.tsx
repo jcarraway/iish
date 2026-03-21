@@ -1,2 +1,2 @@
 'use client';
-export { IntelLandscapeScreen as default } from '@oncovax/app';
+export { IntelLandscapeScreen as default } from '@iish/app';

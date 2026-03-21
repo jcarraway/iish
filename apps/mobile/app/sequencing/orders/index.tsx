@@ -1,2 +1,2 @@
-import { SequencingOrdersScreen } from '@oncovax/app';
+import { SequencingOrdersScreen } from '@iish/app';
 export default SequencingOrdersScreen;

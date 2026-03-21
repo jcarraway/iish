@@ -1,7 +1,7 @@
 import { anthropic, CLAUDE_MODEL } from './ai';
 import { redis } from './redis';
 import { prisma } from './db';
-import type { PatientProfile } from '@oncovax/shared';
+import type { PatientProfile } from '@iish/shared';
 import crypto from 'crypto';
 
 // ============================================================================

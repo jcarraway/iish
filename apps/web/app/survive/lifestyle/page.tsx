@@ -1,2 +1,2 @@
 'use client';
-export { LifestyleScreen as default } from '@oncovax/app';
+export { LifestyleScreen as default } from '@iish/app';

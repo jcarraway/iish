@@ -8,8 +8,12 @@ terraform {
     }
   }
 
-  backend "local" {
-    path = "terraform.tfstate"
+  backend "s3" {
+    bucket         = "iish-terraform-state"
+    key            = "infrastructure/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "iish-terraform-locks"
+    encrypt        = true
   }
 }
 
@@ -18,9 +22,10 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project     = "oncovax"
+      Project     = "iish"
       Environment = var.environment
       ManagedBy   = "terraform"
+      HIPAA       = "true"
     }
   }
 }

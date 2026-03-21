@@ -1,2 +1,2 @@
-import { MonitoringDashboardScreen } from '@oncovax/app';
+import { MonitoringDashboardScreen } from '@iish/app';
 export default MonitoringDashboardScreen;

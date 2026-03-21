@@ -1,2 +1,2 @@
-import { ManualIntakeScreen } from '@oncovax/app';
+import { ManualIntakeScreen } from '@iish/app';
 export default ManualIntakeScreen;

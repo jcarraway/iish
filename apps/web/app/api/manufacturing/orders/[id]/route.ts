@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/session';
 import { getOrderTimeline, isValidTransition } from '@/lib/manufacturing-orders';
-import type { ManufacturingOrderStatus } from '@oncovax/shared';
+import type { ManufacturingOrderStatus } from '@iish/shared';
 
 export async function GET(
   _req: Request,

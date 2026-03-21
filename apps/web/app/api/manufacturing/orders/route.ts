@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
         assessmentId: assessmentId || null,
         status: 'inquiry_sent',
         blueprintSentAt: new Date(),
-        blueprintFormat: 'oncovax_blueprint_v1',
+        blueprintFormat: 'iish_blueprint_v1',
         blueprintVersion: '1.0',
         message: message || null,
         notes: [{ type: 'system', text: 'Order created — inquiry sent to manufacturer', at: new Date().toISOString() }],

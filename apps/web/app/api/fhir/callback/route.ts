@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { redis } from '@/lib/redis';
 import { prisma } from '@/lib/db';
 import { exchangeCodeForTokens, encryptToken } from '@/lib/fhir/smart-auth';
-import { FHIR_SCOPES } from '@oncovax/shared';
+import { FHIR_SCOPES } from '@iish/shared';
 
-const EPIC_CLIENT_ID = process.env.EPIC_CLIENT_ID ?? 'oncovax-dev';
+const EPIC_CLIENT_ID = process.env.EPIC_CLIENT_ID ?? 'iish-dev';
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 
 export async function GET(req: NextRequest) {

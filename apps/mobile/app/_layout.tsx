@@ -2,7 +2,7 @@ import { Stack } from 'expo-router';
 import { ApolloProvider } from '@apollo/client';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ActivityIndicator, View } from 'react-native';
-import { DripsyProvider } from '@oncovax/app';
+import { DripsyProvider } from '@iish/app';
 import { apolloClient } from '../lib/apollo';
 import { useProtectedRoute } from '../lib/auth';
 

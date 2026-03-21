@@ -1,2 +1,2 @@
 'use client';
-export { GenomicResultsScreen as default } from '@oncovax/app';
+export { GenomicResultsScreen as default } from '@iish/app';

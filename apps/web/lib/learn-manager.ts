@@ -1,7 +1,7 @@
 import { anthropic, CLAUDE_MODEL } from './ai';
 import { redis } from './redis';
 import { prisma } from './db';
-import type { PatientProfile } from '@oncovax/shared';
+import type { PatientProfile } from '@iish/shared';
 
 // ============================================================================
 // Constants — Article Categories
@@ -388,15 +388,15 @@ Make the content thorough, evidence-based, and actionable. This article should b
     dateModified: new Date().toISOString(),
     author: {
       '@type': 'Organization',
-      name: 'OncoVax',
+      name: 'IISH',
     },
     publisher: {
       '@type': 'Organization',
-      name: 'OncoVax',
+      name: 'IISH',
     },
     mainEntityOfPage: {
       '@type': 'WebPage',
-      '@id': `https://oncovax.com/learn/${spec.category}/${slug}`,
+      '@id': `https://iish.com/learn/${spec.category}/${slug}`,
     },
     about: articleData.cancerTypes?.map((ct: string) => ({
       '@type': 'MedicalCondition',

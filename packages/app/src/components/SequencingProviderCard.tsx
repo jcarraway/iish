@@ -1,6 +1,6 @@
 import { View, Text, Pressable } from 'dripsy';
 import { Link } from 'solito/link';
-import type { SequencingProviderDetails } from '@oncovax/shared';
+import type { SequencingProviderDetails } from '@iish/shared';
 
 interface SequencingProviderCardProps {
   providerId: string;

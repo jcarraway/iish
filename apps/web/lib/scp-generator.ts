@@ -1,7 +1,7 @@
 import { anthropic, CLAUDE_MODEL } from './ai';
 import { redis } from './redis';
 import { prisma } from './db';
-import type { SurvivorshipCarePlan, SurveillanceScheduleItem, TreatmentCompletionInput, PatientProfile } from '@oncovax/shared';
+import type { SurvivorshipCarePlan, SurveillanceScheduleItem, TreatmentCompletionInput, PatientProfile } from '@iish/shared';
 
 const CACHE_TTL = 7 * 24 * 60 * 60; // 7 days
 

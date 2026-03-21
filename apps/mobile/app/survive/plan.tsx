@@ -1,2 +1,2 @@
-import { SCPReadingScreen } from '@oncovax/app';
+import { SCPReadingScreen } from '@iish/app';
 export default SCPReadingScreen;

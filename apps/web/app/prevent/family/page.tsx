@@ -1,2 +1,2 @@
 'use client';
-export { ForYourFamilyScreen as default } from '@oncovax/app';
+export { ForYourFamilyScreen as default } from '@iish/app';

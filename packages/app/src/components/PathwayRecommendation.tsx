@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { View, Text, Pressable } from 'dripsy';
-import type { RegulatoryPathwayType, RegulatoryDocumentType } from '@oncovax/shared';
+import type { RegulatoryPathwayType, RegulatoryDocumentType } from '@iish/shared';
 
 interface PathwayRecommendationProps {
   recommended: RegulatoryPathwayType;

@@ -5,7 +5,7 @@ import { useRouter } from 'solito/router';
 import { Link } from 'solito/link';
 import { HealthSystemSearch } from '../components';
 import { useAuthorizeFhirMutation, useExtractFhirMutation } from '../generated/graphql';
-import type { HealthSystemResult, FhirResourceSummary } from '@oncovax/shared';
+import type { HealthSystemResult, FhirResourceSummary } from '@iish/shared';
 
 type Step = 'search' | 'confirm_connect' | 'connecting' | 'extracting' | 'done' | 'error';
 
@@ -77,7 +77,7 @@ export function MyChartScreen({ connected, connectionId: connIdParam, error: err
       setMissingFields(result?.missingFields ?? []);
       setResourceSummary(result?.resourceSummary ?? []);
       if (result?.missingFields?.length > 0 && Platform.OS === 'web') {
-        sessionStorage.setItem('oncovax_fhir_missing', JSON.stringify(result.missingFields));
+        sessionStorage.setItem('iish_fhir_missing', JSON.stringify(result.missingFields));
       }
       setStep('done');
     } catch (err) {
@@ -118,7 +118,7 @@ export function MyChartScreen({ connected, connectionId: connIdParam, error: err
         <View sx={{ mx: 'auto', maxWidth: 672, px: '$6', py: '$16', width: '100%' }}>
           <Text sx={{ fontSize: 30, fontWeight: 'bold', color: '$foreground' }}>Connect to {selectedSystem.name}</Text>
           <Text sx={{ mt: '$2', fontSize: 14, color: '$mutedForeground' }}>
-            You'll be redirected to MyChart to authorize OncoVax to read your records.
+            You'll be redirected to MyChart to authorize IISH to read your records.
           </Text>
 
           <View sx={{ mt: '$8', borderRadius: 12, borderWidth: 1, borderColor: '$border', p: '$6' }}>

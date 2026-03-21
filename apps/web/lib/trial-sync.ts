@@ -1,4 +1,4 @@
-import { Prisma, type PrismaClient } from '@oncovax/db/generated/prisma';
+import { Prisma, type PrismaClient } from '@iish/db/generated/prisma';
 import { fetchAllStudies, type CTGStudy } from './clinicaltrials';
 import { geocodeAddress } from './mapbox';
 

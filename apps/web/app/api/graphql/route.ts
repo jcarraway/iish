@@ -1,12 +1,12 @@
 import { ApolloServer } from '@apollo/server';
 import { startServerAndCreateNextHandler } from '@as-integrations/next';
 import { NextRequest } from 'next/server';
-import { typeDefs, resolvers } from '@oncovax/api';
-import type { GraphQLContext } from '@oncovax/api';
+import { typeDefs, resolvers } from '@iish/api';
+import type { GraphQLContext } from '@iish/api';
 import { prisma } from '@/lib/db';
 import { redis } from '@/lib/redis';
 import { getSession } from '@/lib/session';
-import { createMagicLinkToken } from '@oncovax/shared';
+import { createMagicLinkToken } from '@iish/shared';
 import { Resend } from 'resend';
 
 // Lib function imports — existing
@@ -89,7 +89,7 @@ import {
 } from '@/lib/recurrence-manager';
 import { refreshAccessToken, encryptToken } from '@/lib/fhir/smart-auth';
 import { mapFhirToPatientProfile } from '@/lib/fhir/mapper';
-import type { PatientProfile } from '@oncovax/shared';
+import type { PatientProfile } from '@iish/shared';
 import {
   assessFertilityRisk as _assessFertilityRisk,
   getFertilityAssessment as _getFertilityAssessment,
@@ -703,7 +703,7 @@ async function authorizeFhirAdapter(userId: string, healthSystemId: string) {
   const hs = await prisma.healthSystem.findUnique({ where: { id: healthSystemId } });
   if (!hs) throw new Error('Health system not found');
   const endpoints = await discoverEndpoints(hs.fhirBaseUrl);
-  const clientId = process.env.FHIR_CLIENT_ID || 'oncovax';
+  const clientId = process.env.FHIR_CLIENT_ID || 'iish';
   const redirectUri = `${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/api/fhir/callback`;
   const state = `${userId}:${healthSystemId}`;
   const scopes = ['launch/patient', 'patient/*.read', 'openid', 'fhirUser'] as const;
@@ -753,7 +753,7 @@ async function generalUploadUrlAdapter(filename: string, contentType: string, bu
   return {
     uploadUrl: result.uploadUrl,
     s3Key: result.s3Key,
-    bucket: result.bucket || bucket || 'oncovax-documents',
+    bucket: result.bucket || bucket || 'iish-documents',
     expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
   };
 }
@@ -864,7 +864,7 @@ async function revokeFhirConnectionAdapter(patientId: string, connectionId: stri
   return true;
 }
 
-const EPIC_CLIENT_ID = process.env.EPIC_CLIENT_ID ?? 'oncovax-dev';
+const EPIC_CLIENT_ID = process.env.EPIC_CLIENT_ID ?? 'iish-dev';
 
 async function resyncFhirConnectionAdapter(patientId: string, connectionId: string) {
   const connection = await prisma.fhirConnection.findFirst({

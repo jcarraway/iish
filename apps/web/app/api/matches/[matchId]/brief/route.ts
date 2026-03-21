@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/session';
 import { generateOncologistBrief } from '@/lib/oncologist-brief';
-import type { PatientProfile, MatchBreakdownItem, LLMAssessment } from '@oncovax/shared';
+import type { PatientProfile, MatchBreakdownItem, LLMAssessment } from '@iish/shared';
 
 export async function GET(
   _req: NextRequest,

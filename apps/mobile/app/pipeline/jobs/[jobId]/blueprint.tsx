@@ -1,5 +1,5 @@
 import { useLocalSearchParams } from 'expo-router';
-import { PipelineBlueprintScreen } from '@oncovax/app';
+import { PipelineBlueprintScreen } from '@iish/app';
 
 export default function PipelineBlueprintPage() {
   const { jobId } = useLocalSearchParams<{ jobId: string }>();

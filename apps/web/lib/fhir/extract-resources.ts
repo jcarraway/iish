@@ -1,4 +1,4 @@
-import { BIOMARKER_LOINCS, LAB_LOINCS } from '@oncovax/shared';
+import { BIOMARKER_LOINCS, LAB_LOINCS } from '@iish/shared';
 import { FhirClient, FhirError } from './client';
 import type {
   FhirCondition,
