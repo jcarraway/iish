@@ -145,3 +145,7 @@ export { CommunitySubmitScreen } from './CommunitySubmitScreen';
 export { PreventiveTrialsScreen } from './PreventiveTrialsScreen';
 export { ForYourFamilyScreen } from './ForYourFamilyScreen';
 export { RecurrencePreventionScreen } from './RecurrencePreventionScreen';
+
+// Learn — L2 additions
+export { MyReadingPlanScreen } from './MyReadingPlanScreen';
+export { LearnAdminScreen } from './LearnAdminScreen';

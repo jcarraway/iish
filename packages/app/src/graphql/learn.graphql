@@ -149,6 +149,21 @@ query GetReadingPlan {
   }
 }
 
+query GetArticlesAdmin($filters: ArticleAdminFilters) {
+  articlesAdmin(filters: $filters) {
+    id
+    slug
+    type
+    title
+    patientSummary
+    category
+    status
+    viewCount
+    publishedAt
+    createdAt
+  }
+}
+
 # ============================================================================
 # Learn — Mutations
 # ============================================================================
@@ -201,4 +216,115 @@ mutation GenerateReadingPlan {
       priority
     }
   }
+}
+
+mutation UpdateArticleStatus($articleId: String!, $status: String!, $notes: String) {
+  updateArticleStatus(articleId: $articleId, status: $status, notes: $notes) {
+    id
+    slug
+    status
+    publishedAt
+  }
+}
+
+mutation CheckArticleQuality($articleId: String!) {
+  checkArticleQuality(articleId: $articleId) {
+    issues {
+      type
+      severity
+      description
+      section
+    }
+    score
+    checkedAt
+  }
+}
+
+mutation RunArticleQualityChecks {
+  runArticleQualityChecks
+}
+
+mutation InsertPlatformLinks($articleId: String!) {
+  insertPlatformLinks(articleId: $articleId) {
+    id
+    slug
+    actionItems {
+      text
+      link
+    }
+  }
+}
+
+# ============================================================================
+# Learn — INTEL Cross-Links (public)
+# ============================================================================
+
+query GetRelatedResearch($slug: String!, $limit: Int) {
+  relatedResearch(slug: $slug, limit: $limit) {
+    id
+    title
+    maturityTier
+    patientSummary
+    publishedAt
+    sourceType
+    practiceImpact
+  }
+}
+
+query GetArticlesForResearchItem($itemId: String!, $limit: Int) {
+  articlesForResearchItem(itemId: $itemId, limit: $limit) {
+    slug
+    title
+    category
+    patientSummary
+    viewCount
+  }
+}
+
+# ============================================================================
+# Learn — INTEL Refresh Pipeline (authenticated)
+# ============================================================================
+
+query GetArticleRefreshStatus($articleId: String!) {
+  articleRefreshStatus(articleId: $articleId) {
+    needsRefresh
+    urgency
+    triggers {
+      id
+      title
+      maturityTier
+      practiceImpact
+      publishedAt
+    }
+    suggestion {
+      sectionsToUpdate
+      newDataToIncorporate
+      referencesToAdd
+      summary
+    }
+  }
+}
+
+query GetArticleEngagement {
+  articleEngagement {
+    id
+    slug
+    title
+    category
+    viewCount
+    publishedAt
+  }
+}
+
+mutation GenerateRefreshSuggestion($articleId: String!, $triggerItemIds: [String!]!) {
+  generateRefreshSuggestion(articleId: $articleId, triggerItemIds: $triggerItemIds) {
+    sectionsToUpdate
+    newDataToIncorporate
+    referencesToAdd
+    summary
+  }
+}
+
+mutation RunRefreshCheckCycle {
+  runRefreshCheckCycle
 }

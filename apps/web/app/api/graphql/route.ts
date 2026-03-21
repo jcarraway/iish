@@ -148,6 +148,21 @@ import {
   getRelatedArticles as _getRelatedArticles,
 } from '@/lib/learn-manager';
 import {
+  checkArticleQuality as _checkArticleQuality,
+  runArticleQualityChecks as _runArticleQualityChecks,
+  updateArticleStatus as _updateArticleStatus,
+  getArticlesAdmin as _getArticlesAdmin,
+  insertPlatformLinks as _insertPlatformLinks,
+} from '@/lib/learn-quality';
+import {
+  getRelatedResearch as _getRelatedResearch,
+  getArticlesForResearchItem as _getArticlesForResearchItem,
+  getArticleRefreshStatus as _getArticleRefreshStatus,
+  getArticleEngagement as _getArticleEngagement,
+  generateRefreshSuggestion as _generateRefreshSuggestion,
+  runRefreshCheckCycle as _runRefreshCheckCycle,
+} from '@/lib/learn-intel-bridge';
+import {
   getLandscapeOverview as _getLandscapeOverview,
   getSubtypeLandscape as _getSubtypeLandscape,
   getTreatmentPipeline as _getTreatmentPipeline,
@@ -1407,6 +1422,19 @@ const handler = startServerAndCreateNextHandler<NextRequest, GraphQLContext>(ser
         getAllPublishedSlugs: _getAllPublishedSlugs,
         generateArticleBatch: _generateArticleBatch,
         getRelatedArticles: _getRelatedArticles,
+        getArticlesAdmin: _getArticlesAdmin,
+        checkArticleQuality: _checkArticleQuality,
+        runArticleQualityChecks: _runArticleQualityChecks,
+        updateArticleStatus: _updateArticleStatus,
+        insertPlatformLinks: _insertPlatformLinks,
+
+        // Learn — INTEL Bridge
+        getRelatedResearch: _getRelatedResearch,
+        getArticlesForResearchItem: _getArticlesForResearchItem,
+        getArticleRefreshStatus: _getArticleRefreshStatus,
+        getArticleEngagement: _getArticleEngagement,
+        generateRefreshSuggestion: _generateRefreshSuggestion,
+        runRefreshCheckCycle: _runRefreshCheckCycle,
 
         // Second Opinion
         evaluateSecondOpinionTriggers: evaluateSecondOpinionTriggersAdapter,

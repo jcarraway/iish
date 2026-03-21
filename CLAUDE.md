@@ -10,18 +10,18 @@ Personalized cancer vaccine intelligence platform. Monorepo covering the full pa
 oncovax/
 ├── apps/
 │   ├── web/                    # Next.js 15.0.0, React 19.0.0, Tailwind CSS 3.4
-│   │   ├── app/                # App Router — pages + 89 API route files + 2 cron endpoints
+│   │   ├── app/                # App Router — pages + 89 API route files + 3 cron endpoints
 │   │   ├── components/         # 3 web-only components (DocumentUploader, AdministrationSiteCard, AdministrationSiteMap)
-│   │   └── lib/                # 57 library files (see below)
+│   │   └── lib/                # 59 library files (see below)
 │   └── mobile/                 # Expo SDK 54, React Native 0.76.9, Dripsy + Solito
-│       ├── app/                # Expo Router — 109 route files across 28 directories
+│       ├── app/                # Expo Router — 113 route files across 28 directories
 │       └── lib/                # apollo.ts (GraphQL client), auth.ts (SecureStore guard)
 ├── docker-compose.yml          # Local dev: postgres:15-alpine + redis:7-alpine
 ├── packages/
 │   ├── ui/                     # Thin RN + Solito re-exports (@oncovax/ui)
-│   ├── app/                    # 104 shared screens, 24 Dripsy components, theme, 170+ generated hooks (@oncovax/app)
+│   ├── app/                    # 106 shared screens, 24 Dripsy components, theme, 170+ generated hooks (@oncovax/app)
 │   │   └── src/{screens[96],components[24],providers,theme,graphql,generated,utils,index}.ts
-│   ├── api/                    # Apollo Server schema (147+ types, 92Q, 88M) + 27 resolver files (@oncovax/api)
+│   ├── api/                    # Apollo Server schema (156+ types, 97Q, 94M) + 27 resolver files (@oncovax/api)
 │   │   └── src/{schema,resolvers[24 files],context,index}.ts
 │   ├── db/                     # Prisma 7 + PostgreSQL (51 models)
 │   │   ├── prisma/schema.prisma
@@ -76,9 +76,9 @@ export async function POST(req: NextRequest) {
 
 ### UI: Dripsy + Solito (Cross-Platform, Screen Migration Complete)
 - **Shared components:** 22 Dripsy components in `packages/app/src/components/` — cross-platform ready
-- **Shared screens:** 104 screens in `packages/app/src/screens/` — 46 migratable (D3-D6) + 4 survivorship (S1) + 2 surveillance (S2) + 3 journal/effects (S3) + 1 lifestyle (S4) + 2 care team (S5) + 2 ctDNA (S6) + 1 notifications (S7) + 8 recurrence (S8) + 5 fertility + 5 advocate + 5 logistics + 5 second opinion + 6 learn (L1) + 4 intel (I1) + 2 community (I5) + 1 intel landscape (I6) + 3 preventive (PTM)
+- **Shared screens:** 106 screens in `packages/app/src/screens/` — 46 migratable (D3-D6) + 4 survivorship (S1) + 2 surveillance (S2) + 3 journal/effects (S3) + 1 lifestyle (S4) + 2 care team (S5) + 2 ctDNA (S6) + 1 notifications (S7) + 8 recurrence (S8) + 5 fertility + 5 advocate + 5 logistics + 5 second opinion + 8 learn (L1-L4) + 4 intel (I1) + 2 community (I5) + 1 intel landscape (I6) + 3 preventive (PTM)
 - **Web pages:** Most pages are thin re-exports: `'use client'; export { XxxScreen as default } from '@oncovax/app';`. Exception: `/learn/[category]/[slug]/page.tsx` is a server component with `generateMetadata` + `generateStaticParams` + JSON-LD that renders a client component wrapper.
-- **Mobile routes:** All 104 screens wired via Expo Router — 111 route files across 28 directories
+- **Mobile routes:** All 106 screens wired via Expo Router — 113 route files across 28 directories
 - **Mobile tabs:** 5-tab layout (Home, Matches, Sequencing, Pipeline, More) with Ionicons
 - **Mobile auth:** `useProtectedRoute()` hook — SecureStore token check + redirect to `/auth` modal
 - **Web-only components (3):** `DocumentUploader` (File API), `AdministrationSiteCard`, `AdministrationSiteMap` (Mapbox) — kept in `apps/web/components/`
@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
 ### AI: Anthropic Claude
 - Model: `claude-opus-4-20250514` (hardcoded in `apps/web/lib/ai.ts`)
 - Package: `@anthropic-ai/sdk@0.39.0`
-- Used for: document extraction, eligibility parsing, trial matching, treatment translation, genomic interpretation, report generation, regulatory document drafting, SCP generation, surveillance result extraction, lifestyle recommendation generation, symptom routing, appointment prep, ctDNA interpretation, fertility discussion guides, appeal letter generation, peer review prep, logistics plan generation, record packet assembly, communication guide generation, article generation, personalized article context, reading plan generation, research classification (maturity/evidence/impact), research summarization (patient + clinician)
+- Used for: document extraction, eligibility parsing, trial matching, treatment translation, genomic interpretation, report generation, regulatory document drafting, SCP generation, surveillance result extraction, lifestyle recommendation generation, symptom routing, appointment prep, ctDNA interpretation, fertility discussion guides, appeal letter generation, peer review prep, logistics plan generation, record packet assembly, communication guide generation, article generation, personalized article context, reading plan generation, article quality checking, article refresh suggestions, research classification (maturity/evidence/impact), research summarization (patient + clinician)
 
 ## What's Built (Phases 1-4)
 
@@ -173,6 +173,9 @@ export async function POST(req: NextRequest) {
 
 **MATCH Extension — Preventive Trial Matcher (PTM, complete):**
 - 3 Prisma models (CuratedPreventiveTrial, PreventivePrescreen, FamilyReferral) + 2 new fields on Trial (trialCategory, isPreventive). 1 new lib file (preventive-matcher.ts: 8 functions — getPreventiveTrials with curated merge, getRecurrencePreventionTrials with patient profile cross-reference + genomics boost, preScreenEligibility deterministic scoring, runPreventivePrescreen batch match + save, getPreventiveTrialsForFamily filtered for family context, generateReferralLink with crypto short codes + shareable messages, redeemReferralCode, getReferralStats privacy-preserving counts). trial-sync.ts extended with classifyTrial keyword-based classifier (6 categories: preventive_vaccine, chemoprevention, recurrence_prevention, risk_reduction, biomarker, therapeutic). Seed script: 5 curated preventive trials (Cleveland Clinic alpha-lactalbumin, WashU neoantigen, BioNTech BNT116, Moderna mRNA-4157, BRCA-carrier vaccine). GraphQL: 6 types + 1 input + 5 queries (2 public + 3 auth) + 2 mutations, 1 resolver file (preventive.ts), 7 context signatures, 7 route handler adapters. 7 operations in preventive.graphql. 3 shared screens (PreventiveTrialsScreen with 5-question inline quiz + match results + featured curated trials + educational section + referral code handling, ForYourFamilyScreen with family risk overview + filtered trials + shareable referral link generation + stats, RecurrencePreventionScreen with genomic profile advantage note + matched trials + link to full matches). Dashboard + SurviveDashboard + HomeScreen integrations. 3 web pages + 3 mobile routes under `/prevent/`. **Public prevention trial quiz (no auth needed). Family referral system. Recurrence prevention bridge for survivors. First public prescreening feature.**
+
+**LEARN — L2-L4: Quality Pipeline + Content Expansion + INTEL Cross-Linking (complete):**
+- No new Prisma models (51 unchanged). 2 new lib files: `learn-quality.ts` (5 functions — checkArticleQuality via Claude + Redis 7-day cache, runArticleQualityChecks batch, updateArticleStatus with transition validation, getArticlesAdmin, insertPlatformLinks deterministic taxonomy→route mapping), `learn-intel-bridge.ts` (7 functions — getRelatedResearch query-time cross-link via hasSome + Redis 24h cache, getArticlesForResearchItem reverse cross-link, checkRefreshTriggers for T1/T2 items overlapping published articles, generateRefreshSuggestion via Claude + Redis 7-day cache, runRefreshCheckCycle cron entry point, getArticleRefreshStatus, getArticleEngagement). 1 seed script (seed-learn-batch2.ts: 50 article specs + 50 glossary terms). GraphQL: +9 types (ArticleAdminFilters, QualityIssue, QualityCheckResult, RelatedResearchItem, RelatedArticle, RefreshTriggerItem, RefreshSuggestion, ArticleRefreshStatus, ArticleEngagement) + 5 queries (1 auth: articlesAdmin; 2 public: relatedResearch, articlesForResearchItem; 2 auth: articleRefreshStatus, articleEngagement) + 6 mutations (updateArticleStatus, checkArticleQuality, runArticleQualityChecks, insertPlatformLinks, generateRefreshSuggestion, runRefreshCheckCycle), 11 resolver operations in learn.ts, 11 context signatures, 11 route handler adapters. 10 new GraphQL operations in learn.graphql (21 total). 2 new shared screens (MyReadingPlanScreen with three-tier layout + refresh, LearnAdminScreen with articles/engagement tabs + status management + QC results). 3 screens updated: LearnArticleScreen (Latest Research section with tier badges + links to /intel), IntelItemDetailScreen (Background Reading section with category badges + links to /learn), LearnAdminScreen (engagement tab). 1 cron endpoint (apps/web/app/api/cron/learn/route.ts). 2 web pages + 2 mobile routes. **Article quality pipeline (Claude QC + status management + platform links). INTEL cross-linking (bidirectional article↔research). Refresh pipeline (cron-triggered, admin-reviewed). LEARN module complete (L1-L4).**
 
 ## What's NOT Built Yet
 

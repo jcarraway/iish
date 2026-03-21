@@ -179,6 +179,19 @@ export interface GraphQLContext {
     getAllPublishedSlugs: () => Promise<any[]>;
     generateArticleBatch: (specs: any[]) => Promise<any[]>;
     getRelatedArticles: (slug: string, limit?: number) => Promise<any[]>;
+    getArticlesAdmin: (filters?: any) => Promise<any[]>;
+    checkArticleQuality: (articleId: string) => Promise<any>;
+    runArticleQualityChecks: () => Promise<any>;
+    updateArticleStatus: (articleId: string, status: string, notes?: string) => Promise<any>;
+    insertPlatformLinks: (articleId: string) => Promise<any>;
+
+    // Learn — INTEL Bridge
+    getRelatedResearch: (slug: string, limit?: number) => Promise<any[]>;
+    getArticlesForResearchItem: (itemId: string, limit?: number) => Promise<any[]>;
+    getArticleRefreshStatus: (articleId: string) => Promise<any>;
+    getArticleEngagement: () => Promise<any[]>;
+    generateRefreshSuggestion: (articleId: string, triggerItemIds: string[]) => Promise<any>;
+    runRefreshCheckCycle: () => Promise<any>;
 
     // Second Opinion
     evaluateSecondOpinionTriggers: (patientId: string) => Promise<any>;

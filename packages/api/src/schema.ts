@@ -1480,6 +1480,81 @@ export const typeDefs = `#graphql
     category: String!
   }
 
+  input ArticleAdminFilters {
+    status: String
+    category: String
+  }
+
+  type QualityIssue {
+    type: String!
+    severity: String!
+    description: String!
+    section: String
+  }
+
+  type QualityCheckResult {
+    issues: [QualityIssue!]!
+    score: Int!
+    checkedAt: String!
+  }
+
+  type RelatedResearchItem {
+    id: String!
+    title: String!
+    maturityTier: String
+    patientSummary: String
+    publishedAt: String
+    sourceType: String!
+    practiceImpact: String
+  }
+
+  type RelatedArticle {
+    slug: String!
+    title: String!
+    category: String!
+    patientSummary: String!
+    viewCount: Int!
+  }
+
+  type RefreshTriggerItem {
+    id: String!
+    title: String!
+    maturityTier: String
+    practiceImpact: String
+    publishedAt: String
+  }
+
+  type RefreshTrigger {
+    articleId: String!
+    articleTitle: String!
+    articleSlug: String!
+    urgency: String!
+    triggerItems: [RefreshTriggerItem!]!
+  }
+
+  type RefreshSuggestion {
+    sectionsToUpdate: [String!]!
+    newDataToIncorporate: [String!]!
+    referencesToAdd: [String!]!
+    summary: String!
+  }
+
+  type ArticleRefreshStatus {
+    needsRefresh: Boolean!
+    urgency: String
+    triggers: [RefreshTriggerItem!]!
+    suggestion: RefreshSuggestion
+  }
+
+  type ArticleEngagement {
+    id: String!
+    slug: String!
+    title: String!
+    category: String!
+    viewCount: Int!
+    publishedAt: String
+  }
+
   # ============================================================================
   # Intel — Research Intelligence
   # ============================================================================
@@ -1976,8 +2051,15 @@ export const typeDefs = `#graphql
     glossaryTerms(category: String): [GlossaryTerm!]!
     glossaryTerm(slug: String!): GlossaryTerm
 
+    # Learn (public — INTEL cross-links)
+    relatedResearch(slug: String!, limit: Int): [RelatedResearchItem!]!
+    articlesForResearchItem(itemId: String!, limit: Int): [RelatedArticle!]!
+
     # Learn (authenticated)
     readingPlan: ReadingPlan
+    articlesAdmin(filters: ArticleAdminFilters): [Article!]!
+    articleRefreshStatus(articleId: String!): ArticleRefreshStatus!
+    articleEngagement: [ArticleEngagement!]!
 
     # Intel — Research Intelligence (public)
     researchItems(filters: ResearchItemFilters): [ResearchItem!]!
@@ -2393,6 +2475,12 @@ export const typeDefs = `#graphql
     publishArticle(articleId: String!): Article!
     generatePersonalizedContext(slug: String!): ArticlePersonalizedContext!
     generateReadingPlan: ReadingPlan!
+    updateArticleStatus(articleId: String!, status: String!, notes: String): Article!
+    checkArticleQuality(articleId: String!): QualityCheckResult!
+    runArticleQualityChecks: JSON!
+    insertPlatformLinks(articleId: String!): Article!
+    generateRefreshSuggestion(articleId: String!, triggerItemIds: [String!]!): RefreshSuggestion!
+    runRefreshCheckCycle: JSON!
 
     # Intel — Research Intelligence
     markItemViewed(itemId: String!): Boolean!

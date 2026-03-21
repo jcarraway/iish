@@ -7,6 +7,7 @@ import {
   useGetResearchItemQuery,
   useGetPersonalizedNoteQuery,
   useGetCommunityInsightsForItemQuery,
+  useGetArticlesForResearchItemQuery,
   useMarkItemViewedMutation,
   useMarkItemSavedMutation,
 } from '../generated/graphql';
@@ -71,6 +72,11 @@ export function IntelItemDetailScreen({ id }: Props) {
   const { data: insightsData } = useGetCommunityInsightsForItemQuery({
     variables: { itemId: id },
     skip: !isAuthenticated,
+  });
+
+  // Background reading (public — LEARN cross-link)
+  const { data: articlesData } = useGetArticlesForResearchItemQuery({
+    variables: { itemId: id },
   });
 
   // Mark viewed on mount (authenticated only)
@@ -585,6 +591,42 @@ export function IntelItemDetailScreen({ id }: Props) {
               {(item.relatedItemIds as string[]).slice(0, 5).map((rid: string) => (
                 <Link key={rid} href={`/intel/${rid}`}>
                   <Text sx={{ fontSize: 13, color: '#2563EB' }}>View related item →</Text>
+                </Link>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* Background Reading (LEARN cross-link) */}
+        {articlesData?.articlesForResearchItem && articlesData.articlesForResearchItem.length > 0 && (
+          <View sx={{ mt: '$6' }}>
+            <Text sx={{ fontSize: 16, fontWeight: '600', color: '$foreground', mb: '$3' }}>
+              Background Reading
+            </Text>
+            <View sx={{ gap: '$2' }}>
+              {articlesData.articlesForResearchItem.map((article: any) => (
+                <Link key={article.slug} href={`/learn/${article.category}/${article.slug}`}>
+                  <View sx={{
+                    borderWidth: 1,
+                    borderColor: '#C7D2FE',
+                    borderRadius: 8,
+                    p: '$3',
+                    backgroundColor: '#EEF2FF',
+                  }}>
+                    <View sx={{ flexDirection: 'row', alignItems: 'center', gap: '$2', mb: '$1' }}>
+                      <View sx={{ backgroundColor: '#DBEAFE', borderRadius: 6, px: '$2', py: 1 }}>
+                        <Text sx={{ fontSize: 10, fontWeight: '600', color: '#1E40AF', textTransform: 'capitalize' }}>
+                          {article.category.replace(/-/g, ' ')}
+                        </Text>
+                      </View>
+                    </View>
+                    <Text sx={{ fontSize: 13, fontWeight: '500', color: '#3730A3' }}>
+                      {article.title}
+                    </Text>
+                    <Text sx={{ mt: '$1', fontSize: 12, color: '#6366F1', lineHeight: 16 }} numberOfLines={2}>
+                      {article.patientSummary}
+                    </Text>
+                  </View>
                 </Link>
               ))}
             </View>

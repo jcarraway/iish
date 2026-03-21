@@ -917,8 +917,11 @@
         "logistics:TL1": "complete",
         // Access Gap — Second Opinion complete
         "second:SO1": "complete",
-        // LEARN L1 — complete
+        // LEARN L1-L4 — complete
         "learn:L1": "complete",
+        "learn:L2": "complete",
+        "learn:L3": "complete",
+        "learn:L4": "complete",
         // Preventive Trial Matcher — complete
         "ptm:PTM1": "complete",
         // INTEL I1+I2+I3+I4+I5 — complete
@@ -1020,6 +1023,13 @@
         // LEARN L1 — Foundation + Launch Corpus
         "learn:L1":
           "3 Prisma models (Article, GlossaryTerm, ArticlePersonalization). learn-manager.ts: 14 functions (article CRUD, taxonomy filters, ILIKE search, glossary, Claude article generation, personalized context, reading plan, SEO helpers). Seed: 25 articles + 50 glossary terms. 6 screens (Hub, Category, Article, Search, Glossary, GlossaryTerm). First public queries, first SSR/SSG page with JSON-LD, first XML sitemap. 7 web + 6 mobile routes.",
+        // LEARN L2-L4 — Quality Pipeline + Content Expansion + INTEL Cross-Linking
+        "learn:L2":
+          "learn-quality.ts: 5 functions (Claude QC + status management + platform links). seed-learn-batch2.ts: 50 articles + 50 glossary terms. MyReadingPlanScreen + LearnAdminScreen. +3 GraphQL types, +1Q, +4M. 2 web + 2 mobile routes.",
+        "learn:L3":
+          "Consolidated with L2 — most L3 features (expanded corpus, personalization) already existed from L1. Batch2 seed script covers content expansion.",
+        "learn:L4":
+          "learn-intel-bridge.ts: 7 functions (bidirectional article↔research cross-linking, refresh pipeline, engagement). Cron endpoint for refresh cycle. +6 GraphQL types, +4Q, +2M. 3 screens updated (LearnArticle: Latest Research, IntelItemDetail: Background Reading, LearnAdmin: engagement tab). LEARN MODULE COMPLETE.",
         // INTEL I1 — Research Intelligence Foundation
         "intel:I1":
           "2 Prisma models (ResearchItem ~40 fields, IngestionSyncState). intel-sources.ts: PubMed E-utilities client (esearch + efetch, 30-journal credibility, SHA-256 dedup). intel-manager.ts: 14 functions (ingest, classify T1-T5 + evidence L1-L6, dual-audience summarize, queue processing, cron cycle, filtered queries, search). Cron endpoint. 4 screens (Feed, Detail, 2 stubs). 4 web + 4 mobile routes. First external API ingestion pipeline.",

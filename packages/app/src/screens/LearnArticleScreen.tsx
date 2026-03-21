@@ -5,6 +5,7 @@ import { Link } from 'solito/link';
 import {
   useGetArticleQuery,
   useGeneratePersonalizedContextMutation,
+  useGetRelatedResearchQuery,
 } from '../generated/graphql';
 
 // ============================================================================
@@ -44,6 +45,11 @@ export function LearnArticleScreen({ slug, category }: { slug: string; category?
         setPersonalizedContext(result.generatePersonalizedContext.content);
       }
     },
+  });
+
+  const { data: researchData } = useGetRelatedResearchQuery({
+    variables: { slug },
+    errorPolicy: 'ignore',
   });
 
   const article = data?.article;
@@ -494,6 +500,61 @@ export function LearnArticleScreen({ slug, category }: { slug: string; category?
                   </View>
                 </Link>
               ))}
+            </View>
+          </View>
+        )}
+
+        {/* ============================================================= */}
+        {/* Latest Research (INTEL cross-link) */}
+        {/* ============================================================= */}
+        {researchData?.relatedResearch && researchData.relatedResearch.length > 0 && (
+          <View sx={{ mt: '$6' }}>
+            <SectionHeader title="Latest Research" />
+            <Text sx={{ mt: '$2', mb: '$3', fontSize: 13, color: '$mutedForeground' }}>
+              Recent research findings related to this topic
+            </Text>
+            <View sx={{ gap: '$3' }}>
+              {researchData.relatedResearch.map((item: any) => {
+                const tierColors: Record<string, { bg: string; fg: string }> = {
+                  T1: { bg: '#DCFCE7', fg: '#166534' },
+                  T2: { bg: '#CCFBF1', fg: '#0D9488' },
+                  T3: { bg: '#DBEAFE', fg: '#2563EB' },
+                };
+                const tc = tierColors[item.maturityTier] ?? { bg: '#F3F4F6', fg: '#6B7280' };
+                return (
+                  <Link key={item.id} href={`/intel/${item.id}`}>
+                    <View sx={{
+                      borderWidth: 1,
+                      borderColor: '$border',
+                      borderRadius: 12,
+                      p: '$4',
+                    }}>
+                      <View sx={{ flexDirection: 'row', alignItems: 'center', gap: '$2', mb: '$2' }}>
+                        {item.maturityTier && (
+                          <View sx={{ backgroundColor: tc.bg, borderRadius: 8, px: '$2', py: 2 }}>
+                            <Text sx={{ fontSize: 10, fontWeight: '600', color: tc.fg }}>
+                              {item.maturityTier}
+                            </Text>
+                          </View>
+                        )}
+                        {item.publishedAt && (
+                          <Text sx={{ fontSize: 11, color: '$mutedForeground' }}>
+                            {new Date(item.publishedAt).toLocaleDateString()}
+                          </Text>
+                        )}
+                      </View>
+                      <Text sx={{ fontSize: 14, fontWeight: '500', color: '$foreground', lineHeight: 20 }}>
+                        {item.title}
+                      </Text>
+                      {item.patientSummary && (
+                        <Text sx={{ mt: '$1', fontSize: 12, color: '$mutedForeground', lineHeight: 18 }} numberOfLines={2}>
+                          {item.patientSummary}
+                        </Text>
+                      )}
+                    </View>
+                  </Link>
+                );
+              })}
             </View>
           </View>
         )}
