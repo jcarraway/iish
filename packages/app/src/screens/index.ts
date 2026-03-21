@@ -140,3 +140,8 @@ export { IntelLandscapeScreen } from './IntelLandscapeScreen';
 export { IntelSubtypeLandscapeScreen } from './IntelSubtypeLandscapeScreen';
 export { CommunityFeedScreen } from './CommunityFeedScreen';
 export { CommunitySubmitScreen } from './CommunitySubmitScreen';
+
+// Preventive Trial Matcher
+export { PreventiveTrialsScreen } from './PreventiveTrialsScreen';
+export { ForYourFamilyScreen } from './ForYourFamilyScreen';
+export { RecurrencePreventionScreen } from './RecurrencePreventionScreen';

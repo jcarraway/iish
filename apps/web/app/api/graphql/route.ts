@@ -186,6 +186,15 @@ import {
   moderateReport as _moderateReport,
   updateDigestPreferences as _updateDigestPreferences,
 } from '@/lib/community-manager';
+import {
+  getPreventiveTrials as _getPreventiveTrials,
+  runPreventivePrescreen as _runPreventivePrescreen,
+  getPreventiveTrialsForFamily as _getPreventiveTrialsForFamily,
+  getRecurrencePreventionTrials as _getRecurrencePreventionTrials,
+  generateReferralLink as _generateReferralLink,
+  redeemReferralCode as _redeemReferralCode,
+  getReferralStats as _getReferralStats,
+} from '@/lib/preventive-matcher';
 
 // ============================================================================
 // Adapter functions — bridge resolver signatures to actual lib functions
@@ -1447,6 +1456,15 @@ const handler = startServerAndCreateNextHandler<NextRequest, GraphQLContext>(ser
         compileDigest: _compileDigest,
         moderateCommunityReport: _moderateReport,
         updateDigestPreferences: _updateDigestPreferences,
+
+        // Preventive Trial Matcher
+        getPreventiveTrials: (filters?: any) => _getPreventiveTrials(prisma, filters),
+        runPreventivePrescreen: (input: any, userId?: string | null) => _runPreventivePrescreen(prisma, input, userId),
+        getPreventiveTrialsForFamily: (patientId: string) => _getPreventiveTrialsForFamily(prisma, patientId),
+        getRecurrencePreventionTrials: (patientId: string) => _getRecurrencePreventionTrials(prisma, patientId),
+        generateReferralLink: (patientId: string) => _generateReferralLink(prisma, patientId),
+        redeemReferralCode: (code: string, userId?: string | null) => _redeemReferralCode(prisma, code, userId),
+        getReferralStats: (patientId: string) => _getReferralStats(prisma, patientId),
       },
     };
   },

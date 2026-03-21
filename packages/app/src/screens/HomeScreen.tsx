@@ -26,6 +26,13 @@ export function HomeScreen() {
             </Text>
           </View>
         </Link>
+        <Link href="/prevent">
+          <View sx={{ borderRadius: '$lg', borderWidth: 1, borderColor: '$border', px: '$8', py: '$3' }}>
+            <Text sx={{ fontSize: '$sm', fontWeight: '500', color: '$foreground' }}>
+              Prevention Trials
+            </Text>
+          </View>
+        </Link>
       </View>
     </View>
   );

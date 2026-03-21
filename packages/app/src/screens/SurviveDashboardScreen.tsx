@@ -364,6 +364,7 @@ export function SurviveDashboardScreen() {
               { label: 'Monitoring', href: '/survive/monitoring', icon: '📊' },
               { label: 'ctDNA', href: '/survive/monitoring/ctdna', icon: '🧬' },
               { label: 'Notifications', href: '/survive/notifications', icon: '🔔' },
+              { label: 'Prevention Vaccines', href: '/prevent/recurrence', icon: '💉' },
               { label: 'Report a change', href: '/survive/recurrence/report', icon: '📝' },
             ].map(item => (
               <Link key={item.href} href={item.href}>

@@ -334,6 +334,14 @@ export function DashboardScreen() {
               </>
             )}
           </DashboardCard>
+
+          {/* For Your Family */}
+          <DashboardCard href="/prevent/family" icon="👨‍👩‍👧" iconBg="#FEF3C7" iconColor="amber600" title="For Your Family">
+            <Text sx={{ mt: '$3', fontSize: 14, color: '$mutedForeground' }}>
+              Your diagnosis may affect your family's risk. Share preventive trial information.
+            </Text>
+            <Text sx={{ mt: '$1', fontSize: 12, color: 'blue600' }}>Share with family →</Text>
+          </DashboardCard>
         </View>
       </View>
     </ScrollView>

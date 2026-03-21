@@ -1778,6 +1778,72 @@ export const typeDefs = `#graphql
   }
 
   # ============================================================================
+  # Preventive Trial Matcher (PTM)
+  # ============================================================================
+
+  type PreventiveTrial {
+    id: ID!
+    nctId: String!
+    title: String!
+    trialCategory: String!
+    phase: String
+    status: String
+    sponsor: String
+    briefSummary: String
+    curatedSummary: String
+    targetPopulation: String
+    vaccineTarget: String
+    mechanism: String
+    keyResults: String
+    editorNote: String
+    matchingCriteria: JSON
+  }
+
+  type PreventiveTrialMatch {
+    trial: PreventiveTrial!
+    matchStrength: String!
+    matchReason: String!
+    nextSteps: String!
+  }
+
+  type PreventivePrescreenResult {
+    matchedTrials: [PreventiveTrialMatch!]!
+    totalPreventiveTrials: Int!
+    noMatchMessage: String
+    riskAssessmentCTA: Boolean!
+  }
+
+  type FamilyReferralLink {
+    referralCode: String!
+    url: String!
+    textMessage: String!
+    emailSubject: String!
+    emailBody: String!
+  }
+
+  type ReferralStats {
+    totalSent: Int!
+    totalRedeemed: Int!
+  }
+
+  type ReferralRedemption {
+    success: Boolean!
+    prefillFamilyHistory: Boolean!
+  }
+
+  input PreventivePrescreenInput {
+    age: Int!
+    hasCancerHistory: Boolean!
+    cancerSubtype: String
+    treatmentStatus: String
+    hasBrca: String!
+    hasOtherHighRisk: String!
+    hasFamilyHistory: Boolean!
+    estimatedLifetimeRisk: Float
+    zipCode: String
+  }
+
+  # ============================================================================
   # Queries
   # ============================================================================
 
@@ -1940,6 +2006,15 @@ export const typeDefs = `#graphql
     communityInsights(drugName: String!): CommunityInsight
     communityInsightsForItem(itemId: String!): CommunityInsight
     digestPreview: DigestPreview!
+
+    # Preventive Trial Matcher (public)
+    preventiveTrials(category: String): [PreventiveTrial!]!
+    preventivePrescreen(input: PreventivePrescreenInput!): PreventivePrescreenResult!
+
+    # Preventive Trial Matcher (authenticated)
+    preventiveTrialsForFamily: [PreventiveTrialMatch!]!
+    recurrencePreventionTrials: [PreventiveTrialMatch!]!
+    referralStats: ReferralStats!
   }
 
   # ============================================================================
@@ -2337,5 +2412,9 @@ export const typeDefs = `#graphql
     submitCommunityReport(input: SubmitCommunityReportInput!): CommunityReport!
     moderateCommunityReport(reportId: String!, status: String!): CommunityReport!
     updateDigestPreferences(frequency: String): UserFeedConfig!
+
+    # Preventive Trial Matcher
+    redeemReferralCode(code: String!): ReferralRedemption!
+    generateFamilyReferralLink: FamilyReferralLink!
   }
 `;

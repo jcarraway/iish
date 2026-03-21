@@ -60,6 +60,19 @@ export const TRIAL_SEARCH_TERMS = [
   'personalized immunotherapy',
   'cancer mRNA',
   'neoantigen immunotherapy',
+  'breast cancer prevention vaccine',
+  'breast cancer risk reduction',
+  'BRCA prevention',
+  'alpha-lactalbumin vaccine',
+  'breast cancer chemoprevention',
+] as const;
+
+export const PREVENTIVE_TRIAL_CATEGORIES = [
+  'preventive_vaccine',
+  'chemoprevention',
+  'recurrence_prevention',
+  'risk_reduction',
+  'biomarker',
 ] as const;
 
 export const TRIAL_SYNC_STATUSES = {

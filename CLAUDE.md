@@ -12,18 +12,18 @@ oncovax/
 │   ├── web/                    # Next.js 15.0.0, React 19.0.0, Tailwind CSS 3.4
 │   │   ├── app/                # App Router — pages + 89 API route files + 2 cron endpoints
 │   │   ├── components/         # 3 web-only components (DocumentUploader, AdministrationSiteCard, AdministrationSiteMap)
-│   │   └── lib/                # 56 library files (see below)
+│   │   └── lib/                # 57 library files (see below)
 │   └── mobile/                 # Expo SDK 54, React Native 0.76.9, Dripsy + Solito
-│       ├── app/                # Expo Router — 106 route files across 27 directories
+│       ├── app/                # Expo Router — 109 route files across 28 directories
 │       └── lib/                # apollo.ts (GraphQL client), auth.ts (SecureStore guard)
 ├── docker-compose.yml          # Local dev: postgres:15-alpine + redis:7-alpine
 ├── packages/
 │   ├── ui/                     # Thin RN + Solito re-exports (@oncovax/ui)
-│   ├── app/                    # 101 shared screens, 24 Dripsy components, theme, 170+ generated hooks (@oncovax/app)
+│   ├── app/                    # 104 shared screens, 24 Dripsy components, theme, 170+ generated hooks (@oncovax/app)
 │   │   └── src/{screens[96],components[24],providers,theme,graphql,generated,utils,index}.ts
-│   ├── api/                    # Apollo Server schema (141+ types, 87Q, 86M) + 26 resolver files (@oncovax/api)
+│   ├── api/                    # Apollo Server schema (147+ types, 92Q, 88M) + 27 resolver files (@oncovax/api)
 │   │   └── src/{schema,resolvers[24 files],context,index}.ts
-│   ├── db/                     # Prisma 7 + PostgreSQL (48 models)
+│   ├── db/                     # Prisma 7 + PostgreSQL (51 models)
 │   │   ├── prisma/schema.prisma
 │   │   └── prisma.config.ts    # defineConfig — url goes HERE, not in schema
 │   ├── shared/                 # Types (720+ lines), Zod schemas, constants, auth
@@ -34,7 +34,7 @@ oncovax/
 │   └── neoantigen-pipeline/    # Rust workspace (3 crates + common)
 ├── infrastructure/
 │   └── terraform/              # AWS VPC, S3, NATS, ECR, Batch
-└── scripts/                    # 13 seed/sync scripts
+└── scripts/                    # 14 seed/sync scripts
 ```
 
 ## Critical Implementation Patterns
@@ -76,9 +76,9 @@ export async function POST(req: NextRequest) {
 
 ### UI: Dripsy + Solito (Cross-Platform, Screen Migration Complete)
 - **Shared components:** 22 Dripsy components in `packages/app/src/components/` — cross-platform ready
-- **Shared screens:** 101 screens in `packages/app/src/screens/` — 46 migratable (D3-D6) + 4 survivorship (S1) + 2 surveillance (S2) + 3 journal/effects (S3) + 1 lifestyle (S4) + 2 care team (S5) + 2 ctDNA (S6) + 1 notifications (S7) + 8 recurrence (S8) + 5 fertility + 5 advocate + 5 logistics + 5 second opinion + 6 learn (L1) + 4 intel (I1) + 2 community (I5) + 1 intel landscape (I6)
+- **Shared screens:** 104 screens in `packages/app/src/screens/` — 46 migratable (D3-D6) + 4 survivorship (S1) + 2 surveillance (S2) + 3 journal/effects (S3) + 1 lifestyle (S4) + 2 care team (S5) + 2 ctDNA (S6) + 1 notifications (S7) + 8 recurrence (S8) + 5 fertility + 5 advocate + 5 logistics + 5 second opinion + 6 learn (L1) + 4 intel (I1) + 2 community (I5) + 1 intel landscape (I6) + 3 preventive (PTM)
 - **Web pages:** Most pages are thin re-exports: `'use client'; export { XxxScreen as default } from '@oncovax/app';`. Exception: `/learn/[category]/[slug]/page.tsx` is a server component with `generateMetadata` + `generateStaticParams` + JSON-LD that renders a client component wrapper.
-- **Mobile routes:** All 101 screens wired via Expo Router — 108 route files across 27 directories
+- **Mobile routes:** All 104 screens wired via Expo Router — 111 route files across 28 directories
 - **Mobile tabs:** 5-tab layout (Home, Matches, Sequencing, Pipeline, More) with Ionicons
 - **Mobile auth:** `useProtectedRoute()` hook — SecureStore token check + redirect to `/auth` modal
 - **Web-only components (3):** `DocumentUploader` (File API), `AdministrationSiteCard`, `AdministrationSiteMap` (Mapbox) — kept in `apps/web/components/`
@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
 - Generator: `prisma-client` (not `prisma-client-js`), `output` field required
 - Client needs driver adapter: `new PrismaClient({ adapter: new PrismaPg({ connectionString }) })`
 - All models use `@map("snake_case")` columns and `@@map("table_names")`
-- 48 models total (45 + FeedRelevance, UserFeedConfig from INTEL I4 + CommunityReport from INTEL I5)
+- 51 models total (45 + FeedRelevance, UserFeedConfig from INTEL I4 + CommunityReport from INTEL I5 + CuratedPreventiveTrial, PreventivePrescreen, FamilyReferral from PTM)
 
 ### Auth: Custom Magic Link (NOT NextAuth)
 - `jose` HS256 for JWT tokens with 15min expiry
@@ -170,6 +170,9 @@ export async function POST(req: NextRequest) {
 
 **INTEL — I6: Landscape Views + Cross-Module Integration (complete):**
 - No new Prisma models. 1 new lib file (landscape-manager.ts: 10 functions — getLandscapeOverview with maturity/domain/subtype/treatmentClass distribution counts, getSubtypeLandscape with tier-bucketed items + pipeline + cached SOC, getTreatmentPipeline grouped by drugName with most advanced tier, getRecentDevelopments T1/T2 last N days, generateStandardOfCareSummary via Claude + Redis 14-day cache, checkTranslatorUpdates cross-referencing T1/T2 items vs patient subtype/drugs since translation generated, checkFinancialUpdates FDA T1 practice_changing items vs patient drugs last 90 days, checkSurvivorshipUpdates survivorship/QoL + ctDNA research vs patient subtype last 90 days, getLandscapeHighlights, getSubtypeLabel). GraphQL: +7 types (LandscapeOverview, SubtypeLandscape, StandardOfCareSummary, TreatmentPipelineEntry, TranslatorUpdateCheck, FinancialUpdateCheck, SurvivorshipUpdateCheck) + 4 public queries (landscapeOverview, subtypeLandscape, treatmentPipeline, recentDevelopments) + 3 authenticated queries (translatorUpdates, financialUpdates, survivorshipUpdates) + 1 mutation (generateStandardOfCare), 8 resolver operations in intel.ts, 8 context signatures, 8 route handler adapters. 8 operations in intel.graphql (31 total). IntelLandscapeScreen rewritten (~380 lines, dual-mode: overview with maturity distribution bar + subtype grid cards + treatment pipeline table + recent highlights, subtype detail with SOC card + tier sections + pipeline + browse link). 1 new screen: IntelSubtypeLandscapeScreen (thin wrapper). 3 screens updated with integration badges: TranslateScreen (amber "New Research Since Your Guide" card), FinancialScreen (green "New Drug Approvals" card), SurviveDashboardScreen (blue research updates card). 1 web page + 2 mobile routes added for `/intel/landscape/[subtype]`. Mobile landscape route restructured from flat file to directory. **Aggregated research landscape by subtype and domain. Cross-module integration surfaces new research in Translator, Financial, and Survivorship. INTEL module complete (I1-I6).**
+
+**MATCH Extension — Preventive Trial Matcher (PTM, complete):**
+- 3 Prisma models (CuratedPreventiveTrial, PreventivePrescreen, FamilyReferral) + 2 new fields on Trial (trialCategory, isPreventive). 1 new lib file (preventive-matcher.ts: 8 functions — getPreventiveTrials with curated merge, getRecurrencePreventionTrials with patient profile cross-reference + genomics boost, preScreenEligibility deterministic scoring, runPreventivePrescreen batch match + save, getPreventiveTrialsForFamily filtered for family context, generateReferralLink with crypto short codes + shareable messages, redeemReferralCode, getReferralStats privacy-preserving counts). trial-sync.ts extended with classifyTrial keyword-based classifier (6 categories: preventive_vaccine, chemoprevention, recurrence_prevention, risk_reduction, biomarker, therapeutic). Seed script: 5 curated preventive trials (Cleveland Clinic alpha-lactalbumin, WashU neoantigen, BioNTech BNT116, Moderna mRNA-4157, BRCA-carrier vaccine). GraphQL: 6 types + 1 input + 5 queries (2 public + 3 auth) + 2 mutations, 1 resolver file (preventive.ts), 7 context signatures, 7 route handler adapters. 7 operations in preventive.graphql. 3 shared screens (PreventiveTrialsScreen with 5-question inline quiz + match results + featured curated trials + educational section + referral code handling, ForYourFamilyScreen with family risk overview + filtered trials + shareable referral link generation + stats, RecurrencePreventionScreen with genomic profile advantage note + matched trials + link to full matches). Dashboard + SurviveDashboard + HomeScreen integrations. 3 web pages + 3 mobile routes under `/prevent/`. **Public prevention trial quiz (no auth needed). Family referral system. Recurrence prevention bridge for survivors. First public prescreening feature.**
 
 ## What's NOT Built Yet
 

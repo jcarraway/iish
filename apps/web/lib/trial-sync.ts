@@ -4,6 +4,54 @@ import { geocodeAddress } from './mapbox';
 
 const VACCINE_KEYWORDS = ['mrna', 'vaccine', 'neoantigen', 'autogene cevumeran', 'mrna-4157'];
 
+const PREVENTIVE_VACCINE_KEYWORDS = [
+  'prevention vaccine', 'preventive vaccine', 'prophylactic vaccine',
+  'alpha-lactalbumin', 'cancer prevention', 'risk reduction vaccine',
+  'immunoprevention',
+];
+const CHEMOPREVENTION_KEYWORDS = [
+  'chemoprevention', 'tamoxifen prevention', 'raloxifene prevention',
+  'aromatase inhibitor prevention', 'exemestane prevention',
+];
+const RECURRENCE_PREVENTION_KEYWORDS = [
+  'recurrence prevention', 'prevent recurrence', 'adjuvant vaccine',
+  'maintenance vaccine', 'post-treatment vaccine', 'relapse prevention',
+];
+const RISK_REDUCTION_KEYWORDS = [
+  'risk reduction', 'brca carrier', 'high risk', 'hereditary breast',
+  'prophylactic', 'cancer interception',
+];
+const BIOMARKER_KEYWORDS = [
+  'biomarker screening', 'early detection', 'liquid biopsy screening',
+  'ctdna screening', 'multi-cancer detection',
+];
+
+export function classifyTrial(study: CTGStudy): { trialCategory: string; isPreventive: boolean } {
+  const title = (study.protocolSection.identificationModule.briefTitle ?? '').toLowerCase();
+  const officialTitle = (study.protocolSection.identificationModule.officialTitle ?? '').toLowerCase();
+  const summary = (study.protocolSection.descriptionModule?.briefSummary ?? '').toLowerCase();
+  const interventions = study.protocolSection.armsInterventionsModule?.interventions ?? [];
+  const interventionText = interventions.map(i => `${i.name} ${i.description ?? ''}`).join(' ').toLowerCase();
+  const searchText = `${title} ${officialTitle} ${summary} ${interventionText}`;
+
+  if (PREVENTIVE_VACCINE_KEYWORDS.some(kw => searchText.includes(kw))) {
+    return { trialCategory: 'preventive_vaccine', isPreventive: true };
+  }
+  if (RECURRENCE_PREVENTION_KEYWORDS.some(kw => searchText.includes(kw))) {
+    return { trialCategory: 'recurrence_prevention', isPreventive: true };
+  }
+  if (CHEMOPREVENTION_KEYWORDS.some(kw => searchText.includes(kw))) {
+    return { trialCategory: 'chemoprevention', isPreventive: true };
+  }
+  if (RISK_REDUCTION_KEYWORDS.some(kw => searchText.includes(kw))) {
+    return { trialCategory: 'risk_reduction', isPreventive: true };
+  }
+  if (BIOMARKER_KEYWORDS.some(kw => searchText.includes(kw))) {
+    return { trialCategory: 'biomarker', isPreventive: true };
+  }
+  return { trialCategory: 'therapeutic', isPreventive: false };
+}
+
 export interface SyncResult {
   trialsCreated: number;
   trialsUpdated: number;
@@ -48,6 +96,8 @@ function mapStudyToTrial(study: CTGStudy) {
   const description = study.protocolSection.descriptionModule;
   const intervention = extractVaccineIntervention(study);
 
+  const classification = classifyTrial(study);
+
   return {
     nctId: id.nctId,
     title: id.briefTitle,
@@ -59,6 +109,8 @@ function mapStudyToTrial(study: CTGStudy) {
     ...intervention,
     rawJson: JSON.parse(JSON.stringify(study)),
     lastSyncedAt: new Date(),
+    trialCategory: classification.trialCategory,
+    isPreventive: classification.isPreventive,
   };
 }
 

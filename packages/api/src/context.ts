@@ -228,6 +228,15 @@ export interface GraphQLContext {
     compileDigest: (userId: string, period: string) => Promise<any>;
     moderateCommunityReport: (reportId: string, status: string) => Promise<any>;
     updateDigestPreferences: (userId: string, frequency: string | null) => Promise<any>;
+
+    // Preventive Trial Matcher
+    getPreventiveTrials: (filters?: any) => Promise<any>;
+    runPreventivePrescreen: (input: any, userId?: string | null) => Promise<any>;
+    getPreventiveTrialsForFamily: (patientId: string) => Promise<any[]>;
+    getRecurrencePreventionTrials: (patientId: string) => Promise<any[]>;
+    generateReferralLink: (patientId: string) => Promise<any>;
+    redeemReferralCode: (code: string, userId?: string | null) => Promise<any>;
+    getReferralStats: (patientId: string) => Promise<any>;
   };
 }
 

@@ -24,6 +24,7 @@ import { logisticsResolvers } from './logistics';
 import { secondOpinionResolvers } from './second-opinion';
 import { learnResolvers } from './learn';
 import { intelResolvers } from './intel';
+import { preventiveResolvers } from './preventive';
 
 /**
  * Merge all resolver maps into a single object.
@@ -70,4 +71,5 @@ export const resolvers = mergeResolvers(
   secondOpinionResolvers,
   learnResolvers,
   intelResolvers,
+  preventiveResolvers,
 );

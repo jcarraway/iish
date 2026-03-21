@@ -489,6 +489,15 @@ export type ExtractionResult = {
   status: Scalars['String']['output'];
 };
 
+export type FamilyReferralLink = {
+  __typename?: 'FamilyReferralLink';
+  emailBody: Scalars['String']['output'];
+  emailSubject: Scalars['String']['output'];
+  referralCode: Scalars['String']['output'];
+  textMessage: Scalars['String']['output'];
+  url: Scalars['String']['output'];
+};
+
 export type FeedRelevanceItem = {
   __typename?: 'FeedRelevanceItem';
   dismissed: Scalars['Boolean']['output'];
@@ -1102,6 +1111,7 @@ export type Mutation = {
   generateAppointmentPrep: AppointmentPrep;
   generateArticle: Article;
   generateCommunicationGuide: CommunicationGuide;
+  generateFamilyReferralLink: FamilyReferralLink;
   generateFertilityDiscussionGuide: FertilityDiscussionGuide;
   generateLOMN: Lomn;
   generateLifestyleRecommendations: LifestyleRecommendations;
@@ -1127,6 +1137,7 @@ export type Mutation = {
   publishArticle: Article;
   reclassifyItem: ResearchItem;
   recordSecondOpinionOutcome: SecondOpinionRequest;
+  redeemReferralCode: ReferralRedemption;
   refreshSCP: SurvivorshipPlan;
   regenerateTranslator: RecurrenceEvent;
   rematch: MatchDelta;
@@ -1383,6 +1394,11 @@ export type MutationReclassifyItemArgs = {
 
 export type MutationRecordSecondOpinionOutcomeArgs = {
   input: RecordSecondOpinionOutcomeInput;
+};
+
+
+export type MutationRedeemReferralCodeArgs = {
+  code: Scalars['String']['input'];
 };
 
 
@@ -1848,6 +1864,53 @@ export type PreservationOption = {
   timing: Scalars['String']['output'];
 };
 
+export type PreventivePrescreenInput = {
+  age: Scalars['Int']['input'];
+  cancerSubtype?: InputMaybe<Scalars['String']['input']>;
+  estimatedLifetimeRisk?: InputMaybe<Scalars['Float']['input']>;
+  hasBrca: Scalars['String']['input'];
+  hasCancerHistory: Scalars['Boolean']['input'];
+  hasFamilyHistory: Scalars['Boolean']['input'];
+  hasOtherHighRisk: Scalars['String']['input'];
+  treatmentStatus?: InputMaybe<Scalars['String']['input']>;
+  zipCode?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type PreventivePrescreenResult = {
+  __typename?: 'PreventivePrescreenResult';
+  matchedTrials: Array<PreventiveTrialMatch>;
+  noMatchMessage?: Maybe<Scalars['String']['output']>;
+  riskAssessmentCTA: Scalars['Boolean']['output'];
+  totalPreventiveTrials: Scalars['Int']['output'];
+};
+
+export type PreventiveTrial = {
+  __typename?: 'PreventiveTrial';
+  briefSummary?: Maybe<Scalars['String']['output']>;
+  curatedSummary?: Maybe<Scalars['String']['output']>;
+  editorNote?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  keyResults?: Maybe<Scalars['String']['output']>;
+  matchingCriteria?: Maybe<Scalars['JSON']['output']>;
+  mechanism?: Maybe<Scalars['String']['output']>;
+  nctId: Scalars['String']['output'];
+  phase?: Maybe<Scalars['String']['output']>;
+  sponsor?: Maybe<Scalars['String']['output']>;
+  status?: Maybe<Scalars['String']['output']>;
+  targetPopulation?: Maybe<Scalars['String']['output']>;
+  title: Scalars['String']['output'];
+  trialCategory: Scalars['String']['output'];
+  vaccineTarget?: Maybe<Scalars['String']['output']>;
+};
+
+export type PreventiveTrialMatch = {
+  __typename?: 'PreventiveTrialMatch';
+  matchReason: Scalars['String']['output'];
+  matchStrength: Scalars['String']['output'];
+  nextSteps: Scalars['String']['output'];
+  trial: PreventiveTrial;
+};
+
 export type PriorTreatment = {
   __typename?: 'PriorTreatment';
   endDate?: Maybe<Scalars['String']['output']>;
@@ -1932,11 +1995,16 @@ export type Query = {
   pipelineJobs: Array<PipelineJob>;
   pipelineResults: PipelineResultDownloads;
   preservationOptions: Array<PreservationOption>;
+  preventivePrescreen: PreventivePrescreenResult;
+  preventiveTrials: Array<PreventiveTrial>;
+  preventiveTrialsForFamily: Array<PreventiveTrialMatch>;
   readingPlan?: Maybe<ReadingPlan>;
   recentDevelopments: Array<ResearchItem>;
   recommendedPartners: Array<PartnerRecommendation>;
   recurrenceEvent?: Maybe<RecurrenceEvent>;
   recurrenceEvents: Array<RecurrenceEvent>;
+  recurrencePreventionTrials: Array<PreventiveTrialMatch>;
+  referralStats: ReferralStats;
   regulatoryAssessment?: Maybe<RegulatoryPathwayAssessment>;
   regulatoryAssessments: Array<RegulatoryPathwayAssessment>;
   regulatoryDocument?: Maybe<RegulatoryDocument>;
@@ -2163,6 +2231,16 @@ export type QueryPipelineResultsArgs = {
 };
 
 
+export type QueryPreventivePrescreenArgs = {
+  input: PreventivePrescreenInput;
+};
+
+
+export type QueryPreventiveTrialsArgs = {
+  category?: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type QueryRecentDevelopmentsArgs = {
   days?: InputMaybe<Scalars['Int']['input']>;
   subtype?: InputMaybe<Scalars['String']['input']>;
@@ -2327,6 +2405,18 @@ export type RecurrenceEvent = {
   timeSinceCompletion?: Maybe<Scalars['Int']['output']>;
   timeSinceInitialDx?: Maybe<Scalars['Int']['output']>;
   updatedAt: Scalars['DateTime']['output'];
+};
+
+export type ReferralRedemption = {
+  __typename?: 'ReferralRedemption';
+  prefillFamilyHistory: Scalars['Boolean']['output'];
+  success: Scalars['Boolean']['output'];
+};
+
+export type ReferralStats = {
+  __typename?: 'ReferralStats';
+  totalRedeemed: Scalars['Int']['output'];
+  totalSent: Scalars['Int']['output'];
 };
 
 export type RegulatoryDocument = {
@@ -3891,6 +3981,47 @@ export type GenerateReportQueryVariables = Exact<{
 
 
 export type GenerateReportQuery = { __typename?: 'Query', generateReport?: Record<string, unknown> | null };
+
+export type GetPreventiveTrialsQueryVariables = Exact<{
+  category?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type GetPreventiveTrialsQuery = { __typename?: 'Query', preventiveTrials: Array<{ __typename?: 'PreventiveTrial', id: string, nctId: string, title: string, trialCategory: string, phase?: string | null, status?: string | null, sponsor?: string | null, briefSummary?: string | null, curatedSummary?: string | null, targetPopulation?: string | null, vaccineTarget?: string | null, mechanism?: string | null, keyResults?: string | null, editorNote?: string | null, matchingCriteria?: Record<string, unknown> | null }> };
+
+export type RunPreventivePrescreenQueryVariables = Exact<{
+  input: PreventivePrescreenInput;
+}>;
+
+
+export type RunPreventivePrescreenQuery = { __typename?: 'Query', preventivePrescreen: { __typename?: 'PreventivePrescreenResult', totalPreventiveTrials: number, noMatchMessage?: string | null, riskAssessmentCTA: boolean, matchedTrials: Array<{ __typename?: 'PreventiveTrialMatch', matchStrength: string, matchReason: string, nextSteps: string, trial: { __typename?: 'PreventiveTrial', id: string, nctId: string, title: string, trialCategory: string, phase?: string | null, status?: string | null, sponsor?: string | null, briefSummary?: string | null, curatedSummary?: string | null, targetPopulation?: string | null, vaccineTarget?: string | null, mechanism?: string | null, keyResults?: string | null, editorNote?: string | null } }> } };
+
+export type GetPreventiveTrialsForFamilyQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetPreventiveTrialsForFamilyQuery = { __typename?: 'Query', preventiveTrialsForFamily: Array<{ __typename?: 'PreventiveTrialMatch', matchStrength: string, matchReason: string, nextSteps: string, trial: { __typename?: 'PreventiveTrial', id: string, nctId: string, title: string, trialCategory: string, phase?: string | null, status?: string | null, sponsor?: string | null, briefSummary?: string | null, curatedSummary?: string | null, targetPopulation?: string | null, vaccineTarget?: string | null, mechanism?: string | null, keyResults?: string | null, editorNote?: string | null } }> };
+
+export type GetRecurrencePreventionTrialsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetRecurrencePreventionTrialsQuery = { __typename?: 'Query', recurrencePreventionTrials: Array<{ __typename?: 'PreventiveTrialMatch', matchStrength: string, matchReason: string, nextSteps: string, trial: { __typename?: 'PreventiveTrial', id: string, nctId: string, title: string, trialCategory: string, phase?: string | null, status?: string | null, sponsor?: string | null, briefSummary?: string | null, curatedSummary?: string | null, targetPopulation?: string | null, vaccineTarget?: string | null, mechanism?: string | null, keyResults?: string | null, editorNote?: string | null } }> };
+
+export type GetReferralStatsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetReferralStatsQuery = { __typename?: 'Query', referralStats: { __typename?: 'ReferralStats', totalSent: number, totalRedeemed: number } };
+
+export type GenerateFamilyReferralLinkMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GenerateFamilyReferralLinkMutation = { __typename?: 'Mutation', generateFamilyReferralLink: { __typename?: 'FamilyReferralLink', referralCode: string, url: string, textMessage: string, emailSubject: string, emailBody: string } };
+
+export type RedeemReferralCodeMutationVariables = Exact<{
+  code: Scalars['String']['input'];
+}>;
+
+
+export type RedeemReferralCodeMutation = { __typename?: 'Mutation', redeemReferralCode: { __typename?: 'ReferralRedemption', success: boolean, prefillFamilyHistory: boolean } };
 
 export type GetSecondOpinionEvaluationQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -10935,6 +11066,362 @@ export type GenerateReportQueryHookResult = ReturnType<typeof useGenerateReportQ
 export type GenerateReportLazyQueryHookResult = ReturnType<typeof useGenerateReportLazyQuery>;
 export type GenerateReportSuspenseQueryHookResult = ReturnType<typeof useGenerateReportSuspenseQuery>;
 export type GenerateReportQueryResult = Apollo.QueryResult<GenerateReportQuery, GenerateReportQueryVariables>;
+export const GetPreventiveTrialsDocument = gql`
+    query GetPreventiveTrials($category: String) {
+  preventiveTrials(category: $category) {
+    id
+    nctId
+    title
+    trialCategory
+    phase
+    status
+    sponsor
+    briefSummary
+    curatedSummary
+    targetPopulation
+    vaccineTarget
+    mechanism
+    keyResults
+    editorNote
+    matchingCriteria
+  }
+}
+    `;
+
+/**
+ * __useGetPreventiveTrialsQuery__
+ *
+ * To run a query within a React component, call `useGetPreventiveTrialsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetPreventiveTrialsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPreventiveTrialsQuery({
+ *   variables: {
+ *      category: // value for 'category'
+ *   },
+ * });
+ */
+export function useGetPreventiveTrialsQuery(baseOptions?: Apollo.QueryHookOptions<GetPreventiveTrialsQuery, GetPreventiveTrialsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetPreventiveTrialsQuery, GetPreventiveTrialsQueryVariables>(GetPreventiveTrialsDocument, options);
+      }
+export function useGetPreventiveTrialsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetPreventiveTrialsQuery, GetPreventiveTrialsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetPreventiveTrialsQuery, GetPreventiveTrialsQueryVariables>(GetPreventiveTrialsDocument, options);
+        }
+// @ts-ignore
+export function useGetPreventiveTrialsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetPreventiveTrialsQuery, GetPreventiveTrialsQueryVariables>): Apollo.UseSuspenseQueryResult<GetPreventiveTrialsQuery, GetPreventiveTrialsQueryVariables>;
+export function useGetPreventiveTrialsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetPreventiveTrialsQuery, GetPreventiveTrialsQueryVariables>): Apollo.UseSuspenseQueryResult<GetPreventiveTrialsQuery | undefined, GetPreventiveTrialsQueryVariables>;
+export function useGetPreventiveTrialsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetPreventiveTrialsQuery, GetPreventiveTrialsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetPreventiveTrialsQuery, GetPreventiveTrialsQueryVariables>(GetPreventiveTrialsDocument, options);
+        }
+export type GetPreventiveTrialsQueryHookResult = ReturnType<typeof useGetPreventiveTrialsQuery>;
+export type GetPreventiveTrialsLazyQueryHookResult = ReturnType<typeof useGetPreventiveTrialsLazyQuery>;
+export type GetPreventiveTrialsSuspenseQueryHookResult = ReturnType<typeof useGetPreventiveTrialsSuspenseQuery>;
+export type GetPreventiveTrialsQueryResult = Apollo.QueryResult<GetPreventiveTrialsQuery, GetPreventiveTrialsQueryVariables>;
+export const RunPreventivePrescreenDocument = gql`
+    query RunPreventivePrescreen($input: PreventivePrescreenInput!) {
+  preventivePrescreen(input: $input) {
+    matchedTrials {
+      trial {
+        id
+        nctId
+        title
+        trialCategory
+        phase
+        status
+        sponsor
+        briefSummary
+        curatedSummary
+        targetPopulation
+        vaccineTarget
+        mechanism
+        keyResults
+        editorNote
+      }
+      matchStrength
+      matchReason
+      nextSteps
+    }
+    totalPreventiveTrials
+    noMatchMessage
+    riskAssessmentCTA
+  }
+}
+    `;
+
+/**
+ * __useRunPreventivePrescreenQuery__
+ *
+ * To run a query within a React component, call `useRunPreventivePrescreenQuery` and pass it any options that fit your needs.
+ * When your component renders, `useRunPreventivePrescreenQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useRunPreventivePrescreenQuery({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useRunPreventivePrescreenQuery(baseOptions: Apollo.QueryHookOptions<RunPreventivePrescreenQuery, RunPreventivePrescreenQueryVariables> & ({ variables: RunPreventivePrescreenQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<RunPreventivePrescreenQuery, RunPreventivePrescreenQueryVariables>(RunPreventivePrescreenDocument, options);
+      }
+export function useRunPreventivePrescreenLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<RunPreventivePrescreenQuery, RunPreventivePrescreenQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<RunPreventivePrescreenQuery, RunPreventivePrescreenQueryVariables>(RunPreventivePrescreenDocument, options);
+        }
+// @ts-ignore
+export function useRunPreventivePrescreenSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<RunPreventivePrescreenQuery, RunPreventivePrescreenQueryVariables>): Apollo.UseSuspenseQueryResult<RunPreventivePrescreenQuery, RunPreventivePrescreenQueryVariables>;
+export function useRunPreventivePrescreenSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<RunPreventivePrescreenQuery, RunPreventivePrescreenQueryVariables>): Apollo.UseSuspenseQueryResult<RunPreventivePrescreenQuery | undefined, RunPreventivePrescreenQueryVariables>;
+export function useRunPreventivePrescreenSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<RunPreventivePrescreenQuery, RunPreventivePrescreenQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<RunPreventivePrescreenQuery, RunPreventivePrescreenQueryVariables>(RunPreventivePrescreenDocument, options);
+        }
+export type RunPreventivePrescreenQueryHookResult = ReturnType<typeof useRunPreventivePrescreenQuery>;
+export type RunPreventivePrescreenLazyQueryHookResult = ReturnType<typeof useRunPreventivePrescreenLazyQuery>;
+export type RunPreventivePrescreenSuspenseQueryHookResult = ReturnType<typeof useRunPreventivePrescreenSuspenseQuery>;
+export type RunPreventivePrescreenQueryResult = Apollo.QueryResult<RunPreventivePrescreenQuery, RunPreventivePrescreenQueryVariables>;
+export const GetPreventiveTrialsForFamilyDocument = gql`
+    query GetPreventiveTrialsForFamily {
+  preventiveTrialsForFamily {
+    trial {
+      id
+      nctId
+      title
+      trialCategory
+      phase
+      status
+      sponsor
+      briefSummary
+      curatedSummary
+      targetPopulation
+      vaccineTarget
+      mechanism
+      keyResults
+      editorNote
+    }
+    matchStrength
+    matchReason
+    nextSteps
+  }
+}
+    `;
+
+/**
+ * __useGetPreventiveTrialsForFamilyQuery__
+ *
+ * To run a query within a React component, call `useGetPreventiveTrialsForFamilyQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetPreventiveTrialsForFamilyQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPreventiveTrialsForFamilyQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetPreventiveTrialsForFamilyQuery(baseOptions?: Apollo.QueryHookOptions<GetPreventiveTrialsForFamilyQuery, GetPreventiveTrialsForFamilyQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetPreventiveTrialsForFamilyQuery, GetPreventiveTrialsForFamilyQueryVariables>(GetPreventiveTrialsForFamilyDocument, options);
+      }
+export function useGetPreventiveTrialsForFamilyLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetPreventiveTrialsForFamilyQuery, GetPreventiveTrialsForFamilyQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetPreventiveTrialsForFamilyQuery, GetPreventiveTrialsForFamilyQueryVariables>(GetPreventiveTrialsForFamilyDocument, options);
+        }
+// @ts-ignore
+export function useGetPreventiveTrialsForFamilySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetPreventiveTrialsForFamilyQuery, GetPreventiveTrialsForFamilyQueryVariables>): Apollo.UseSuspenseQueryResult<GetPreventiveTrialsForFamilyQuery, GetPreventiveTrialsForFamilyQueryVariables>;
+export function useGetPreventiveTrialsForFamilySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetPreventiveTrialsForFamilyQuery, GetPreventiveTrialsForFamilyQueryVariables>): Apollo.UseSuspenseQueryResult<GetPreventiveTrialsForFamilyQuery | undefined, GetPreventiveTrialsForFamilyQueryVariables>;
+export function useGetPreventiveTrialsForFamilySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetPreventiveTrialsForFamilyQuery, GetPreventiveTrialsForFamilyQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetPreventiveTrialsForFamilyQuery, GetPreventiveTrialsForFamilyQueryVariables>(GetPreventiveTrialsForFamilyDocument, options);
+        }
+export type GetPreventiveTrialsForFamilyQueryHookResult = ReturnType<typeof useGetPreventiveTrialsForFamilyQuery>;
+export type GetPreventiveTrialsForFamilyLazyQueryHookResult = ReturnType<typeof useGetPreventiveTrialsForFamilyLazyQuery>;
+export type GetPreventiveTrialsForFamilySuspenseQueryHookResult = ReturnType<typeof useGetPreventiveTrialsForFamilySuspenseQuery>;
+export type GetPreventiveTrialsForFamilyQueryResult = Apollo.QueryResult<GetPreventiveTrialsForFamilyQuery, GetPreventiveTrialsForFamilyQueryVariables>;
+export const GetRecurrencePreventionTrialsDocument = gql`
+    query GetRecurrencePreventionTrials {
+  recurrencePreventionTrials {
+    trial {
+      id
+      nctId
+      title
+      trialCategory
+      phase
+      status
+      sponsor
+      briefSummary
+      curatedSummary
+      targetPopulation
+      vaccineTarget
+      mechanism
+      keyResults
+      editorNote
+    }
+    matchStrength
+    matchReason
+    nextSteps
+  }
+}
+    `;
+
+/**
+ * __useGetRecurrencePreventionTrialsQuery__
+ *
+ * To run a query within a React component, call `useGetRecurrencePreventionTrialsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetRecurrencePreventionTrialsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetRecurrencePreventionTrialsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetRecurrencePreventionTrialsQuery(baseOptions?: Apollo.QueryHookOptions<GetRecurrencePreventionTrialsQuery, GetRecurrencePreventionTrialsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetRecurrencePreventionTrialsQuery, GetRecurrencePreventionTrialsQueryVariables>(GetRecurrencePreventionTrialsDocument, options);
+      }
+export function useGetRecurrencePreventionTrialsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetRecurrencePreventionTrialsQuery, GetRecurrencePreventionTrialsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetRecurrencePreventionTrialsQuery, GetRecurrencePreventionTrialsQueryVariables>(GetRecurrencePreventionTrialsDocument, options);
+        }
+// @ts-ignore
+export function useGetRecurrencePreventionTrialsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetRecurrencePreventionTrialsQuery, GetRecurrencePreventionTrialsQueryVariables>): Apollo.UseSuspenseQueryResult<GetRecurrencePreventionTrialsQuery, GetRecurrencePreventionTrialsQueryVariables>;
+export function useGetRecurrencePreventionTrialsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetRecurrencePreventionTrialsQuery, GetRecurrencePreventionTrialsQueryVariables>): Apollo.UseSuspenseQueryResult<GetRecurrencePreventionTrialsQuery | undefined, GetRecurrencePreventionTrialsQueryVariables>;
+export function useGetRecurrencePreventionTrialsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetRecurrencePreventionTrialsQuery, GetRecurrencePreventionTrialsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetRecurrencePreventionTrialsQuery, GetRecurrencePreventionTrialsQueryVariables>(GetRecurrencePreventionTrialsDocument, options);
+        }
+export type GetRecurrencePreventionTrialsQueryHookResult = ReturnType<typeof useGetRecurrencePreventionTrialsQuery>;
+export type GetRecurrencePreventionTrialsLazyQueryHookResult = ReturnType<typeof useGetRecurrencePreventionTrialsLazyQuery>;
+export type GetRecurrencePreventionTrialsSuspenseQueryHookResult = ReturnType<typeof useGetRecurrencePreventionTrialsSuspenseQuery>;
+export type GetRecurrencePreventionTrialsQueryResult = Apollo.QueryResult<GetRecurrencePreventionTrialsQuery, GetRecurrencePreventionTrialsQueryVariables>;
+export const GetReferralStatsDocument = gql`
+    query GetReferralStats {
+  referralStats {
+    totalSent
+    totalRedeemed
+  }
+}
+    `;
+
+/**
+ * __useGetReferralStatsQuery__
+ *
+ * To run a query within a React component, call `useGetReferralStatsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetReferralStatsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetReferralStatsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetReferralStatsQuery(baseOptions?: Apollo.QueryHookOptions<GetReferralStatsQuery, GetReferralStatsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetReferralStatsQuery, GetReferralStatsQueryVariables>(GetReferralStatsDocument, options);
+      }
+export function useGetReferralStatsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetReferralStatsQuery, GetReferralStatsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetReferralStatsQuery, GetReferralStatsQueryVariables>(GetReferralStatsDocument, options);
+        }
+// @ts-ignore
+export function useGetReferralStatsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetReferralStatsQuery, GetReferralStatsQueryVariables>): Apollo.UseSuspenseQueryResult<GetReferralStatsQuery, GetReferralStatsQueryVariables>;
+export function useGetReferralStatsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetReferralStatsQuery, GetReferralStatsQueryVariables>): Apollo.UseSuspenseQueryResult<GetReferralStatsQuery | undefined, GetReferralStatsQueryVariables>;
+export function useGetReferralStatsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetReferralStatsQuery, GetReferralStatsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetReferralStatsQuery, GetReferralStatsQueryVariables>(GetReferralStatsDocument, options);
+        }
+export type GetReferralStatsQueryHookResult = ReturnType<typeof useGetReferralStatsQuery>;
+export type GetReferralStatsLazyQueryHookResult = ReturnType<typeof useGetReferralStatsLazyQuery>;
+export type GetReferralStatsSuspenseQueryHookResult = ReturnType<typeof useGetReferralStatsSuspenseQuery>;
+export type GetReferralStatsQueryResult = Apollo.QueryResult<GetReferralStatsQuery, GetReferralStatsQueryVariables>;
+export const GenerateFamilyReferralLinkDocument = gql`
+    mutation GenerateFamilyReferralLink {
+  generateFamilyReferralLink {
+    referralCode
+    url
+    textMessage
+    emailSubject
+    emailBody
+  }
+}
+    `;
+export type GenerateFamilyReferralLinkMutationFn = Apollo.MutationFunction<GenerateFamilyReferralLinkMutation, GenerateFamilyReferralLinkMutationVariables>;
+
+/**
+ * __useGenerateFamilyReferralLinkMutation__
+ *
+ * To run a mutation, you first call `useGenerateFamilyReferralLinkMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useGenerateFamilyReferralLinkMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [generateFamilyReferralLinkMutation, { data, loading, error }] = useGenerateFamilyReferralLinkMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGenerateFamilyReferralLinkMutation(baseOptions?: Apollo.MutationHookOptions<GenerateFamilyReferralLinkMutation, GenerateFamilyReferralLinkMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<GenerateFamilyReferralLinkMutation, GenerateFamilyReferralLinkMutationVariables>(GenerateFamilyReferralLinkDocument, options);
+      }
+export type GenerateFamilyReferralLinkMutationHookResult = ReturnType<typeof useGenerateFamilyReferralLinkMutation>;
+export type GenerateFamilyReferralLinkMutationResult = Apollo.MutationResult<GenerateFamilyReferralLinkMutation>;
+export type GenerateFamilyReferralLinkMutationOptions = Apollo.BaseMutationOptions<GenerateFamilyReferralLinkMutation, GenerateFamilyReferralLinkMutationVariables>;
+export const RedeemReferralCodeDocument = gql`
+    mutation RedeemReferralCode($code: String!) {
+  redeemReferralCode(code: $code) {
+    success
+    prefillFamilyHistory
+  }
+}
+    `;
+export type RedeemReferralCodeMutationFn = Apollo.MutationFunction<RedeemReferralCodeMutation, RedeemReferralCodeMutationVariables>;
+
+/**
+ * __useRedeemReferralCodeMutation__
+ *
+ * To run a mutation, you first call `useRedeemReferralCodeMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRedeemReferralCodeMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [redeemReferralCodeMutation, { data, loading, error }] = useRedeemReferralCodeMutation({
+ *   variables: {
+ *      code: // value for 'code'
+ *   },
+ * });
+ */
+export function useRedeemReferralCodeMutation(baseOptions?: Apollo.MutationHookOptions<RedeemReferralCodeMutation, RedeemReferralCodeMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RedeemReferralCodeMutation, RedeemReferralCodeMutationVariables>(RedeemReferralCodeDocument, options);
+      }
+export type RedeemReferralCodeMutationHookResult = ReturnType<typeof useRedeemReferralCodeMutation>;
+export type RedeemReferralCodeMutationResult = Apollo.MutationResult<RedeemReferralCodeMutation>;
+export type RedeemReferralCodeMutationOptions = Apollo.BaseMutationOptions<RedeemReferralCodeMutation, RedeemReferralCodeMutationVariables>;
 export const GetSecondOpinionEvaluationDocument = gql`
     query GetSecondOpinionEvaluation {
   secondOpinionEvaluation {

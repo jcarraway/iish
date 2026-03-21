@@ -20,10 +20,12 @@ model User {
   createdAt                      DateTime   @default(now()) @map("created_at")
   updatedAt                      DateTime   @updatedAt @map("updated_at")
 
-  patient          Patient?
-  events           UserEvent[]
-  feedRelevances   FeedRelevance[]
-  feedConfig       UserFeedConfig?
+  patient                   Patient?
+  events                    UserEvent[]
+  feedRelevances            FeedRelevance[]
+  feedConfig                UserFeedConfig?
+  preventivePrescreens      PreventivePrescreen[]
+  familyReferralsReceived   FamilyReferral[]
 
   @@map("users")
 }
@@ -43,6 +45,8 @@ model Trial {
   briefSummary        String?  @map("brief_summary")
   lastSyncedAt        DateTime? @map("last_synced_at")
   rawJson             Json?    @map("raw_json")
+  trialCategory       String   @default("therapeutic") @map("trial_category") @db.VarChar(50)
+  isPreventive        Boolean  @default(false) @map("is_preventive")
   createdAt           DateTime @default(now()) @map("created_at")
   updatedAt           DateTime @updatedAt @map("updated_at")
 
@@ -50,6 +54,7 @@ model Trial {
   matches Match[]
 
   @@index([status])
+  @@index([trialCategory])
   @@map("trials")
 }
 
@@ -113,6 +118,7 @@ model Patient {
   secondOpinionRequests   SecondOpinionRequest[]
   articlePersonalizations  ArticlePersonalization[]
   communityReports         CommunityReport[]
+  familyReferralsSent      FamilyReferral[] @relation("referrer")
 
   @@map("patients")
 }
@@ -1301,4 +1307,59 @@ model CommunityReport {
   @@index([relatedDrug])
   @@index([moderationStatus])
   @@map("community_reports")
+}
+
+model CuratedPreventiveTrial {
+  id                String    @id @default(uuid()) @db.Uuid
+  nctId             String    @unique @map("nct_id")
+  trialCategory     String    @map("trial_category") @db.VarChar(50)
+  curatedSummary    String    @map("curated_summary")
+  targetPopulation  String    @map("target_population")
+  vaccineTarget     String?   @map("vaccine_target")
+  mechanism         String?   @map("mechanism")
+  keyResults        String?   @map("key_results")
+  matchingCriteria  Json      @map("matching_criteria")
+  editorNote        String?   @map("editor_note")
+  lastReviewedDate  DateTime? @map("last_reviewed_date")
+  reviewedBy        String?   @map("reviewed_by")
+  isActive          Boolean   @default(true) @map("is_active")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  @@map("curated_preventive_trials")
+}
+
+model PreventivePrescreen {
+  id                     String   @id @default(uuid()) @db.Uuid
+  userId                 String?  @map("user_id") @db.Uuid
+  age                    Int
+  hasCancerHistory       Boolean  @default(false) @map("has_cancer_history")
+  cancerSubtype          String?  @map("cancer_subtype")
+  treatmentStatus        String?  @map("treatment_status")
+  hasBrca                String   @default("unknown") @map("has_brca") @db.VarChar(20)
+  hasOtherHighRisk       String   @default("unknown") @map("has_other_high_risk") @db.VarChar(20)
+  hasFamilyHistory       Boolean  @default(false) @map("has_family_history")
+  estimatedLifetimeRisk  Float?   @map("estimated_lifetime_risk")
+  zipCode                String?  @map("zip_code") @db.VarChar(20)
+  matchResults           Json?    @map("match_results")
+  createdAt              DateTime @default(now()) @map("created_at")
+  updatedAt              DateTime @updatedAt @map("updated_at")
+
+  user                   User?    @relation(fields: [userId], references: [id])
+
+  @@map("preventive_prescreens")
+}
+
+model FamilyReferral {
+  id                  String    @id @default(uuid()) @db.Uuid
+  referringPatientId  String    @map("referring_patient_id") @db.Uuid
+  referralCode        String    @unique @map("referral_code")
+  referredUserId      String?   @map("referred_user_id") @db.Uuid
+  createdAt           DateTime  @default(now()) @map("created_at")
+  redeemedAt          DateTime? @map("redeemed_at")
+
+  referringPatient    Patient   @relation("referrer", fields: [referringPatientId], references: [id])
+  referredUser        User?     @relation(fields: [referredUserId], references: [id])
+
+  @@map("family_referrals")
 }

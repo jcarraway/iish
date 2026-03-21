@@ -1,0 +1,120 @@
+query GetPreventiveTrials($category: String) {
+  preventiveTrials(category: $category) {
+    id
+    nctId
+    title
+    trialCategory
+    phase
+    status
+    sponsor
+    briefSummary
+    curatedSummary
+    targetPopulation
+    vaccineTarget
+    mechanism
+    keyResults
+    editorNote
+    matchingCriteria
+  }
+}
+
+query RunPreventivePrescreen($input: PreventivePrescreenInput!) {
+  preventivePrescreen(input: $input) {
+    matchedTrials {
+      trial {
+        id
+        nctId
+        title
+        trialCategory
+        phase
+        status
+        sponsor
+        briefSummary
+        curatedSummary
+        targetPopulation
+        vaccineTarget
+        mechanism
+        keyResults
+        editorNote
+      }
+      matchStrength
+      matchReason
+      nextSteps
+    }
+    totalPreventiveTrials
+    noMatchMessage
+    riskAssessmentCTA
+  }
+}
+
+query GetPreventiveTrialsForFamily {
+  preventiveTrialsForFamily {
+    trial {
+      id
+      nctId
+      title
+      trialCategory
+      phase
+      status
+      sponsor
+      briefSummary
+      curatedSummary
+      targetPopulation
+      vaccineTarget
+      mechanism
+      keyResults
+      editorNote
+    }
+    matchStrength
+    matchReason
+    nextSteps
+  }
+}
+
+query GetRecurrencePreventionTrials {
+  recurrencePreventionTrials {
+    trial {
+      id
+      nctId
+      title
+      trialCategory
+      phase
+      status
+      sponsor
+      briefSummary
+      curatedSummary
+      targetPopulation
+      vaccineTarget
+      mechanism
+      keyResults
+      editorNote
+    }
+    matchStrength
+    matchReason
+    nextSteps
+  }
+}
+
+query GetReferralStats {
+  referralStats {
+    totalSent
+    totalRedeemed
+  }
+}
+
+mutation GenerateFamilyReferralLink {
+  generateFamilyReferralLink {
+    referralCode
+    url
+    textMessage
+    emailSubject
+    emailBody
+  }
+}
+
+mutation RedeemReferralCode($code: String!) {
+  redeemReferralCode(code: $code) {
+    success
+    prefillFamilyHistory
+  }
+}
