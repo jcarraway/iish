@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { View, Text, Pressable, ScrollView } from 'dripsy';
 import { ActivityIndicator } from 'react-native';
 import { Link } from 'solito/link';
@@ -30,7 +30,11 @@ const URGENCY_INDICATORS: Record<string, { label: string; color: string }> = {
 // Component
 // ============================================================================
 
-export function LearnArticleScreen({ slug, category }: { slug: string; category?: string }) {
+export function LearnArticleScreen({ slug, category, renderBetweenSections }: {
+  slug: string;
+  category?: string;
+  renderBetweenSections?: (sectionIndex: number) => React.ReactNode | null;
+}) {
   const [showClinical, setShowClinical] = useState(false);
   const [personalizedContext, setPersonalizedContext] = useState<string | null>(null);
 
@@ -267,14 +271,17 @@ export function LearnArticleScreen({ slug, category }: { slug: string; category?
         {patientContent.length > 0 && (
           <View sx={{ mt: '$6' }}>
             {patientContent.map((section: { heading: string; body: string }, idx: number) => (
-              <View key={idx} sx={{ mb: '$6' }}>
-                <Text sx={{ fontSize: 20, fontWeight: 'bold', color: '$foreground', mb: '$3' }}>
-                  {section.heading}
-                </Text>
-                <Text sx={{ fontSize: 14, color: '$foreground', lineHeight: 24 }}>
-                  {section.body}
-                </Text>
-              </View>
+              <React.Fragment key={idx}>
+                <View sx={{ mb: '$6' }}>
+                  <Text sx={{ fontSize: 20, fontWeight: 'bold', color: '$foreground', mb: '$3' }}>
+                    {section.heading}
+                  </Text>
+                  <Text sx={{ fontSize: 14, color: '$foreground', lineHeight: 24 }}>
+                    {section.body}
+                  </Text>
+                </View>
+                {renderBetweenSections?.(idx)}
+              </React.Fragment>
             ))}
           </View>
         )}

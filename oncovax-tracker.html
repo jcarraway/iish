@@ -841,6 +841,34 @@
           ],
         },
         {
+          id: "prevent",
+          name: "Phase 0: Pre-diagnosis risk intelligence",
+          badge: "CORE",
+          badgeClass: "badge-core",
+          sessions: [
+            {
+              id: "PR1",
+              name: "Onboarding + composite risk engine",
+              weeks: "W1-3",
+            },
+            {
+              id: "PR2",
+              name: "Environmental exposure + screening planner",
+              weeks: "W3-5",
+            },
+            {
+              id: "PR3",
+              name: "Preventive interventions + family connector",
+              weeks: "W5-7",
+            },
+            {
+              id: "PR4",
+              name: "Data contribution + longitudinal tracking",
+              weeks: "W7-9",
+            },
+          ],
+        },
+        {
           id: "cool",
           name: "Cold capping access service",
           badge: "CARE",
@@ -860,6 +888,34 @@
               id: "CL3",
               name: "Outcome tracking + community + LEARN",
               weeks: "W4-6",
+            },
+          ],
+        },
+        {
+          id: "visual",
+          name: "Interactive Science Visualizations",
+          badge: "LEARN",
+          badgeClass: "badge-learn",
+          sessions: [
+            {
+              id: "VZ1",
+              name: "Framework + 8 Canvas scenes (biology, treatment, diagnostics)",
+              weeks: "W1",
+            },
+            {
+              id: "VZ2",
+              name: "7 more scenes (endocrine, cold cap, sequencing, body map, radiation, Oncotype, CDK4/6)",
+              weeks: "W1-2",
+            },
+            {
+              id: "VZ3",
+              name: "7 more scenes (mutations, metastasis, PROTAC, pipeline, ctDNA, neuropathy, MHC)",
+              weeks: "W2-3",
+            },
+            {
+              id: "VZ4",
+              name: "Final 8 scenes + static PNG fallbacks + social export",
+              weeks: "W3-4",
             },
           ],
         },
@@ -931,6 +987,11 @@
         "intel:I4": "complete",
         "intel:I5": "complete",
         "intel:I6": "complete",
+        // VISUAL VZ1-VZ4 — complete
+        "visual:VZ1": "complete",
+        "visual:VZ2": "complete",
+        "visual:VZ3": "complete",
+        "visual:VZ4": "complete",
       };
 
       const DEFAULT_NOTES = {
@@ -1052,6 +1113,18 @@
         // INTEL I6 — Landscape Views + Cross-Module Integration
         "intel:I6":
           "0 new Prisma models. landscape-manager.ts: 10 functions (landscape overview, subtype landscape, treatment pipeline, recent developments, Claude SOC summary, translator/financial/survivorship update checks, highlights, subtype label). +7 GraphQL types, +7Q +1M. 1 screen rewritten (IntelLandscapeScreen dual-mode: overview + subtype detail), 1 new screen (IntelSubtypeLandscapeScreen wrapper). 3 screens updated with integration badges (TranslateScreen, FinancialScreen, SurviveDashboardScreen). 1 web + 2 mobile routes. SOC summary cached 14 days.",
+        // VISUAL VZ1 — Framework + 8 Interactive Visualizations
+        "visual:VZ1":
+          "Web-only Canvas 2D visualizations (no Prisma, no lib, no resolvers). Framework: 8 primitive modules (palette, shapes, particles, controls, text, interpolation, accessibility — ~1200 lines). React wrapper (DPI scaling, IntersectionObserver lazy load, RAF loop, pointer events). Registry maps vizId→articleSlug. 8 scene modules (~3600 lines): b5-immune-recognition (stepper 6-stage), b6-breast-subtypes (toggle 4 configs), t1-adc-mechanism (stepper 7-phase), t2-checkpoint-inhibitor (toggle PD-1/PD-L1), t3-chemotherapy (stepper 5-phase), t10-mrna-vaccine (stepper 8-stage flagship), d2-her2-scoring (slider IHC 0→3+), d3-pathology-report (explorable 8 fields). LearnArticleScreen: renderBetweenSections optional prop. No new dependencies. 18 new files, 2 modified.",
+        // VISUAL VZ2 — 7 Tier-2 Scenes
+        "visual:VZ2":
+          "7 new scene modules (~3200 lines): t4-endocrine-therapy (toggle 4-mode ER therapy), t7-cold-capping (toggle scalp cooling two-panel), t6-radiation-dna (stepper 8-stage DNA damage), t8-cdk-inhibitor (stepper 8-stage cell cycle arrest), d1-tumor-sequencing (stepper 9-stage sequencing pipeline), d4-oncotype-score (slider 0-100 with heat map), s1-chemo-side-effects (explorable body diagram 5 regions). Registry +7 entries, accessibility +7 descriptions. 0 tsc errors.",
+        // VISUAL VZ3 — 7 Tier-3 Scenes
+        "visual:VZ3":
+          "7 new scene modules (~2800 lines): b1-mutations-cause-cancer (stepper 7-stage mutation→tumor), b3-metastasis (stepper 8-stage seed-and-soil), t5-protac-degraders (stepper 9-stage PROTAC mechanism), p1-neoantigen-pipeline (stepper 9-stage FASTQ→report), d5-ctdna-monitoring (stepper 9-stage liquid biopsy), s2-neuropathy (stepper 8-stage nerve damage), p2-mhc-presentation (stepper 10-stage antigen processing). Registry +7 entries, accessibility +7 descriptions. 0 tsc errors.",
+        // VISUAL VZ4 — 9 Tier-4 Scenes
+        "visual:VZ4":
+          "9 new scene modules (~3800 lines): b2-cancer-vs-normal (toggle 5 hallmarks), b4-tumor-microenvironment (explorable ecosystem), t9-lumpectomy-vs-mastectomy (toggle surgery comparison), s3-radiation-skin (stepper 5-stage skin effects), s4-endocrine-body-effects (explorable body diagram), v1-ai-mammogram (toggle AI overlay), v2-risk-factors (explorable compounding risks), p3-mrna-translation (stepper 12-stage ribosome), p4-binding-prediction (slider MHC groove). Registry +9 entries, accessibility +9 descriptions. 31/31 total scenes. ~14,300 total viz lines. VISUAL module complete. 0 tsc errors.",
       };
 
       let state = { statuses: {}, notes: {}, expanded: {}, filter: "all" };
