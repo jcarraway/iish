@@ -828,6 +828,19 @@
           ],
         },
         {
+          id: "ptm",
+          name: "Preventive trial matcher (MATCH extension)",
+          badge: "CORE",
+          badgeClass: "badge-core",
+          sessions: [
+            {
+              id: "PTM1",
+              name: "Schema + classification + seed + lib + GraphQL + screens + routing",
+              weeks: "W1",
+            },
+          ],
+        },
+        {
           id: "cool",
           name: "Cold capping access service",
           badge: "CARE",
@@ -906,6 +919,8 @@
         "second:SO1": "complete",
         // LEARN L1 — complete
         "learn:L1": "complete",
+        // Preventive Trial Matcher — complete
+        "ptm:PTM1": "complete",
         // INTEL I1+I2+I3+I4+I5 — complete
         "intel:I1": "complete",
         "intel:I2": "complete",
@@ -1021,6 +1036,9 @@
         "intel:I5":
           "1 Prisma model (CommunityReport). community-manager.ts: 10 functions (report CRUD + auto-verify, drug/trial insights aggregation, 5-section digest compilation, Resend email delivery). notification-manager.ts: processResearchDigests added. +7 GraphQL types, +4Q +3M. 2 new screens (CommunityFeed, CommunitySubmit 4-step form). 3 screens updated (Detail: community insights, Settings: digest frequency, Feed: community + settings links). 2 web + 2 mobile routes. Community data labeled 'Based on reports from X patients.'",
 
+        // Preventive Trial Matcher
+        "ptm:PTM1":
+          "3 Prisma models (CuratedPreventiveTrial, PreventivePrescreen, FamilyReferral). preventive-matcher.ts: 8 functions (prescreening eligibility, family context filtering, referral link generation with crypto codes + text/email templates). 5 curated trials seeded. classifyTrial() in trial-sync.ts. 3 screens (PreventiveTrials public quiz, ForYourFamily referral, RecurrencePrevention). Dashboard + SurviveDashboard + HomeScreen + MoreScreen integration. 3 web + 3 mobile routes. 7 GraphQL operations.",
         // INTEL I6 — Landscape Views + Cross-Module Integration
         "intel:I6":
           "0 new Prisma models. landscape-manager.ts: 10 functions (landscape overview, subtype landscape, treatment pipeline, recent developments, Claude SOC summary, translator/financial/survivorship update checks, highlights, subtype label). +7 GraphQL types, +7Q +1M. 1 screen rewritten (IntelLandscapeScreen dual-mode: overview + subtype detail), 1 new screen (IntelSubtypeLandscapeScreen wrapper). 3 screens updated with integration badges (TranslateScreen, FinancialScreen, SurviveDashboardScreen). 1 web + 2 mobile routes. SOC summary cached 14 days.",
