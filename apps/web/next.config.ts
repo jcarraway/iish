@@ -27,6 +27,9 @@ const nextConfig: NextConfig = {
     config.resolve.alias = {
       ...(config.resolve.alias || {}),
       'react-native$': 'react-native-web',
+      // Redirect Solito Pages Router imports to App Router versions
+      'solito/link': 'solito/navigation',
+      'solito/router': 'solito/navigation',
     };
 
     config.resolve.extensions = [
