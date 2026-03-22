@@ -1,4 +1,4 @@
-import { ApolloClient, HttpLink } from '@apollo/client';
+import { ApolloClient, HttpLink, type NormalizedCacheObject } from '@apollo/client';
 import { createCache } from '@iish/app';
 
 function createApolloClient() {
@@ -12,7 +12,7 @@ function createApolloClient() {
 
   return new ApolloClient({
     link: httpLink,
-    cache: createCache(),
+    cache: createCache() as unknown as ApolloClient<NormalizedCacheObject>['cache'],
     defaultOptions: {
       watchQuery: {
         fetchPolicy: 'cache-first',
