@@ -27,8 +27,9 @@ const nextConfig: NextConfig = {
     config.resolve.alias = {
       ...(config.resolve.alias || {}),
       'react-native$': 'react-native-web',
-      // Redirect Solito Pages Router imports to App Router versions
-      'solito/link': 'solito/navigation',
+      // solito/router uses next/router (Pages Router) which isn't mounted in App Router.
+      // solito/navigation exports the same useRouter API but wraps next/navigation instead.
+      // solito/link already uses next/link internally — no alias needed.
       'solito/router': 'solito/navigation',
     };
 
