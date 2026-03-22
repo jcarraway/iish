@@ -2,7 +2,20 @@ import Anthropic from '@anthropic-ai/sdk';
 
 export const CLAUDE_MODEL = 'claude-opus-4-20250514';
 
-export const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
+let _anthropic: Anthropic;
+export function getAnthropic() {
+  if (!_anthropic) _anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
+  return _anthropic;
+}
+
+/** @deprecated Use getAnthropic() instead */
+export const anthropic = new Proxy({} as Anthropic, {
+  get(_, prop) {
+    const a = getAnthropic();
+    const val = (a as any)[prop];
+    return typeof val === 'function' ? val.bind(a) : val;
+  },
+});
 
 type ImageMediaType = 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif';
 type DocMediaType = 'application/pdf';
@@ -27,7 +40,7 @@ export async function analyzeImageFromUrl(imageUrl: string, prompt: string): Pro
   const base64 = Buffer.from(buffer).toString('base64');
   const contentType = res.headers.get('content-type') ?? 'image/jpeg';
 
-  const message = await anthropic.messages.create({
+  const message = await getAnthropic().messages.create({
     model: CLAUDE_MODEL,
     max_tokens: 2048,
     messages: [{
@@ -70,7 +83,7 @@ export async function analyzeMultipleImages(
     { type: 'text' as const, text: userPrompt },
   ];
 
-  const message = await anthropic.messages.create({
+  const message = await getAnthropic().messages.create({
     model: CLAUDE_MODEL,
     max_tokens: 4096,
     system: systemPrompt,

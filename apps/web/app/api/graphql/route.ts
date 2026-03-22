@@ -217,7 +217,11 @@ import {
 
 // --- Auth ---
 
-const resend = new Resend(process.env.RESEND_API_KEY!);
+let _resend: Resend;
+function getResend() {
+  if (!_resend) _resend = new Resend(process.env.RESEND_API_KEY!);
+  return _resend;
+}
 
 async function sendMagicLinkAdapter(email: string, redirect?: string) {
   const normalizedEmail = email.toLowerCase().trim();
@@ -226,7 +230,7 @@ async function sendMagicLinkAdapter(email: string, redirect?: string) {
   if (redirect) {
     link += `&redirect=${encodeURIComponent(redirect)}`;
   }
-  await resend.emails.send({
+  await getResend().emails.send({
     from: process.env.RESEND_FROM_EMAIL!,
     to: normalizedEmail,
     subject: 'Your sign-in link',

@@ -73,7 +73,11 @@ interface TrialInsight {
 // Resend client
 // ============================================================================
 
-const resend = new Resend(process.env.RESEND_API_KEY!);
+let _resend: Resend;
+function getResend() {
+  if (!_resend) _resend = new Resend(process.env.RESEND_API_KEY!);
+  return _resend;
+}
 const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'noreply@iish.com';
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
@@ -704,7 +708,7 @@ export async function sendDigest(userId: string): Promise<boolean> {
   });
   if (!user?.email) return false;
 
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM_EMAIL,
     to: user.email,
     subject,

@@ -22,7 +22,11 @@ import {
   type NIHGrant,
 } from './intel-sources';
 
-const anthropic = new Anthropic();
+let _anthropic: Anthropic;
+function getAnthropicClient() {
+  if (!_anthropic) _anthropic = new Anthropic();
+  return _anthropic;
+}
 const MODEL = 'claude-opus-4-20250514';
 
 // ============================================================================
@@ -563,7 +567,7 @@ export async function classifyItem(itemId: string) {
   const item = await prisma.researchItem.findUnique({ where: { id: itemId } });
   if (!item) throw new Error('Research item not found');
 
-  const response = await anthropic.messages.create({
+  const response = await getAnthropicClient().messages.create({
     model: MODEL,
     max_tokens: 2048,
     system: `You are an oncology research classifier. Given a research article title and abstract, classify it along multiple dimensions.
@@ -816,7 +820,7 @@ export async function summarizeItem(itemId: string) {
   const tierContext = maturityContext[item.maturityTier ?? 'T5'] ?? maturityContext.T5;
 
   // Patient summary
-  const patientResponse = await anthropic.messages.create({
+  const patientResponse = await getAnthropicClient().messages.create({
     model: MODEL,
     max_tokens: 1024,
     system: `You are a patient educator for cancer patients. Write a clear, warm, empowering summary of a research article at a 6th grade reading level. 3-5 sentences.
@@ -846,7 +850,7 @@ Write a patient-friendly summary.`,
   const patientSummary = (patientResponse.content[0] as { type: 'text'; text: string }).text;
 
   // Clinician summary
-  const clinicianResponse = await anthropic.messages.create({
+  const clinicianResponse = await getAnthropicClient().messages.create({
     model: MODEL,
     max_tokens: 2048,
     system: `You are a clinical oncology research analyst. Produce a structured clinician summary of a research article.
