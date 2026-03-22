@@ -1,2 +1,7 @@
 'use client';
-export { IntelLandscapeScreen as default } from '@iish/app';
+
+import { IntelLandscapeScreen } from '@iish/app';
+
+export default function IntelLandscapePage() {
+  return <IntelLandscapeScreen />;
+}

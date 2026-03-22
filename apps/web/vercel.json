@@ -1,8 +1,6 @@
 {
-  "buildCommand": "pnpm turbo run build --filter=@iish/web",
-  "installCommand": "pnpm install --frozen-lockfile",
+  "buildCommand": "cd ../.. && pnpm turbo run build --filter=@iish/web",
   "framework": "nextjs",
-  "outputDirectory": "apps/web/.next",
   "crons": [
     { "path": "/api/cron/intel", "schedule": "0 6 * * *" },
     { "path": "/api/cron/learn", "schedule": "0 7 * * 1" },
