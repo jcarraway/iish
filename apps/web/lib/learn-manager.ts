@@ -171,7 +171,8 @@ export async function getArticlesByCategory(category: string) {
 
   return {
     articles,
-    category: categoryMeta,
+    label: categoryMeta.label,
+    description: categoryMeta.description,
   };
 }
 
