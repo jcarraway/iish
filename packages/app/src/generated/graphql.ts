@@ -455,6 +455,21 @@ export type CreatePreventProfileInput = {
   smokingStatus?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type CrisisAlert = {
+  __typename?: 'CrisisAlert';
+  detected: Scalars['Boolean']['output'];
+  message: Scalars['String']['output'];
+  resources: Array<CrisisResource>;
+};
+
+export type CrisisResource = {
+  __typename?: 'CrisisResource';
+  available: Scalars['String']['output'];
+  description: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  phone: Scalars['String']['output'];
+};
+
 export type CtdnaInterpretation = {
   __typename?: 'CtdnaInterpretation';
   nextSteps: Scalars['String']['output'];
@@ -539,6 +554,15 @@ export type DrugCard = {
   seriousSideEffects: Array<Scalars['String']['output']>;
   tips: Array<Scalars['String']['output']>;
   whyThisDrug: Scalars['String']['output'];
+};
+
+export type EnrollMentorInput = {
+  availableHours?: InputMaybe<Scalars['String']['input']>;
+  bio?: InputMaybe<Scalars['String']['input']>;
+  comfortableDiscussing?: InputMaybe<Array<Scalars['String']['input']>>;
+  communicationPreference?: InputMaybe<Scalars['String']['input']>;
+  maxMentees?: InputMaybe<Scalars['Int']['input']>;
+  notComfortableWith?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
 export type EnvironmentalRecommendation = {
@@ -1190,6 +1214,25 @@ export type MedicationNutrition = {
   medication: Scalars['String']['output'];
 };
 
+export type MentorStats = {
+  __typename?: 'MentorStats';
+  activeConnections: Scalars['Int']['output'];
+  averageRating?: Maybe<Scalars['Float']['output']>;
+  modulesCompleted: Scalars['Int']['output'];
+  totalMenteesSupported: Scalars['Int']['output'];
+  totalMessages: Scalars['Int']['output'];
+};
+
+export type MentorTrainingModule = {
+  __typename?: 'MentorTrainingModule';
+  completed: Scalars['Boolean']['output'];
+  completedAt?: Maybe<Scalars['String']['output']>;
+  description: Scalars['String']['output'];
+  estimatedMinutes: Scalars['Int']['output'];
+  id: Scalars['String']['output'];
+  title: Scalars['String']['output'];
+};
+
 export type ModifiableFactor = {
   __typename?: 'ModifiableFactor';
   currentValue: Scalars['String']['output'];
@@ -1264,6 +1307,8 @@ export type Mutation = {
   cancelPipelineJob: PipelineJob;
   checkArticleQuality: QualityCheckResult;
   checkInsuranceCoverage: InsuranceCoverage;
+  completeConnection: PeerConnection;
+  completeTrainingModule: TrainingModuleResult;
   completeTreatment: SurvivorshipPlan;
   computeRelevanceScores: Scalars['Int']['output'];
   confirmGenomics: GenomicResult;
@@ -1275,6 +1320,8 @@ export type Mutation = {
   createSecondOpinionRequest: SecondOpinionRequest;
   createSequencingOrder: SequencingOrder;
   deleteJournalEntry: Scalars['Boolean']['output'];
+  endConnection: PeerConnection;
+  enrollAsMentor: PeerMentorProfile;
   extractDocument: Document;
   extractDocuments: ExtractionResult;
   extractFhir: Scalars['JSON']['output'];
@@ -1310,9 +1357,12 @@ export type Mutation = {
   markItemDismissed: Scalars['Boolean']['output'];
   markItemSaved: Scalars['Boolean']['output'];
   markItemViewed: Scalars['Boolean']['output'];
+  markPeerMessagesRead: Scalars['Boolean']['output'];
   matchFinancialPrograms: Array<FinancialMatch>;
   migrateOldTaxonomy: TaxonomyMigrationResult;
   moderateCommunityReport: CommunityReport;
+  pauseConnection: PeerConnection;
+  proposeConnection: PeerConnection;
   publishArticle: Article;
   reclassifyItem: ResearchItem;
   recordSecondOpinionOutcome: SecondOpinionRequest;
@@ -1321,12 +1371,15 @@ export type Mutation = {
   regenerateTranslator: RecurrenceEvent;
   rematch: MatchDelta;
   removeCareTeamMember: Scalars['Boolean']['output'];
+  reportPeerConcern: PeerConnection;
   reportRecurrence: RecurrenceEvent;
   requestFertilityReferral: FertilityAssessment;
   requestGeneralUploadUrl: UploadUrlResult;
   requestMagicLink: Scalars['Boolean']['output'];
   requestUploadUrl: UploadUrl;
   rescheduleEvent: SurveillanceEvent;
+  respondToConnection: PeerConnection;
+  resumeConnection: PeerConnection;
   resyncFhirConnection: Scalars['JSON']['output'];
   revokeFhirConnection: Scalars['Boolean']['output'];
   runArticleQualityChecks: Scalars['JSON']['output'];
@@ -1336,8 +1389,10 @@ export type Mutation = {
   savePatientIntake: Patient;
   selectPalliativeProvider: PalliativeAssessment;
   selectSecondOpinionCenter: SecondOpinionRequest;
+  sendPeerMessage: SendMessageResult;
   skipEvent: SurveillanceEvent;
   submitCommunityReport: CommunityReport;
+  submitConnectionFeedback: PeerConnection;
   submitFeedback: SurvivorshipFeedback;
   submitJournalEntry: JournalEntry;
   submitMonitoringReport: MonitoringReport;
@@ -1360,6 +1415,7 @@ export type Mutation = {
   updateFertilityOutcome: FertilityAssessment;
   updateManufacturingOrderStatus: ManufacturingOrder;
   updateMatchStatus: Match;
+  updateMentorProfile: PeerMentorProfile;
   updateNotificationPreferences: NotificationPreference;
   updatePatientProfile: Patient;
   updatePreventProfile: PreventProfile;
@@ -1426,6 +1482,16 @@ export type MutationCheckInsuranceCoverageArgs = {
 };
 
 
+export type MutationCompleteConnectionArgs = {
+  connectionId: Scalars['String']['input'];
+};
+
+
+export type MutationCompleteTrainingModuleArgs = {
+  moduleId: Scalars['String']['input'];
+};
+
+
 export type MutationCompleteTreatmentArgs = {
   input: TreatmentCompletionInput;
 };
@@ -1472,6 +1538,17 @@ export type MutationCreateSequencingOrderArgs = {
 
 export type MutationDeleteJournalEntryArgs = {
   entryId: Scalars['String']['input'];
+};
+
+
+export type MutationEndConnectionArgs = {
+  connectionId: Scalars['String']['input'];
+  reason?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationEnrollAsMentorArgs = {
+  input: EnrollMentorInput;
 };
 
 
@@ -1581,6 +1658,11 @@ export type MutationMarkItemViewedArgs = {
 };
 
 
+export type MutationMarkPeerMessagesReadArgs = {
+  connectionId: Scalars['String']['input'];
+};
+
+
 export type MutationMatchFinancialProgramsArgs = {
   input: FinancialProfileInput;
 };
@@ -1589,6 +1671,17 @@ export type MutationMatchFinancialProgramsArgs = {
 export type MutationModerateCommunityReportArgs = {
   reportId: Scalars['String']['input'];
   status: Scalars['String']['input'];
+};
+
+
+export type MutationPauseConnectionArgs = {
+  connectionId: Scalars['String']['input'];
+  reason?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationProposeConnectionArgs = {
+  mentorProfileId: Scalars['String']['input'];
 };
 
 
@@ -1619,6 +1712,13 @@ export type MutationRegenerateTranslatorArgs = {
 
 export type MutationRemoveCareTeamMemberArgs = {
   memberId: Scalars['String']['input'];
+};
+
+
+export type MutationReportPeerConcernArgs = {
+  concernType: Scalars['String']['input'];
+  connectionId: Scalars['String']['input'];
+  description: Scalars['String']['input'];
 };
 
 
@@ -1653,6 +1753,17 @@ export type MutationRequestUploadUrlArgs = {
 
 export type MutationRescheduleEventArgs = {
   input: RescheduleEventInput;
+};
+
+
+export type MutationRespondToConnectionArgs = {
+  accept: Scalars['Boolean']['input'];
+  connectionId: Scalars['String']['input'];
+};
+
+
+export type MutationResumeConnectionArgs = {
+  connectionId: Scalars['String']['input'];
 };
 
 
@@ -1692,6 +1803,11 @@ export type MutationSelectSecondOpinionCenterArgs = {
 };
 
 
+export type MutationSendPeerMessageArgs = {
+  input: SendPeerMessageInput;
+};
+
+
 export type MutationSkipEventArgs = {
   input: SkipEventInput;
 };
@@ -1699,6 +1815,13 @@ export type MutationSkipEventArgs = {
 
 export type MutationSubmitCommunityReportArgs = {
   input: SubmitCommunityReportInput;
+};
+
+
+export type MutationSubmitConnectionFeedbackArgs = {
+  comment?: InputMaybe<Scalars['String']['input']>;
+  connectionId: Scalars['String']['input'];
+  rating: Scalars['Float']['input'];
 };
 
 
@@ -1818,6 +1941,11 @@ export type MutationUpdateManufacturingOrderStatusArgs = {
 export type MutationUpdateMatchStatusArgs = {
   matchId: Scalars['String']['input'];
   status: Scalars['String']['input'];
+};
+
+
+export type MutationUpdateMentorProfileArgs = {
+  input: UpdateMentorProfileInput;
 };
 
 
@@ -2083,6 +2211,77 @@ export type Pdl1Biomarker = {
   tps?: Maybe<Scalars['Float']['output']>;
 };
 
+export type PeerConnection = {
+  __typename?: 'PeerConnection';
+  completedAt?: Maybe<Scalars['String']['output']>;
+  createdAt: Scalars['String']['output'];
+  endedAt?: Maybe<Scalars['String']['output']>;
+  feedbackComment?: Maybe<Scalars['String']['output']>;
+  id: Scalars['String']['output'];
+  matchReasons: Array<Scalars['String']['output']>;
+  matchScore: Scalars['Float']['output'];
+  menteePatient?: Maybe<Patient>;
+  menteePatientId: Scalars['String']['output'];
+  menteeRating?: Maybe<Scalars['Float']['output']>;
+  mentorProfile?: Maybe<PeerMentorProfile>;
+  mentorProfileId: Scalars['String']['output'];
+  mentorRating?: Maybe<Scalars['Float']['output']>;
+  pausedAt?: Maybe<Scalars['String']['output']>;
+  role?: Maybe<Scalars['String']['output']>;
+  safetyFlag: Scalars['Boolean']['output'];
+  status: Scalars['String']['output'];
+};
+
+export type PeerMatchResult = {
+  __typename?: 'PeerMatchResult';
+  matchReasons: Array<Scalars['String']['output']>;
+  matchScore: Scalars['Float']['output'];
+  mentorProfileId: Scalars['String']['output'];
+  summary: PeerMentorSummary;
+};
+
+export type PeerMentorProfile = {
+  __typename?: 'PeerMentorProfile';
+  availableHours?: Maybe<Scalars['String']['output']>;
+  averageRating?: Maybe<Scalars['Float']['output']>;
+  bio?: Maybe<Scalars['String']['output']>;
+  comfortableDiscussing: Array<Scalars['String']['output']>;
+  communicationPreference?: Maybe<Scalars['String']['output']>;
+  createdAt: Scalars['String']['output'];
+  id: Scalars['String']['output'];
+  isTrained: Scalars['Boolean']['output'];
+  maxMentees: Scalars['Int']['output'];
+  notComfortableWith: Array<Scalars['String']['output']>;
+  patientId: Scalars['String']['output'];
+  status: Scalars['String']['output'];
+  totalMenteesSupported: Scalars['Int']['output'];
+  verifiedAt?: Maybe<Scalars['String']['output']>;
+};
+
+export type PeerMentorSummary = {
+  __typename?: 'PeerMentorSummary';
+  ageRange: Scalars['String']['output'];
+  averageRating?: Maybe<Scalars['Float']['output']>;
+  bio?: Maybe<Scalars['String']['output']>;
+  comfortableDiscussing: Array<Scalars['String']['output']>;
+  diagnosisType: Scalars['String']['output'];
+  displayName: Scalars['String']['output'];
+  totalMenteesSupported: Scalars['Int']['output'];
+  treatmentPhase: Scalars['String']['output'];
+};
+
+export type PeerMessage = {
+  __typename?: 'PeerMessage';
+  connectionId: Scalars['String']['output'];
+  content: Scalars['String']['output'];
+  flagged?: Maybe<Scalars['Boolean']['output']>;
+  id: Scalars['String']['output'];
+  isOwnMessage: Scalars['Boolean']['output'];
+  readAt?: Maybe<Scalars['String']['output']>;
+  senderPatientId: Scalars['String']['output'];
+  sentAt: Scalars['String']['output'];
+};
+
 export type PeerReviewArgument = {
   __typename?: 'PeerReviewArgument';
   argument: Scalars['String']['output'];
@@ -2097,6 +2296,16 @@ export type PeerReviewPrep = {
   keyPoints: Array<Scalars['String']['output']>;
   reviewerQuestions: Array<Scalars['String']['output']>;
   tips: Array<Scalars['String']['output']>;
+};
+
+export type PeerSafetyReport = {
+  __typename?: 'PeerSafetyReport';
+  concernDescription?: Maybe<Scalars['String']['output']>;
+  concernType?: Maybe<Scalars['String']['output']>;
+  id: Scalars['String']['output'];
+  safetyFlag: Scalars['Boolean']['output'];
+  safetyNotes?: Maybe<Scalars['String']['output']>;
+  status: Scalars['String']['output'];
 };
 
 export type PersonalizedFeedFilters = {
@@ -2360,6 +2569,8 @@ export type Query = {
   matchDelta?: Maybe<MatchDelta>;
   matches: Array<Match>;
   me?: Maybe<SessionData>;
+  mentorStats?: Maybe<MentorStats>;
+  mentorTrainingModules: Array<MentorTrainingModule>;
   monitoringReports: Array<MonitoringReport>;
   monitoringSchedule: Array<MonitoringScheduleEntry>;
   neoantigenTrials: Array<NeoantigenTrialMatch>;
@@ -2370,6 +2581,11 @@ export type Query = {
   palliativeCareProviders: Array<PalliativeCareProvider>;
   patient?: Maybe<Patient>;
   patientProfile?: Maybe<PatientProfile>;
+  peerConnection?: Maybe<PeerConnection>;
+  peerConnections: Array<PeerConnection>;
+  peerMatches: Array<PeerMatchResult>;
+  peerMentorProfile?: Maybe<PeerMentorProfile>;
+  peerMessages: Array<PeerMessage>;
   personalizedFeed: PersonalizedFeedResponse;
   personalizedNote: PersonalizedNote;
   pipelineJob?: Maybe<PipelineJob>;
@@ -2619,6 +2835,18 @@ export type QueryOncologistBriefArgs = {
 
 export type QueryPalliativeCareProvidersArgs = {
   filters?: InputMaybe<PalliativeProviderFilters>;
+};
+
+
+export type QueryPeerConnectionArgs = {
+  connectionId: Scalars['String']['input'];
+};
+
+
+export type QueryPeerMessagesArgs = {
+  before?: InputMaybe<Scalars['String']['input']>;
+  connectionId: Scalars['String']['input'];
+  limit?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -3128,6 +3356,17 @@ export type SelectCenterInput = {
   isVirtual: Scalars['Boolean']['input'];
 };
 
+export type SendMessageResult = {
+  __typename?: 'SendMessageResult';
+  crisisAlert?: Maybe<CrisisAlert>;
+  message: PeerMessage;
+};
+
+export type SendPeerMessageInput = {
+  connectionId: Scalars['String']['input'];
+  content: Scalars['String']['input'];
+};
+
 export type SequencingExplanation = {
   __typename?: 'SequencingExplanation';
   commonConcerns: Array<CommonConcern>;
@@ -3444,6 +3683,13 @@ export type TmbBiomarker = {
   value: Scalars['Float']['output'];
 };
 
+export type TrainingModuleResult = {
+  __typename?: 'TrainingModuleResult';
+  allComplete: Scalars['Boolean']['output'];
+  completed: Scalars['Boolean']['output'];
+  moduleId: Scalars['String']['output'];
+};
+
 export type TranslatorUpdateCheck = {
   __typename?: 'TranslatorUpdateCheck';
   count: Scalars['Int']['output'];
@@ -3576,6 +3822,15 @@ export type UpdateFertilityOutcomeInput = {
   preservationCompleted?: InputMaybe<Scalars['Boolean']['input']>;
   preservationMethod?: InputMaybe<Scalars['String']['input']>;
   preservationPursued?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+export type UpdateMentorProfileInput = {
+  availableHours?: InputMaybe<Scalars['String']['input']>;
+  bio?: InputMaybe<Scalars['String']['input']>;
+  comfortableDiscussing?: InputMaybe<Array<Scalars['String']['input']>>;
+  communicationPreference?: InputMaybe<Scalars['String']['input']>;
+  maxMentees?: InputMaybe<Scalars['Int']['input']>;
+  notComfortableWith?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
 export type UpdateNotificationPreferenceInput = {
@@ -4616,6 +4871,145 @@ export type ExtractDocumentsMutationVariables = Exact<{
 
 
 export type ExtractDocumentsMutation = { __typename?: 'Mutation', extractDocuments: { __typename?: 'ExtractionResult', status: string, profile?: Record<string, unknown> | null, fieldSources?: Record<string, unknown> | null, fieldConfidence?: Record<string, unknown> | null, extractions?: Record<string, unknown> | null, claudeApiCost?: number | null, error?: string | null } };
+
+export type GetPeerMentorProfileQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetPeerMentorProfileQuery = { __typename?: 'Query', peerMentorProfile?: { __typename?: 'PeerMentorProfile', id: string, patientId: string, status: string, isTrained: boolean, bio?: string | null, maxMentees: number, availableHours?: string | null, communicationPreference?: string | null, comfortableDiscussing: Array<string>, notComfortableWith: Array<string>, totalMenteesSupported: number, averageRating?: number | null, verifiedAt?: string | null, createdAt: string } | null };
+
+export type GetPeerMatchesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetPeerMatchesQuery = { __typename?: 'Query', peerMatches: Array<{ __typename?: 'PeerMatchResult', mentorProfileId: string, matchScore: number, matchReasons: Array<string>, summary: { __typename?: 'PeerMentorSummary', displayName: string, ageRange: string, diagnosisType: string, treatmentPhase: string, bio?: string | null, comfortableDiscussing: Array<string>, totalMenteesSupported: number, averageRating?: number | null } }> };
+
+export type GetPeerConnectionsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetPeerConnectionsQuery = { __typename?: 'Query', peerConnections: Array<{ __typename?: 'PeerConnection', id: string, mentorProfileId: string, menteePatientId: string, matchScore: number, matchReasons: Array<string>, status: string, role?: string | null, safetyFlag: boolean, mentorRating?: number | null, menteeRating?: number | null, feedbackComment?: string | null, pausedAt?: string | null, completedAt?: string | null, endedAt?: string | null, createdAt: string }> };
+
+export type GetPeerConnectionQueryVariables = Exact<{
+  connectionId: Scalars['String']['input'];
+}>;
+
+
+export type GetPeerConnectionQuery = { __typename?: 'Query', peerConnection?: { __typename?: 'PeerConnection', id: string, mentorProfileId: string, menteePatientId: string, matchScore: number, matchReasons: Array<string>, status: string, role?: string | null, safetyFlag: boolean, mentorRating?: number | null, menteeRating?: number | null, feedbackComment?: string | null, pausedAt?: string | null, completedAt?: string | null, endedAt?: string | null, createdAt: string } | null };
+
+export type GetMentorTrainingModulesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetMentorTrainingModulesQuery = { __typename?: 'Query', mentorTrainingModules: Array<{ __typename?: 'MentorTrainingModule', id: string, title: string, description: string, estimatedMinutes: number, completed: boolean, completedAt?: string | null }> };
+
+export type GetPeerMessagesQueryVariables = Exact<{
+  connectionId: Scalars['String']['input'];
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type GetPeerMessagesQuery = { __typename?: 'Query', peerMessages: Array<{ __typename?: 'PeerMessage', id: string, connectionId: string, senderPatientId: string, content: string, sentAt: string, readAt?: string | null, isOwnMessage: boolean, flagged?: boolean | null }> };
+
+export type GetMentorStatsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetMentorStatsQuery = { __typename?: 'Query', mentorStats?: { __typename?: 'MentorStats', totalMenteesSupported: number, activeConnections: number, averageRating?: number | null, totalMessages: number, modulesCompleted: number } | null };
+
+export type EnrollAsMentorMutationVariables = Exact<{
+  input: EnrollMentorInput;
+}>;
+
+
+export type EnrollAsMentorMutation = { __typename?: 'Mutation', enrollAsMentor: { __typename?: 'PeerMentorProfile', id: string, patientId: string, status: string, isTrained: boolean, bio?: string | null, maxMentees: number, comfortableDiscussing: Array<string>, notComfortableWith: Array<string>, createdAt: string } };
+
+export type UpdateMentorProfileMutationVariables = Exact<{
+  input: UpdateMentorProfileInput;
+}>;
+
+
+export type UpdateMentorProfileMutation = { __typename?: 'Mutation', updateMentorProfile: { __typename?: 'PeerMentorProfile', id: string, bio?: string | null, maxMentees: number, availableHours?: string | null, communicationPreference?: string | null, comfortableDiscussing: Array<string>, notComfortableWith: Array<string> } };
+
+export type ProposeConnectionMutationVariables = Exact<{
+  mentorProfileId: Scalars['String']['input'];
+}>;
+
+
+export type ProposeConnectionMutation = { __typename?: 'Mutation', proposeConnection: { __typename?: 'PeerConnection', id: string, mentorProfileId: string, menteePatientId: string, matchScore: number, matchReasons: Array<string>, status: string, createdAt: string } };
+
+export type RespondToConnectionMutationVariables = Exact<{
+  connectionId: Scalars['String']['input'];
+  accept: Scalars['Boolean']['input'];
+}>;
+
+
+export type RespondToConnectionMutation = { __typename?: 'Mutation', respondToConnection: { __typename?: 'PeerConnection', id: string, status: string } };
+
+export type CompleteTrainingModuleMutationVariables = Exact<{
+  moduleId: Scalars['String']['input'];
+}>;
+
+
+export type CompleteTrainingModuleMutation = { __typename?: 'Mutation', completeTrainingModule: { __typename?: 'TrainingModuleResult', moduleId: string, completed: boolean, allComplete: boolean } };
+
+export type SendPeerMessageMutationVariables = Exact<{
+  input: SendPeerMessageInput;
+}>;
+
+
+export type SendPeerMessageMutation = { __typename?: 'Mutation', sendPeerMessage: { __typename?: 'SendMessageResult', message: { __typename?: 'PeerMessage', id: string, connectionId: string, senderPatientId: string, content: string, sentAt: string, readAt?: string | null, isOwnMessage: boolean, flagged?: boolean | null }, crisisAlert?: { __typename?: 'CrisisAlert', detected: boolean, message: string, resources: Array<{ __typename?: 'CrisisResource', name: string, phone: string, description: string, available: string }> } | null } };
+
+export type MarkPeerMessagesReadMutationVariables = Exact<{
+  connectionId: Scalars['String']['input'];
+}>;
+
+
+export type MarkPeerMessagesReadMutation = { __typename?: 'Mutation', markPeerMessagesRead: boolean };
+
+export type PauseConnectionMutationVariables = Exact<{
+  connectionId: Scalars['String']['input'];
+  reason?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type PauseConnectionMutation = { __typename?: 'Mutation', pauseConnection: { __typename?: 'PeerConnection', id: string, status: string, pausedAt?: string | null } };
+
+export type ResumeConnectionMutationVariables = Exact<{
+  connectionId: Scalars['String']['input'];
+}>;
+
+
+export type ResumeConnectionMutation = { __typename?: 'Mutation', resumeConnection: { __typename?: 'PeerConnection', id: string, status: string } };
+
+export type CompleteConnectionMutationVariables = Exact<{
+  connectionId: Scalars['String']['input'];
+}>;
+
+
+export type CompleteConnectionMutation = { __typename?: 'Mutation', completeConnection: { __typename?: 'PeerConnection', id: string, status: string, completedAt?: string | null } };
+
+export type EndConnectionMutationVariables = Exact<{
+  connectionId: Scalars['String']['input'];
+  reason?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type EndConnectionMutation = { __typename?: 'Mutation', endConnection: { __typename?: 'PeerConnection', id: string, status: string, endedAt?: string | null } };
+
+export type SubmitConnectionFeedbackMutationVariables = Exact<{
+  connectionId: Scalars['String']['input'];
+  rating: Scalars['Float']['input'];
+  comment?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type SubmitConnectionFeedbackMutation = { __typename?: 'Mutation', submitConnectionFeedback: { __typename?: 'PeerConnection', id: string, mentorRating?: number | null, menteeRating?: number | null, feedbackComment?: string | null } };
+
+export type ReportPeerConcernMutationVariables = Exact<{
+  connectionId: Scalars['String']['input'];
+  concernType: Scalars['String']['input'];
+  description: Scalars['String']['input'];
+}>;
+
+
+export type ReportPeerConcernMutation = { __typename?: 'Mutation', reportPeerConcern: { __typename?: 'PeerConnection', id: string, safetyFlag: boolean } };
 
 export type GetPipelineJobsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -12314,6 +12708,868 @@ export function useExtractDocumentsMutation(baseOptions?: Apollo.MutationHookOpt
 export type ExtractDocumentsMutationHookResult = ReturnType<typeof useExtractDocumentsMutation>;
 export type ExtractDocumentsMutationResult = Apollo.MutationResult<ExtractDocumentsMutation>;
 export type ExtractDocumentsMutationOptions = Apollo.BaseMutationOptions<ExtractDocumentsMutation, ExtractDocumentsMutationVariables>;
+export const GetPeerMentorProfileDocument = gql`
+    query GetPeerMentorProfile {
+  peerMentorProfile {
+    id
+    patientId
+    status
+    isTrained
+    bio
+    maxMentees
+    availableHours
+    communicationPreference
+    comfortableDiscussing
+    notComfortableWith
+    totalMenteesSupported
+    averageRating
+    verifiedAt
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useGetPeerMentorProfileQuery__
+ *
+ * To run a query within a React component, call `useGetPeerMentorProfileQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetPeerMentorProfileQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPeerMentorProfileQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetPeerMentorProfileQuery(baseOptions?: Apollo.QueryHookOptions<GetPeerMentorProfileQuery, GetPeerMentorProfileQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetPeerMentorProfileQuery, GetPeerMentorProfileQueryVariables>(GetPeerMentorProfileDocument, options);
+      }
+export function useGetPeerMentorProfileLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetPeerMentorProfileQuery, GetPeerMentorProfileQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetPeerMentorProfileQuery, GetPeerMentorProfileQueryVariables>(GetPeerMentorProfileDocument, options);
+        }
+// @ts-ignore
+export function useGetPeerMentorProfileSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetPeerMentorProfileQuery, GetPeerMentorProfileQueryVariables>): Apollo.UseSuspenseQueryResult<GetPeerMentorProfileQuery, GetPeerMentorProfileQueryVariables>;
+export function useGetPeerMentorProfileSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetPeerMentorProfileQuery, GetPeerMentorProfileQueryVariables>): Apollo.UseSuspenseQueryResult<GetPeerMentorProfileQuery | undefined, GetPeerMentorProfileQueryVariables>;
+export function useGetPeerMentorProfileSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetPeerMentorProfileQuery, GetPeerMentorProfileQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetPeerMentorProfileQuery, GetPeerMentorProfileQueryVariables>(GetPeerMentorProfileDocument, options);
+        }
+export type GetPeerMentorProfileQueryHookResult = ReturnType<typeof useGetPeerMentorProfileQuery>;
+export type GetPeerMentorProfileLazyQueryHookResult = ReturnType<typeof useGetPeerMentorProfileLazyQuery>;
+export type GetPeerMentorProfileSuspenseQueryHookResult = ReturnType<typeof useGetPeerMentorProfileSuspenseQuery>;
+export type GetPeerMentorProfileQueryResult = Apollo.QueryResult<GetPeerMentorProfileQuery, GetPeerMentorProfileQueryVariables>;
+export const GetPeerMatchesDocument = gql`
+    query GetPeerMatches {
+  peerMatches {
+    mentorProfileId
+    matchScore
+    matchReasons
+    summary {
+      displayName
+      ageRange
+      diagnosisType
+      treatmentPhase
+      bio
+      comfortableDiscussing
+      totalMenteesSupported
+      averageRating
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetPeerMatchesQuery__
+ *
+ * To run a query within a React component, call `useGetPeerMatchesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetPeerMatchesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPeerMatchesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetPeerMatchesQuery(baseOptions?: Apollo.QueryHookOptions<GetPeerMatchesQuery, GetPeerMatchesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetPeerMatchesQuery, GetPeerMatchesQueryVariables>(GetPeerMatchesDocument, options);
+      }
+export function useGetPeerMatchesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetPeerMatchesQuery, GetPeerMatchesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetPeerMatchesQuery, GetPeerMatchesQueryVariables>(GetPeerMatchesDocument, options);
+        }
+// @ts-ignore
+export function useGetPeerMatchesSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetPeerMatchesQuery, GetPeerMatchesQueryVariables>): Apollo.UseSuspenseQueryResult<GetPeerMatchesQuery, GetPeerMatchesQueryVariables>;
+export function useGetPeerMatchesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetPeerMatchesQuery, GetPeerMatchesQueryVariables>): Apollo.UseSuspenseQueryResult<GetPeerMatchesQuery | undefined, GetPeerMatchesQueryVariables>;
+export function useGetPeerMatchesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetPeerMatchesQuery, GetPeerMatchesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetPeerMatchesQuery, GetPeerMatchesQueryVariables>(GetPeerMatchesDocument, options);
+        }
+export type GetPeerMatchesQueryHookResult = ReturnType<typeof useGetPeerMatchesQuery>;
+export type GetPeerMatchesLazyQueryHookResult = ReturnType<typeof useGetPeerMatchesLazyQuery>;
+export type GetPeerMatchesSuspenseQueryHookResult = ReturnType<typeof useGetPeerMatchesSuspenseQuery>;
+export type GetPeerMatchesQueryResult = Apollo.QueryResult<GetPeerMatchesQuery, GetPeerMatchesQueryVariables>;
+export const GetPeerConnectionsDocument = gql`
+    query GetPeerConnections {
+  peerConnections {
+    id
+    mentorProfileId
+    menteePatientId
+    matchScore
+    matchReasons
+    status
+    role
+    safetyFlag
+    mentorRating
+    menteeRating
+    feedbackComment
+    pausedAt
+    completedAt
+    endedAt
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useGetPeerConnectionsQuery__
+ *
+ * To run a query within a React component, call `useGetPeerConnectionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetPeerConnectionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPeerConnectionsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetPeerConnectionsQuery(baseOptions?: Apollo.QueryHookOptions<GetPeerConnectionsQuery, GetPeerConnectionsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetPeerConnectionsQuery, GetPeerConnectionsQueryVariables>(GetPeerConnectionsDocument, options);
+      }
+export function useGetPeerConnectionsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetPeerConnectionsQuery, GetPeerConnectionsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetPeerConnectionsQuery, GetPeerConnectionsQueryVariables>(GetPeerConnectionsDocument, options);
+        }
+// @ts-ignore
+export function useGetPeerConnectionsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetPeerConnectionsQuery, GetPeerConnectionsQueryVariables>): Apollo.UseSuspenseQueryResult<GetPeerConnectionsQuery, GetPeerConnectionsQueryVariables>;
+export function useGetPeerConnectionsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetPeerConnectionsQuery, GetPeerConnectionsQueryVariables>): Apollo.UseSuspenseQueryResult<GetPeerConnectionsQuery | undefined, GetPeerConnectionsQueryVariables>;
+export function useGetPeerConnectionsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetPeerConnectionsQuery, GetPeerConnectionsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetPeerConnectionsQuery, GetPeerConnectionsQueryVariables>(GetPeerConnectionsDocument, options);
+        }
+export type GetPeerConnectionsQueryHookResult = ReturnType<typeof useGetPeerConnectionsQuery>;
+export type GetPeerConnectionsLazyQueryHookResult = ReturnType<typeof useGetPeerConnectionsLazyQuery>;
+export type GetPeerConnectionsSuspenseQueryHookResult = ReturnType<typeof useGetPeerConnectionsSuspenseQuery>;
+export type GetPeerConnectionsQueryResult = Apollo.QueryResult<GetPeerConnectionsQuery, GetPeerConnectionsQueryVariables>;
+export const GetPeerConnectionDocument = gql`
+    query GetPeerConnection($connectionId: String!) {
+  peerConnection(connectionId: $connectionId) {
+    id
+    mentorProfileId
+    menteePatientId
+    matchScore
+    matchReasons
+    status
+    role
+    safetyFlag
+    mentorRating
+    menteeRating
+    feedbackComment
+    pausedAt
+    completedAt
+    endedAt
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useGetPeerConnectionQuery__
+ *
+ * To run a query within a React component, call `useGetPeerConnectionQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetPeerConnectionQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPeerConnectionQuery({
+ *   variables: {
+ *      connectionId: // value for 'connectionId'
+ *   },
+ * });
+ */
+export function useGetPeerConnectionQuery(baseOptions: Apollo.QueryHookOptions<GetPeerConnectionQuery, GetPeerConnectionQueryVariables> & ({ variables: GetPeerConnectionQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetPeerConnectionQuery, GetPeerConnectionQueryVariables>(GetPeerConnectionDocument, options);
+      }
+export function useGetPeerConnectionLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetPeerConnectionQuery, GetPeerConnectionQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetPeerConnectionQuery, GetPeerConnectionQueryVariables>(GetPeerConnectionDocument, options);
+        }
+// @ts-ignore
+export function useGetPeerConnectionSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetPeerConnectionQuery, GetPeerConnectionQueryVariables>): Apollo.UseSuspenseQueryResult<GetPeerConnectionQuery, GetPeerConnectionQueryVariables>;
+export function useGetPeerConnectionSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetPeerConnectionQuery, GetPeerConnectionQueryVariables>): Apollo.UseSuspenseQueryResult<GetPeerConnectionQuery | undefined, GetPeerConnectionQueryVariables>;
+export function useGetPeerConnectionSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetPeerConnectionQuery, GetPeerConnectionQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetPeerConnectionQuery, GetPeerConnectionQueryVariables>(GetPeerConnectionDocument, options);
+        }
+export type GetPeerConnectionQueryHookResult = ReturnType<typeof useGetPeerConnectionQuery>;
+export type GetPeerConnectionLazyQueryHookResult = ReturnType<typeof useGetPeerConnectionLazyQuery>;
+export type GetPeerConnectionSuspenseQueryHookResult = ReturnType<typeof useGetPeerConnectionSuspenseQuery>;
+export type GetPeerConnectionQueryResult = Apollo.QueryResult<GetPeerConnectionQuery, GetPeerConnectionQueryVariables>;
+export const GetMentorTrainingModulesDocument = gql`
+    query GetMentorTrainingModules {
+  mentorTrainingModules {
+    id
+    title
+    description
+    estimatedMinutes
+    completed
+    completedAt
+  }
+}
+    `;
+
+/**
+ * __useGetMentorTrainingModulesQuery__
+ *
+ * To run a query within a React component, call `useGetMentorTrainingModulesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetMentorTrainingModulesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetMentorTrainingModulesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetMentorTrainingModulesQuery(baseOptions?: Apollo.QueryHookOptions<GetMentorTrainingModulesQuery, GetMentorTrainingModulesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetMentorTrainingModulesQuery, GetMentorTrainingModulesQueryVariables>(GetMentorTrainingModulesDocument, options);
+      }
+export function useGetMentorTrainingModulesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetMentorTrainingModulesQuery, GetMentorTrainingModulesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetMentorTrainingModulesQuery, GetMentorTrainingModulesQueryVariables>(GetMentorTrainingModulesDocument, options);
+        }
+// @ts-ignore
+export function useGetMentorTrainingModulesSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetMentorTrainingModulesQuery, GetMentorTrainingModulesQueryVariables>): Apollo.UseSuspenseQueryResult<GetMentorTrainingModulesQuery, GetMentorTrainingModulesQueryVariables>;
+export function useGetMentorTrainingModulesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetMentorTrainingModulesQuery, GetMentorTrainingModulesQueryVariables>): Apollo.UseSuspenseQueryResult<GetMentorTrainingModulesQuery | undefined, GetMentorTrainingModulesQueryVariables>;
+export function useGetMentorTrainingModulesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetMentorTrainingModulesQuery, GetMentorTrainingModulesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetMentorTrainingModulesQuery, GetMentorTrainingModulesQueryVariables>(GetMentorTrainingModulesDocument, options);
+        }
+export type GetMentorTrainingModulesQueryHookResult = ReturnType<typeof useGetMentorTrainingModulesQuery>;
+export type GetMentorTrainingModulesLazyQueryHookResult = ReturnType<typeof useGetMentorTrainingModulesLazyQuery>;
+export type GetMentorTrainingModulesSuspenseQueryHookResult = ReturnType<typeof useGetMentorTrainingModulesSuspenseQuery>;
+export type GetMentorTrainingModulesQueryResult = Apollo.QueryResult<GetMentorTrainingModulesQuery, GetMentorTrainingModulesQueryVariables>;
+export const GetPeerMessagesDocument = gql`
+    query GetPeerMessages($connectionId: String!, $limit: Int, $before: String) {
+  peerMessages(connectionId: $connectionId, limit: $limit, before: $before) {
+    id
+    connectionId
+    senderPatientId
+    content
+    sentAt
+    readAt
+    isOwnMessage
+    flagged
+  }
+}
+    `;
+
+/**
+ * __useGetPeerMessagesQuery__
+ *
+ * To run a query within a React component, call `useGetPeerMessagesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetPeerMessagesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPeerMessagesQuery({
+ *   variables: {
+ *      connectionId: // value for 'connectionId'
+ *      limit: // value for 'limit'
+ *      before: // value for 'before'
+ *   },
+ * });
+ */
+export function useGetPeerMessagesQuery(baseOptions: Apollo.QueryHookOptions<GetPeerMessagesQuery, GetPeerMessagesQueryVariables> & ({ variables: GetPeerMessagesQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetPeerMessagesQuery, GetPeerMessagesQueryVariables>(GetPeerMessagesDocument, options);
+      }
+export function useGetPeerMessagesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetPeerMessagesQuery, GetPeerMessagesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetPeerMessagesQuery, GetPeerMessagesQueryVariables>(GetPeerMessagesDocument, options);
+        }
+// @ts-ignore
+export function useGetPeerMessagesSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetPeerMessagesQuery, GetPeerMessagesQueryVariables>): Apollo.UseSuspenseQueryResult<GetPeerMessagesQuery, GetPeerMessagesQueryVariables>;
+export function useGetPeerMessagesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetPeerMessagesQuery, GetPeerMessagesQueryVariables>): Apollo.UseSuspenseQueryResult<GetPeerMessagesQuery | undefined, GetPeerMessagesQueryVariables>;
+export function useGetPeerMessagesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetPeerMessagesQuery, GetPeerMessagesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetPeerMessagesQuery, GetPeerMessagesQueryVariables>(GetPeerMessagesDocument, options);
+        }
+export type GetPeerMessagesQueryHookResult = ReturnType<typeof useGetPeerMessagesQuery>;
+export type GetPeerMessagesLazyQueryHookResult = ReturnType<typeof useGetPeerMessagesLazyQuery>;
+export type GetPeerMessagesSuspenseQueryHookResult = ReturnType<typeof useGetPeerMessagesSuspenseQuery>;
+export type GetPeerMessagesQueryResult = Apollo.QueryResult<GetPeerMessagesQuery, GetPeerMessagesQueryVariables>;
+export const GetMentorStatsDocument = gql`
+    query GetMentorStats {
+  mentorStats {
+    totalMenteesSupported
+    activeConnections
+    averageRating
+    totalMessages
+    modulesCompleted
+  }
+}
+    `;
+
+/**
+ * __useGetMentorStatsQuery__
+ *
+ * To run a query within a React component, call `useGetMentorStatsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetMentorStatsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetMentorStatsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetMentorStatsQuery(baseOptions?: Apollo.QueryHookOptions<GetMentorStatsQuery, GetMentorStatsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetMentorStatsQuery, GetMentorStatsQueryVariables>(GetMentorStatsDocument, options);
+      }
+export function useGetMentorStatsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetMentorStatsQuery, GetMentorStatsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetMentorStatsQuery, GetMentorStatsQueryVariables>(GetMentorStatsDocument, options);
+        }
+// @ts-ignore
+export function useGetMentorStatsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetMentorStatsQuery, GetMentorStatsQueryVariables>): Apollo.UseSuspenseQueryResult<GetMentorStatsQuery, GetMentorStatsQueryVariables>;
+export function useGetMentorStatsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetMentorStatsQuery, GetMentorStatsQueryVariables>): Apollo.UseSuspenseQueryResult<GetMentorStatsQuery | undefined, GetMentorStatsQueryVariables>;
+export function useGetMentorStatsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetMentorStatsQuery, GetMentorStatsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetMentorStatsQuery, GetMentorStatsQueryVariables>(GetMentorStatsDocument, options);
+        }
+export type GetMentorStatsQueryHookResult = ReturnType<typeof useGetMentorStatsQuery>;
+export type GetMentorStatsLazyQueryHookResult = ReturnType<typeof useGetMentorStatsLazyQuery>;
+export type GetMentorStatsSuspenseQueryHookResult = ReturnType<typeof useGetMentorStatsSuspenseQuery>;
+export type GetMentorStatsQueryResult = Apollo.QueryResult<GetMentorStatsQuery, GetMentorStatsQueryVariables>;
+export const EnrollAsMentorDocument = gql`
+    mutation EnrollAsMentor($input: EnrollMentorInput!) {
+  enrollAsMentor(input: $input) {
+    id
+    patientId
+    status
+    isTrained
+    bio
+    maxMentees
+    comfortableDiscussing
+    notComfortableWith
+    createdAt
+  }
+}
+    `;
+export type EnrollAsMentorMutationFn = Apollo.MutationFunction<EnrollAsMentorMutation, EnrollAsMentorMutationVariables>;
+
+/**
+ * __useEnrollAsMentorMutation__
+ *
+ * To run a mutation, you first call `useEnrollAsMentorMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useEnrollAsMentorMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [enrollAsMentorMutation, { data, loading, error }] = useEnrollAsMentorMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useEnrollAsMentorMutation(baseOptions?: Apollo.MutationHookOptions<EnrollAsMentorMutation, EnrollAsMentorMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<EnrollAsMentorMutation, EnrollAsMentorMutationVariables>(EnrollAsMentorDocument, options);
+      }
+export type EnrollAsMentorMutationHookResult = ReturnType<typeof useEnrollAsMentorMutation>;
+export type EnrollAsMentorMutationResult = Apollo.MutationResult<EnrollAsMentorMutation>;
+export type EnrollAsMentorMutationOptions = Apollo.BaseMutationOptions<EnrollAsMentorMutation, EnrollAsMentorMutationVariables>;
+export const UpdateMentorProfileDocument = gql`
+    mutation UpdateMentorProfile($input: UpdateMentorProfileInput!) {
+  updateMentorProfile(input: $input) {
+    id
+    bio
+    maxMentees
+    availableHours
+    communicationPreference
+    comfortableDiscussing
+    notComfortableWith
+  }
+}
+    `;
+export type UpdateMentorProfileMutationFn = Apollo.MutationFunction<UpdateMentorProfileMutation, UpdateMentorProfileMutationVariables>;
+
+/**
+ * __useUpdateMentorProfileMutation__
+ *
+ * To run a mutation, you first call `useUpdateMentorProfileMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateMentorProfileMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateMentorProfileMutation, { data, loading, error }] = useUpdateMentorProfileMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUpdateMentorProfileMutation(baseOptions?: Apollo.MutationHookOptions<UpdateMentorProfileMutation, UpdateMentorProfileMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateMentorProfileMutation, UpdateMentorProfileMutationVariables>(UpdateMentorProfileDocument, options);
+      }
+export type UpdateMentorProfileMutationHookResult = ReturnType<typeof useUpdateMentorProfileMutation>;
+export type UpdateMentorProfileMutationResult = Apollo.MutationResult<UpdateMentorProfileMutation>;
+export type UpdateMentorProfileMutationOptions = Apollo.BaseMutationOptions<UpdateMentorProfileMutation, UpdateMentorProfileMutationVariables>;
+export const ProposeConnectionDocument = gql`
+    mutation ProposeConnection($mentorProfileId: String!) {
+  proposeConnection(mentorProfileId: $mentorProfileId) {
+    id
+    mentorProfileId
+    menteePatientId
+    matchScore
+    matchReasons
+    status
+    createdAt
+  }
+}
+    `;
+export type ProposeConnectionMutationFn = Apollo.MutationFunction<ProposeConnectionMutation, ProposeConnectionMutationVariables>;
+
+/**
+ * __useProposeConnectionMutation__
+ *
+ * To run a mutation, you first call `useProposeConnectionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useProposeConnectionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [proposeConnectionMutation, { data, loading, error }] = useProposeConnectionMutation({
+ *   variables: {
+ *      mentorProfileId: // value for 'mentorProfileId'
+ *   },
+ * });
+ */
+export function useProposeConnectionMutation(baseOptions?: Apollo.MutationHookOptions<ProposeConnectionMutation, ProposeConnectionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ProposeConnectionMutation, ProposeConnectionMutationVariables>(ProposeConnectionDocument, options);
+      }
+export type ProposeConnectionMutationHookResult = ReturnType<typeof useProposeConnectionMutation>;
+export type ProposeConnectionMutationResult = Apollo.MutationResult<ProposeConnectionMutation>;
+export type ProposeConnectionMutationOptions = Apollo.BaseMutationOptions<ProposeConnectionMutation, ProposeConnectionMutationVariables>;
+export const RespondToConnectionDocument = gql`
+    mutation RespondToConnection($connectionId: String!, $accept: Boolean!) {
+  respondToConnection(connectionId: $connectionId, accept: $accept) {
+    id
+    status
+  }
+}
+    `;
+export type RespondToConnectionMutationFn = Apollo.MutationFunction<RespondToConnectionMutation, RespondToConnectionMutationVariables>;
+
+/**
+ * __useRespondToConnectionMutation__
+ *
+ * To run a mutation, you first call `useRespondToConnectionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRespondToConnectionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [respondToConnectionMutation, { data, loading, error }] = useRespondToConnectionMutation({
+ *   variables: {
+ *      connectionId: // value for 'connectionId'
+ *      accept: // value for 'accept'
+ *   },
+ * });
+ */
+export function useRespondToConnectionMutation(baseOptions?: Apollo.MutationHookOptions<RespondToConnectionMutation, RespondToConnectionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RespondToConnectionMutation, RespondToConnectionMutationVariables>(RespondToConnectionDocument, options);
+      }
+export type RespondToConnectionMutationHookResult = ReturnType<typeof useRespondToConnectionMutation>;
+export type RespondToConnectionMutationResult = Apollo.MutationResult<RespondToConnectionMutation>;
+export type RespondToConnectionMutationOptions = Apollo.BaseMutationOptions<RespondToConnectionMutation, RespondToConnectionMutationVariables>;
+export const CompleteTrainingModuleDocument = gql`
+    mutation CompleteTrainingModule($moduleId: String!) {
+  completeTrainingModule(moduleId: $moduleId) {
+    moduleId
+    completed
+    allComplete
+  }
+}
+    `;
+export type CompleteTrainingModuleMutationFn = Apollo.MutationFunction<CompleteTrainingModuleMutation, CompleteTrainingModuleMutationVariables>;
+
+/**
+ * __useCompleteTrainingModuleMutation__
+ *
+ * To run a mutation, you first call `useCompleteTrainingModuleMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCompleteTrainingModuleMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [completeTrainingModuleMutation, { data, loading, error }] = useCompleteTrainingModuleMutation({
+ *   variables: {
+ *      moduleId: // value for 'moduleId'
+ *   },
+ * });
+ */
+export function useCompleteTrainingModuleMutation(baseOptions?: Apollo.MutationHookOptions<CompleteTrainingModuleMutation, CompleteTrainingModuleMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CompleteTrainingModuleMutation, CompleteTrainingModuleMutationVariables>(CompleteTrainingModuleDocument, options);
+      }
+export type CompleteTrainingModuleMutationHookResult = ReturnType<typeof useCompleteTrainingModuleMutation>;
+export type CompleteTrainingModuleMutationResult = Apollo.MutationResult<CompleteTrainingModuleMutation>;
+export type CompleteTrainingModuleMutationOptions = Apollo.BaseMutationOptions<CompleteTrainingModuleMutation, CompleteTrainingModuleMutationVariables>;
+export const SendPeerMessageDocument = gql`
+    mutation SendPeerMessage($input: SendPeerMessageInput!) {
+  sendPeerMessage(input: $input) {
+    message {
+      id
+      connectionId
+      senderPatientId
+      content
+      sentAt
+      readAt
+      isOwnMessage
+      flagged
+    }
+    crisisAlert {
+      detected
+      message
+      resources {
+        name
+        phone
+        description
+        available
+      }
+    }
+  }
+}
+    `;
+export type SendPeerMessageMutationFn = Apollo.MutationFunction<SendPeerMessageMutation, SendPeerMessageMutationVariables>;
+
+/**
+ * __useSendPeerMessageMutation__
+ *
+ * To run a mutation, you first call `useSendPeerMessageMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSendPeerMessageMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [sendPeerMessageMutation, { data, loading, error }] = useSendPeerMessageMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useSendPeerMessageMutation(baseOptions?: Apollo.MutationHookOptions<SendPeerMessageMutation, SendPeerMessageMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SendPeerMessageMutation, SendPeerMessageMutationVariables>(SendPeerMessageDocument, options);
+      }
+export type SendPeerMessageMutationHookResult = ReturnType<typeof useSendPeerMessageMutation>;
+export type SendPeerMessageMutationResult = Apollo.MutationResult<SendPeerMessageMutation>;
+export type SendPeerMessageMutationOptions = Apollo.BaseMutationOptions<SendPeerMessageMutation, SendPeerMessageMutationVariables>;
+export const MarkPeerMessagesReadDocument = gql`
+    mutation MarkPeerMessagesRead($connectionId: String!) {
+  markPeerMessagesRead(connectionId: $connectionId)
+}
+    `;
+export type MarkPeerMessagesReadMutationFn = Apollo.MutationFunction<MarkPeerMessagesReadMutation, MarkPeerMessagesReadMutationVariables>;
+
+/**
+ * __useMarkPeerMessagesReadMutation__
+ *
+ * To run a mutation, you first call `useMarkPeerMessagesReadMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useMarkPeerMessagesReadMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [markPeerMessagesReadMutation, { data, loading, error }] = useMarkPeerMessagesReadMutation({
+ *   variables: {
+ *      connectionId: // value for 'connectionId'
+ *   },
+ * });
+ */
+export function useMarkPeerMessagesReadMutation(baseOptions?: Apollo.MutationHookOptions<MarkPeerMessagesReadMutation, MarkPeerMessagesReadMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<MarkPeerMessagesReadMutation, MarkPeerMessagesReadMutationVariables>(MarkPeerMessagesReadDocument, options);
+      }
+export type MarkPeerMessagesReadMutationHookResult = ReturnType<typeof useMarkPeerMessagesReadMutation>;
+export type MarkPeerMessagesReadMutationResult = Apollo.MutationResult<MarkPeerMessagesReadMutation>;
+export type MarkPeerMessagesReadMutationOptions = Apollo.BaseMutationOptions<MarkPeerMessagesReadMutation, MarkPeerMessagesReadMutationVariables>;
+export const PauseConnectionDocument = gql`
+    mutation PauseConnection($connectionId: String!, $reason: String) {
+  pauseConnection(connectionId: $connectionId, reason: $reason) {
+    id
+    status
+    pausedAt
+  }
+}
+    `;
+export type PauseConnectionMutationFn = Apollo.MutationFunction<PauseConnectionMutation, PauseConnectionMutationVariables>;
+
+/**
+ * __usePauseConnectionMutation__
+ *
+ * To run a mutation, you first call `usePauseConnectionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `usePauseConnectionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [pauseConnectionMutation, { data, loading, error }] = usePauseConnectionMutation({
+ *   variables: {
+ *      connectionId: // value for 'connectionId'
+ *      reason: // value for 'reason'
+ *   },
+ * });
+ */
+export function usePauseConnectionMutation(baseOptions?: Apollo.MutationHookOptions<PauseConnectionMutation, PauseConnectionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<PauseConnectionMutation, PauseConnectionMutationVariables>(PauseConnectionDocument, options);
+      }
+export type PauseConnectionMutationHookResult = ReturnType<typeof usePauseConnectionMutation>;
+export type PauseConnectionMutationResult = Apollo.MutationResult<PauseConnectionMutation>;
+export type PauseConnectionMutationOptions = Apollo.BaseMutationOptions<PauseConnectionMutation, PauseConnectionMutationVariables>;
+export const ResumeConnectionDocument = gql`
+    mutation ResumeConnection($connectionId: String!) {
+  resumeConnection(connectionId: $connectionId) {
+    id
+    status
+  }
+}
+    `;
+export type ResumeConnectionMutationFn = Apollo.MutationFunction<ResumeConnectionMutation, ResumeConnectionMutationVariables>;
+
+/**
+ * __useResumeConnectionMutation__
+ *
+ * To run a mutation, you first call `useResumeConnectionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useResumeConnectionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [resumeConnectionMutation, { data, loading, error }] = useResumeConnectionMutation({
+ *   variables: {
+ *      connectionId: // value for 'connectionId'
+ *   },
+ * });
+ */
+export function useResumeConnectionMutation(baseOptions?: Apollo.MutationHookOptions<ResumeConnectionMutation, ResumeConnectionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ResumeConnectionMutation, ResumeConnectionMutationVariables>(ResumeConnectionDocument, options);
+      }
+export type ResumeConnectionMutationHookResult = ReturnType<typeof useResumeConnectionMutation>;
+export type ResumeConnectionMutationResult = Apollo.MutationResult<ResumeConnectionMutation>;
+export type ResumeConnectionMutationOptions = Apollo.BaseMutationOptions<ResumeConnectionMutation, ResumeConnectionMutationVariables>;
+export const CompleteConnectionDocument = gql`
+    mutation CompleteConnection($connectionId: String!) {
+  completeConnection(connectionId: $connectionId) {
+    id
+    status
+    completedAt
+  }
+}
+    `;
+export type CompleteConnectionMutationFn = Apollo.MutationFunction<CompleteConnectionMutation, CompleteConnectionMutationVariables>;
+
+/**
+ * __useCompleteConnectionMutation__
+ *
+ * To run a mutation, you first call `useCompleteConnectionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCompleteConnectionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [completeConnectionMutation, { data, loading, error }] = useCompleteConnectionMutation({
+ *   variables: {
+ *      connectionId: // value for 'connectionId'
+ *   },
+ * });
+ */
+export function useCompleteConnectionMutation(baseOptions?: Apollo.MutationHookOptions<CompleteConnectionMutation, CompleteConnectionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CompleteConnectionMutation, CompleteConnectionMutationVariables>(CompleteConnectionDocument, options);
+      }
+export type CompleteConnectionMutationHookResult = ReturnType<typeof useCompleteConnectionMutation>;
+export type CompleteConnectionMutationResult = Apollo.MutationResult<CompleteConnectionMutation>;
+export type CompleteConnectionMutationOptions = Apollo.BaseMutationOptions<CompleteConnectionMutation, CompleteConnectionMutationVariables>;
+export const EndConnectionDocument = gql`
+    mutation EndConnection($connectionId: String!, $reason: String) {
+  endConnection(connectionId: $connectionId, reason: $reason) {
+    id
+    status
+    endedAt
+  }
+}
+    `;
+export type EndConnectionMutationFn = Apollo.MutationFunction<EndConnectionMutation, EndConnectionMutationVariables>;
+
+/**
+ * __useEndConnectionMutation__
+ *
+ * To run a mutation, you first call `useEndConnectionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useEndConnectionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [endConnectionMutation, { data, loading, error }] = useEndConnectionMutation({
+ *   variables: {
+ *      connectionId: // value for 'connectionId'
+ *      reason: // value for 'reason'
+ *   },
+ * });
+ */
+export function useEndConnectionMutation(baseOptions?: Apollo.MutationHookOptions<EndConnectionMutation, EndConnectionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<EndConnectionMutation, EndConnectionMutationVariables>(EndConnectionDocument, options);
+      }
+export type EndConnectionMutationHookResult = ReturnType<typeof useEndConnectionMutation>;
+export type EndConnectionMutationResult = Apollo.MutationResult<EndConnectionMutation>;
+export type EndConnectionMutationOptions = Apollo.BaseMutationOptions<EndConnectionMutation, EndConnectionMutationVariables>;
+export const SubmitConnectionFeedbackDocument = gql`
+    mutation SubmitConnectionFeedback($connectionId: String!, $rating: Float!, $comment: String) {
+  submitConnectionFeedback(
+    connectionId: $connectionId
+    rating: $rating
+    comment: $comment
+  ) {
+    id
+    mentorRating
+    menteeRating
+    feedbackComment
+  }
+}
+    `;
+export type SubmitConnectionFeedbackMutationFn = Apollo.MutationFunction<SubmitConnectionFeedbackMutation, SubmitConnectionFeedbackMutationVariables>;
+
+/**
+ * __useSubmitConnectionFeedbackMutation__
+ *
+ * To run a mutation, you first call `useSubmitConnectionFeedbackMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSubmitConnectionFeedbackMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [submitConnectionFeedbackMutation, { data, loading, error }] = useSubmitConnectionFeedbackMutation({
+ *   variables: {
+ *      connectionId: // value for 'connectionId'
+ *      rating: // value for 'rating'
+ *      comment: // value for 'comment'
+ *   },
+ * });
+ */
+export function useSubmitConnectionFeedbackMutation(baseOptions?: Apollo.MutationHookOptions<SubmitConnectionFeedbackMutation, SubmitConnectionFeedbackMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SubmitConnectionFeedbackMutation, SubmitConnectionFeedbackMutationVariables>(SubmitConnectionFeedbackDocument, options);
+      }
+export type SubmitConnectionFeedbackMutationHookResult = ReturnType<typeof useSubmitConnectionFeedbackMutation>;
+export type SubmitConnectionFeedbackMutationResult = Apollo.MutationResult<SubmitConnectionFeedbackMutation>;
+export type SubmitConnectionFeedbackMutationOptions = Apollo.BaseMutationOptions<SubmitConnectionFeedbackMutation, SubmitConnectionFeedbackMutationVariables>;
+export const ReportPeerConcernDocument = gql`
+    mutation ReportPeerConcern($connectionId: String!, $concernType: String!, $description: String!) {
+  reportPeerConcern(
+    connectionId: $connectionId
+    concernType: $concernType
+    description: $description
+  ) {
+    id
+    safetyFlag
+  }
+}
+    `;
+export type ReportPeerConcernMutationFn = Apollo.MutationFunction<ReportPeerConcernMutation, ReportPeerConcernMutationVariables>;
+
+/**
+ * __useReportPeerConcernMutation__
+ *
+ * To run a mutation, you first call `useReportPeerConcernMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useReportPeerConcernMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [reportPeerConcernMutation, { data, loading, error }] = useReportPeerConcernMutation({
+ *   variables: {
+ *      connectionId: // value for 'connectionId'
+ *      concernType: // value for 'concernType'
+ *      description: // value for 'description'
+ *   },
+ * });
+ */
+export function useReportPeerConcernMutation(baseOptions?: Apollo.MutationHookOptions<ReportPeerConcernMutation, ReportPeerConcernMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ReportPeerConcernMutation, ReportPeerConcernMutationVariables>(ReportPeerConcernDocument, options);
+      }
+export type ReportPeerConcernMutationHookResult = ReturnType<typeof useReportPeerConcernMutation>;
+export type ReportPeerConcernMutationResult = Apollo.MutationResult<ReportPeerConcernMutation>;
+export type ReportPeerConcernMutationOptions = Apollo.BaseMutationOptions<ReportPeerConcernMutation, ReportPeerConcernMutationVariables>;
 export const GetPipelineJobsDocument = gql`
     query GetPipelineJobs {
   pipelineJobs {

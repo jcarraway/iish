@@ -17,6 +17,7 @@ const SECTIONS = [
   { label: 'Palliative Care', route: '/palliative', icon: 'heart-half-outline' as const },
   { label: 'Research', route: '/intel', icon: 'newspaper-outline' as const },
   { label: 'Prevention & Risk', route: '/prevent', icon: 'medkit-outline' as const },
+  { label: 'Peer Support', route: '/peers', icon: 'people-outline' as const },
   { label: 'Records', route: '/dashboard/records', icon: 'document-text-outline' as const },
 ] as const;
 

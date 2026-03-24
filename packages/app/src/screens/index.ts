@@ -169,3 +169,13 @@ export { PreventEducationScreen } from './PreventEducationScreen';
 // Learn — L2 additions
 export { MyReadingPlanScreen } from './MyReadingPlanScreen';
 export { LearnAdminScreen } from './LearnAdminScreen';
+
+// PEERS — Peer Matching & Support
+export { PeersDashboardScreen } from './PeersDashboardScreen';
+export { BecomeMentorScreen } from './BecomeMentorScreen';
+export { FindMatchScreen } from './FindMatchScreen';
+export { PeerConnectionScreen } from './PeerConnectionScreen';
+export { MentorTrainingScreen } from './MentorTrainingScreen';
+export { PeerMessagesScreen } from './PeerMessagesScreen';
+export { PeerFeedbackScreen } from './PeerFeedbackScreen';
+export { PeerSafetyScreen } from './PeerSafetyScreen';

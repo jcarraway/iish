@@ -13,9 +13,9 @@ iish/
 │   │   ├── app/                # App Router — pages + 85 API route files + 3 cron endpoints
 │   │   ├── components/         # 4 web-only components (DocumentUploader, AdministrationSiteCard, AdministrationSiteMap, visualizations/)
 │   │   │   └── visualizations/ # Canvas 2D viz framework + 31 interactive scenes (VZ1-VZ4)
-│   │   └── lib/                # 62 library files (see below)
+│   │   └── lib/                # 63 library files (see below)
 │   └── mobile/                 # Expo SDK 54, React Native 0.76.9, Dripsy + Solito
-│       ├── app/                # Expo Router — 130 route files across 30 directories
+│       ├── app/                # Expo Router — 142 route files across 32 directories
 │       └── lib/                # apollo.ts (GraphQL client), auth.ts (SecureStore guard)
 ├── docker-compose.yml          # Local dev: postgres:15-alpine + redis:7-alpine
 ├── packages/
@@ -24,7 +24,7 @@ iish/
 │   │   └── src/{screens[122],components[24],providers,theme,graphql,generated,utils,index}.ts
 │   ├── api/                    # Apollo Server schema (180+ types, 113Q, 102M) + 30 resolver files (@iish/api)
 │   │   └── src/{schema,resolvers[30 files],context,index}.ts
-│   ├── db/                     # Prisma 7 + PostgreSQL (60 models)
+│   ├── db/                     # Prisma 7 + PostgreSQL (64 models)
 │   │   ├── prisma/schema.prisma
 │   │   └── prisma.config.ts    # defineConfig — url goes HERE, not in schema
 │   ├── shared/                 # Types (720+ lines), Zod schemas, constants, auth
@@ -77,9 +77,9 @@ export async function POST(req: NextRequest) {
 
 ### UI: Dripsy + Solito (Cross-Platform, Screen Migration Complete)
 - **Shared components:** 22 Dripsy components in `packages/app/src/components/` — cross-platform ready
-- **Shared screens:** 122 screens in `packages/app/src/screens/` — 46 migratable (D3-D6) + 4 survivorship (S1) + 2 surveillance (S2) + 3 journal/effects (S3) + 1 lifestyle (S4) + 2 care team (S5) + 2 ctDNA (S6) + 1 notifications (S7) + 8 recurrence (S8) + 5 fertility + 5 advocate + 5 logistics + 5 second opinion + 8 learn (L1-L4) + 4 intel (I1) + 2 community (I5) + 1 intel landscape (I6) + 3 preventive (PTM) + 5 palliative + 11 prevent
+- **Shared screens:** 130 screens in `packages/app/src/screens/` — 46 migratable (D3-D6) + 4 survivorship (S1) + 2 surveillance (S2) + 3 journal/effects (S3) + 1 lifestyle (S4) + 2 care team (S5) + 2 ctDNA (S6) + 1 notifications (S7) + 8 recurrence (S8) + 5 fertility + 5 advocate + 5 logistics + 5 second opinion + 8 learn (L1-L4) + 4 intel (I1) + 2 community (I5) + 1 intel landscape (I6) + 3 preventive (PTM) + 5 palliative + 11 prevent + 8 peers (PM1-PM2)
 - **Web pages:** Most pages are thin re-exports: `'use client'; export { XxxScreen as default } from '@iish/app';`. Exception: `/learn/[category]/[slug]/page.tsx` is a server component with `generateMetadata` + `generateStaticParams` + JSON-LD that renders a client component wrapper.
-- **Mobile routes:** All 122 screens wired via Expo Router — 130 route files across 30 directories
+- **Mobile routes:** All 130 screens wired via Expo Router — 142 route files across 32 directories
 - **Mobile tabs:** 5-tab layout (Home, Matches, Sequencing, Pipeline, More) with Ionicons
 - **Mobile auth:** `useProtectedRoute()` hook — SecureStore token check + redirect to `/auth` modal
 - **Web-only components (4):** `DocumentUploader` (File API), `AdministrationSiteCard`, `AdministrationSiteMap` (Mapbox), `visualizations/` (Canvas 2D framework + 31 interactive scenes) — kept in `apps/web/components/`
@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
 - Generator: `prisma-client` (not `prisma-client-js`), `output` field required
 - Client needs driver adapter: `new PrismaClient({ adapter: new PrismaPg({ connectionString }) })`
 - All models use `@map("snake_case")` columns and `@@map("table_names")`
-- 60 models total (51 prior + PalliativeAssessment, PalliativeCareProvider, AdvanceCarePlan from PALLIATIVE + PreventProfile, RiskAssessment, GenomicProfile, LocationHistory, ScreeningSchedule, DataConsent from PREVENT)
+- 64 models total (60 prior + PeerMentorProfile, PeerConnection, PeerMessage, MentorTrainingProgress from PEERS)
 
 ### Auth: Custom Magic Link (NOT NextAuth)
 - `jose` HS256 for JWT tokens with 15min expiry
@@ -190,11 +190,12 @@ export async function POST(req: NextRequest) {
 **PREVENT Phase 0 Foundation (P0-1 through P0-6, complete):**
 - 6 Prisma models (PreventProfile with reproductive/hormonal/lifestyle/family history fields, RiskAssessment with Gail model inputs/outputs + trajectory + modifiable factors, GenomicProfile with pathogenic/VUS variants + PRS placeholders, LocationHistory with environmental exposure fields, ScreeningSchedule with NCCN guideline-based plan, DataConsent with tiered consent levels). 4 lib files (prevent-manager.ts: profile CRUD + onboarding orchestration + family history management + genomic profile ingestion, prevent-risk-engine.ts: full Gail model implementation with SEER age-specific baselines + competing mortality + attributable risk coefficients + 5-year/10-year/lifetime projections + modifiable factor analysis + risk trajectory curves, prevent-screening.ts: NCCN screening guideline engine with risk-stratified modality selection + interval calculation + dense breast supplemental imaging + insurance coverage mapping, prevent-lifestyle.ts: Claude-generated prevention lifestyle recommendations with exercise/nutrition/alcohol/environment sections). 1 seed script (seed-palliative-providers.ts). GraphQL: 11 types + 3 inputs + 11 queries + 8 mutations, 1 resolver file (prevent.ts). 19 operations in prevent-risk.graphql. 11 shared screens (~5,900 lines — PreventOnboarding 5-step wizard, RiskDashboard with risk gauge + trajectory chart + modifiable factors, RiskFactors with detailed factor breakdown + evidence cards, PreventFamilyHistory with first/second-degree relative form + BRCA assessment + cascade testing info, PreventGenomic with testing recommendations + variant display + counselor resources, ScreeningPlanner with modality schedule + next appointment + dense breast guidance + insurance, Chemoprevention with USPSTF eligibility check + medication comparison + discussion guide, PreventEducation with structured evidence-based content, PreventLifestyle with exercise/nutrition/alcohol/environment sections, LocationHistory for environmental exposure tracking, DataContribution with tiered consent). 3 web page directories (education, onboarding, risk) + 14 mobile routes under `/prevent/`. Dashboard + HomeScreen integration. **Full Gail model with SEER baselines. NCCN screening planner. USPSTF chemoprevention thresholds. 5-step onboarding. ~40% of full spec — PRS calculation, environmental intelligence (EPA/EWG APIs), population aggregation deferred.**
 
+**Access Gap — PEERS (PM1 + PM2, complete):**
+- 4 Prisma models (PeerMentorProfile with enrollment/training/preferences/boundaries/track record, PeerConnection with match score/reasons/status lifecycle/safety flags/feedback, PeerMessage with connection-scoped messaging/read receipts/crisis flagging, MentorTrainingProgress with module completion tracking). 1 lib file (peer-manager.ts: 20 functions — enrollAsMentor with treatment-completion verification, getMentorProfile, updateMentorProfile, findMatches with deterministic multi-factor scoring algorithm, calculatePeerMatchScore 0-120+ weighted (cancer type required, subtype +30, stage +20, regimen +25, age +15, phase +20, comfort topics), generateMatchSummary privacy-preserving (age→decade range, name→first+initial), proposeConnection, respondToConnection, getConnections dual-role, getConnection with auth check, getTrainingModules 6-module curriculum, completeTrainingModule with isTrained auto-flip, sendMessage with crisis keyword detection, getMessages paginated with isOwnMessage, markMessagesRead bulk, updateConnectionStatus state machine (active→paused/completed/ended, paused→active/ended), reportConcern, submitConnectionFeedback with averageRating recomputation, getMentorStats). No AI/Claude calls — matching is deterministic, training is static, messaging is human-to-human. GraphQL: 13 types (PeerMentorProfile, PeerConnection, PeerMatchResult, PeerMentorSummary, MentorTrainingModule, TrainingModuleResult, PeerMessage, SendMessageResult, CrisisAlert, CrisisResource, MentorStats, PeerSafetyReport, ConnectionFeedback) + 3 inputs + 7 queries + 13 mutations, 1 resolver file (peers.ts), 17 context signatures, 17 route handler adapters. 20 operations in peers.graphql. 8 shared screens (PeersDashboard with mentor profile card + active/pending/past connections + quick actions, BecomeMentor with bio/preferences/boundaries/comfort topic chips, FindMatch with scored results + privacy summaries + propose button, PeerConnection with status display + accept/decline + action buttons, MentorTraining with 6-module accordion + progress bar + completion tracking, PeerMessages with 10s polling + own/partner bubble alignment + crisis modal, PeerFeedback with 5-star rating + comment, PeerSafety with crisis resources + guidelines + concern reporting form). 8 web pages under `/peers/` + 12 mobile route files. MoreScreen + SurviveDashboard integration. **No AI calls. Deterministic matching. 6-module training requirement. 10s message polling. Crisis keyword detection with resource display. Privacy-preserving match summaries. All access gap modules now complete.**
+
 ## What's NOT Built Yet
 
 **Cross-cutting:** CARE (care commerce), COOL (cold capping), ENGINE (opportunity detection).
-
-**Access gap:** PEERS.
 
 **Phase 0 — PREVENT advanced features (P0-7 to P0-21):** PRS calculation pipeline, environmental intelligence (EPA/EWG APIs, product scanner, biomarker panels), population aggregation (k-anonymity, heatmaps), location exposure scoring. Foundation (P0-1 to P0-6) is complete.
 

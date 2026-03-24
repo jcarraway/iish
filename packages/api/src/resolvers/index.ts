@@ -27,6 +27,7 @@ import { intelResolvers } from './intel';
 import { preventiveResolvers } from './preventive';
 import { palliativeResolvers } from './palliative';
 import { preventResolvers } from './prevent';
+import { peersResolvers } from './peers';
 
 /**
  * Merge all resolver maps into a single object.
@@ -76,4 +77,5 @@ export const resolvers = mergeResolvers(
   preventiveResolvers,
   palliativeResolvers,
   preventResolvers,
+  peersResolvers,
 );

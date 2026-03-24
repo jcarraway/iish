@@ -2265,6 +2265,149 @@ export const typeDefs = `#graphql
   }
 
   # ============================================================================
+  # PEERS — Peer Matching & Support
+  # ============================================================================
+
+  type PeerMentorProfile {
+    id: String!
+    patientId: String!
+    status: String!
+    isTrained: Boolean!
+    bio: String
+    maxMentees: Int!
+    availableHours: String
+    communicationPreference: String
+    comfortableDiscussing: [String!]!
+    notComfortableWith: [String!]!
+    totalMenteesSupported: Int!
+    averageRating: Float
+    verifiedAt: String
+    createdAt: String!
+  }
+
+  type PeerConnection {
+    id: String!
+    mentorProfileId: String!
+    menteePatientId: String!
+    matchScore: Float!
+    matchReasons: [String!]!
+    status: String!
+    role: String
+    safetyFlag: Boolean!
+    mentorRating: Float
+    menteeRating: Float
+    feedbackComment: String
+    pausedAt: String
+    completedAt: String
+    endedAt: String
+    createdAt: String!
+    mentorProfile: PeerMentorProfile
+    menteePatient: Patient
+  }
+
+  type PeerMatchResult {
+    mentorProfileId: String!
+    matchScore: Float!
+    matchReasons: [String!]!
+    summary: PeerMentorSummary!
+  }
+
+  type PeerMentorSummary {
+    displayName: String!
+    ageRange: String!
+    diagnosisType: String!
+    treatmentPhase: String!
+    bio: String
+    comfortableDiscussing: [String!]!
+    totalMenteesSupported: Int!
+    averageRating: Float
+  }
+
+  type MentorTrainingModule {
+    id: String!
+    title: String!
+    description: String!
+    estimatedMinutes: Int!
+    completed: Boolean!
+    completedAt: String
+  }
+
+  type TrainingModuleResult {
+    moduleId: String!
+    completed: Boolean!
+    allComplete: Boolean!
+  }
+
+  type PeerMessage {
+    id: String!
+    connectionId: String!
+    senderPatientId: String!
+    content: String!
+    sentAt: String!
+    readAt: String
+    isOwnMessage: Boolean!
+    flagged: Boolean
+  }
+
+  type SendMessageResult {
+    message: PeerMessage!
+    crisisAlert: CrisisAlert
+  }
+
+  type CrisisAlert {
+    detected: Boolean!
+    message: String!
+    resources: [CrisisResource!]!
+  }
+
+  type CrisisResource {
+    name: String!
+    phone: String!
+    description: String!
+    available: String!
+  }
+
+  type MentorStats {
+    totalMenteesSupported: Int!
+    activeConnections: Int!
+    averageRating: Float
+    totalMessages: Int!
+    modulesCompleted: Int!
+  }
+
+  type PeerSafetyReport {
+    id: String!
+    status: String!
+    safetyFlag: Boolean!
+    concernType: String
+    concernDescription: String
+    safetyNotes: String
+  }
+
+  input EnrollMentorInput {
+    bio: String
+    maxMentees: Int
+    availableHours: String
+    communicationPreference: String
+    comfortableDiscussing: [String!]
+    notComfortableWith: [String!]
+  }
+
+  input UpdateMentorProfileInput {
+    bio: String
+    maxMentees: Int
+    availableHours: String
+    communicationPreference: String
+    comfortableDiscussing: [String!]
+    notComfortableWith: [String!]
+  }
+
+  input SendPeerMessageInput {
+    connectionId: String!
+    content: String!
+  }
+
+  # ============================================================================
   # Queries
   # ============================================================================
 
@@ -2463,6 +2606,15 @@ export const typeDefs = `#graphql
     testingRecommendations: TestingRecommendation
     preventGenomicProfile: PreventGenomicProfile
     preventionLifestyle: JSON
+
+    # PEERS — Peer Support
+    peerMentorProfile: PeerMentorProfile
+    peerMatches: [PeerMatchResult!]!
+    peerConnections: [PeerConnection!]!
+    peerConnection(connectionId: String!): PeerConnection
+    mentorTrainingModules: [MentorTrainingModule!]!
+    peerMessages(connectionId: String!, limit: Int, before: String): [PeerMessage!]!
+    mentorStats: MentorStats
   }
 
   # ============================================================================
@@ -2887,5 +3039,20 @@ export const typeDefs = `#graphql
     generateChemopreventionGuide: ChemopreventionGuide!
     updateFamilyHistory(familyHistory: JSON!): PreventProfile!
     generatePreventionLifestyle: JSON!
+
+    # PEERS — Peer Support
+    enrollAsMentor(input: EnrollMentorInput!): PeerMentorProfile!
+    updateMentorProfile(input: UpdateMentorProfileInput!): PeerMentorProfile!
+    proposeConnection(mentorProfileId: String!): PeerConnection!
+    respondToConnection(connectionId: String!, accept: Boolean!): PeerConnection!
+    completeTrainingModule(moduleId: String!): TrainingModuleResult!
+    sendPeerMessage(input: SendPeerMessageInput!): SendMessageResult!
+    markPeerMessagesRead(connectionId: String!): Boolean!
+    pauseConnection(connectionId: String!, reason: String): PeerConnection!
+    resumeConnection(connectionId: String!): PeerConnection!
+    completeConnection(connectionId: String!): PeerConnection!
+    endConnection(connectionId: String!, reason: String): PeerConnection!
+    submitConnectionFeedback(connectionId: String!, rating: Float!, comment: String): PeerConnection!
+    reportPeerConcern(connectionId: String!, concernType: String!, description: String!): PeerConnection!
   }
 `;

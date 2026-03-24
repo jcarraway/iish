@@ -127,6 +127,8 @@ model Patient {
   locationHistory          LocationHistory[]
   screeningSchedule        ScreeningSchedule?
   dataConsent              DataConsent?
+  peerMentorProfile        PeerMentorProfile?
+  peerConnectionsAsMentee  PeerConnection[]    @relation("mentee")
 
   @@map("patients")
 }
@@ -1571,4 +1573,89 @@ model DataConsent {
   patient       Patient   @relation(fields: [patientId], references: [id])
 
   @@map("data_consents")
+}
+
+// ============================================================================
+// PEERS — Peer Matching & Support
+// ============================================================================
+
+model PeerMentorProfile {
+  id                      String    @id @default(uuid()) @db.Uuid
+  patientId               String    @unique @map("patient_id") @db.Uuid
+  status                  String    @default("enrolled") @map("status") @db.VarChar(30)
+  isTrained               Boolean   @default(false) @map("is_trained")
+  bio                     String?   @map("bio")
+  maxMentees              Int       @default(3) @map("max_mentees")
+  availableHours          String?   @map("available_hours") @db.VarChar(50)
+  communicationPreference String?   @map("communication_preference") @db.VarChar(30)
+  comfortableDiscussing   String[]  @default([]) @map("comfortable_discussing")
+  notComfortableWith      String[]  @default([]) @map("not_comfortable_with")
+  totalMenteesSupported   Int       @default(0) @map("total_mentees_supported")
+  averageRating           Float?    @map("average_rating")
+  verifiedAt              DateTime? @map("verified_at")
+  createdAt               DateTime  @default(now()) @map("created_at")
+  updatedAt               DateTime  @updatedAt @map("updated_at")
+
+  patient                 Patient          @relation(fields: [patientId], references: [id])
+  connections             PeerConnection[] @relation("mentor")
+  trainingProgress        MentorTrainingProgress[]
+
+  @@map("peer_mentor_profiles")
+}
+
+model PeerConnection {
+  id                String    @id @default(uuid()) @db.Uuid
+  mentorProfileId   String    @map("mentor_profile_id") @db.Uuid
+  menteePatientId   String    @map("mentee_patient_id") @db.Uuid
+  matchScore        Float     @map("match_score")
+  matchReasons      String[]  @default([]) @map("match_reasons")
+  status            String    @default("proposed") @map("status") @db.VarChar(30)
+  safetyFlag        Boolean   @default(false) @map("safety_flag")
+  safetyNotes       String?   @map("safety_notes")
+  concernType       String?   @map("concern_type") @db.VarChar(50)
+  concernDescription String?  @map("concern_description")
+  mentorRating      Float?    @map("mentor_rating")
+  menteeRating      Float?    @map("mentee_rating")
+  feedbackComment   String?   @map("feedback_comment")
+  pausedAt          DateTime? @map("paused_at")
+  completedAt       DateTime? @map("completed_at")
+  endedAt           DateTime? @map("ended_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  mentorProfile     PeerMentorProfile @relation("mentor", fields: [mentorProfileId], references: [id])
+  menteePatient     Patient           @relation("mentee", fields: [menteePatientId], references: [id])
+  messages          PeerMessage[]
+
+  @@index([mentorProfileId, status])
+  @@index([menteePatientId, status])
+  @@map("peer_connections")
+}
+
+model PeerMessage {
+  id               String    @id @default(uuid()) @db.Uuid
+  connectionId     String    @map("connection_id") @db.Uuid
+  senderPatientId  String    @map("sender_patient_id") @db.Uuid
+  content          String    @map("content")
+  flagged          Boolean   @default(false) @map("flagged")
+  flagReason       String?   @map("flag_reason") @db.VarChar(100)
+  sentAt           DateTime  @default(now()) @map("sent_at")
+  readAt           DateTime? @map("read_at")
+
+  connection       PeerConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+
+  @@index([connectionId, sentAt(sort: Desc)])
+  @@map("peer_messages")
+}
+
+model MentorTrainingProgress {
+  id               String    @id @default(uuid()) @db.Uuid
+  mentorProfileId  String    @map("mentor_profile_id") @db.Uuid
+  moduleId         String    @map("module_id") @db.VarChar(50)
+  completedAt      DateTime  @default(now()) @map("completed_at")
+
+  mentorProfile    PeerMentorProfile @relation(fields: [mentorProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([mentorProfileId, moduleId])
+  @@map("mentor_training_progress")
 }

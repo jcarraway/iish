@@ -282,6 +282,25 @@ export interface GraphQLContext {
     generateReferralLink: (patientId: string) => Promise<any>;
     redeemReferralCode: (code: string, userId?: string | null) => Promise<any>;
     getReferralStats: (patientId: string) => Promise<any>;
+
+    // PEERS — Peer Matching & Support
+    enrollAsMentor: (patientId: string, input: any) => Promise<any>;
+    getMentorProfile: (patientId: string) => Promise<any>;
+    updateMentorProfile: (patientId: string, updates: any) => Promise<any>;
+    findMatches: (patientId: string) => Promise<any[]>;
+    proposeConnection: (menteeId: string, mentorProfileId: string) => Promise<any>;
+    respondToConnection: (connectionId: string, patientId: string, accept: boolean) => Promise<any>;
+    getConnections: (patientId: string) => Promise<any[]>;
+    getConnection: (connectionId: string, patientId: string) => Promise<any>;
+    getTrainingModules: (patientId: string) => Promise<any[]>;
+    completeTrainingModule: (patientId: string, moduleId: string) => Promise<any>;
+    sendMessage: (connectionId: string, senderPatientId: string, content: string) => Promise<any>;
+    getMessages: (connectionId: string, patientId: string, limit?: number, before?: string) => Promise<any[]>;
+    markMessagesRead: (connectionId: string, patientId: string) => Promise<boolean>;
+    updateConnectionStatus: (connectionId: string, patientId: string, action: string, reason?: string) => Promise<any>;
+    reportConcern: (connectionId: string, reporterId: string, input: any) => Promise<any>;
+    submitConnectionFeedback: (connectionId: string, patientId: string, input: any) => Promise<any>;
+    getMentorStats: (patientId: string) => Promise<any>;
   };
 }
 

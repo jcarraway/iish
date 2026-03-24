@@ -1,0 +1,251 @@
+# ============================================================================
+# PEERS — Peer Matching & Support
+# ============================================================================
+
+# PM1 Queries
+
+query GetPeerMentorProfile {
+  peerMentorProfile {
+    id
+    patientId
+    status
+    isTrained
+    bio
+    maxMentees
+    availableHours
+    communicationPreference
+    comfortableDiscussing
+    notComfortableWith
+    totalMenteesSupported
+    averageRating
+    verifiedAt
+    createdAt
+  }
+}
+
+query GetPeerMatches {
+  peerMatches {
+    mentorProfileId
+    matchScore
+    matchReasons
+    summary {
+      displayName
+      ageRange
+      diagnosisType
+      treatmentPhase
+      bio
+      comfortableDiscussing
+      totalMenteesSupported
+      averageRating
+    }
+  }
+}
+
+query GetPeerConnections {
+  peerConnections {
+    id
+    mentorProfileId
+    menteePatientId
+    matchScore
+    matchReasons
+    status
+    role
+    safetyFlag
+    mentorRating
+    menteeRating
+    feedbackComment
+    pausedAt
+    completedAt
+    endedAt
+    createdAt
+  }
+}
+
+query GetPeerConnection($connectionId: String!) {
+  peerConnection(connectionId: $connectionId) {
+    id
+    mentorProfileId
+    menteePatientId
+    matchScore
+    matchReasons
+    status
+    role
+    safetyFlag
+    mentorRating
+    menteeRating
+    feedbackComment
+    pausedAt
+    completedAt
+    endedAt
+    createdAt
+  }
+}
+
+# PM2 Queries
+
+query GetMentorTrainingModules {
+  mentorTrainingModules {
+    id
+    title
+    description
+    estimatedMinutes
+    completed
+    completedAt
+  }
+}
+
+query GetPeerMessages($connectionId: String!, $limit: Int, $before: String) {
+  peerMessages(connectionId: $connectionId, limit: $limit, before: $before) {
+    id
+    connectionId
+    senderPatientId
+    content
+    sentAt
+    readAt
+    isOwnMessage
+    flagged
+  }
+}
+
+query GetMentorStats {
+  mentorStats {
+    totalMenteesSupported
+    activeConnections
+    averageRating
+    totalMessages
+    modulesCompleted
+  }
+}
+
+# PM1 Mutations
+
+mutation EnrollAsMentor($input: EnrollMentorInput!) {
+  enrollAsMentor(input: $input) {
+    id
+    patientId
+    status
+    isTrained
+    bio
+    maxMentees
+    comfortableDiscussing
+    notComfortableWith
+    createdAt
+  }
+}
+
+mutation UpdateMentorProfile($input: UpdateMentorProfileInput!) {
+  updateMentorProfile(input: $input) {
+    id
+    bio
+    maxMentees
+    availableHours
+    communicationPreference
+    comfortableDiscussing
+    notComfortableWith
+  }
+}
+
+mutation ProposeConnection($mentorProfileId: String!) {
+  proposeConnection(mentorProfileId: $mentorProfileId) {
+    id
+    mentorProfileId
+    menteePatientId
+    matchScore
+    matchReasons
+    status
+    createdAt
+  }
+}
+
+mutation RespondToConnection($connectionId: String!, $accept: Boolean!) {
+  respondToConnection(connectionId: $connectionId, accept: $accept) {
+    id
+    status
+  }
+}
+
+# PM2 Mutations
+
+mutation CompleteTrainingModule($moduleId: String!) {
+  completeTrainingModule(moduleId: $moduleId) {
+    moduleId
+    completed
+    allComplete
+  }
+}
+
+mutation SendPeerMessage($input: SendPeerMessageInput!) {
+  sendPeerMessage(input: $input) {
+    message {
+      id
+      connectionId
+      senderPatientId
+      content
+      sentAt
+      readAt
+      isOwnMessage
+      flagged
+    }
+    crisisAlert {
+      detected
+      message
+      resources {
+        name
+        phone
+        description
+        available
+      }
+    }
+  }
+}
+
+mutation MarkPeerMessagesRead($connectionId: String!) {
+  markPeerMessagesRead(connectionId: $connectionId)
+}
+
+mutation PauseConnection($connectionId: String!, $reason: String) {
+  pauseConnection(connectionId: $connectionId, reason: $reason) {
+    id
+    status
+    pausedAt
+  }
+}
+
+mutation ResumeConnection($connectionId: String!) {
+  resumeConnection(connectionId: $connectionId) {
+    id
+    status
+  }
+}
+
+mutation CompleteConnection($connectionId: String!) {
+  completeConnection(connectionId: $connectionId) {
+    id
+    status
+    completedAt
+  }
+}
+
+mutation EndConnection($connectionId: String!, $reason: String) {
+  endConnection(connectionId: $connectionId, reason: $reason) {
+    id
+    status
+    endedAt
+  }
+}
+
+mutation SubmitConnectionFeedback($connectionId: String!, $rating: Float!, $comment: String) {
+  submitConnectionFeedback(connectionId: $connectionId, rating: $rating, comment: $comment) {
+    id
+    mentorRating
+    menteeRating
+    feedbackComment
+  }
+}
+
+mutation ReportPeerConcern($connectionId: String!, $concernType: String!, $description: String!) {
+  reportPeerConcern(connectionId: $connectionId, concernType: $concernType, description: $description) {
+    id
+    safetyFlag
+  }
+}

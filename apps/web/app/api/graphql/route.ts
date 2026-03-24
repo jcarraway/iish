@@ -222,6 +222,25 @@ import {
   getReferralStats as _getReferralStats,
 } from '@/lib/preventive-matcher';
 import {
+  enrollAsMentor as _enrollAsMentor,
+  getMentorProfile as _getMentorProfile,
+  updateMentorProfile as _updateMentorProfile,
+  findMatches as _findMatches,
+  proposeConnection as _proposeConnection,
+  respondToConnection as _respondToConnection,
+  getConnections as _getConnections,
+  getConnection as _getConnection,
+  getTrainingModules as _getTrainingModules,
+  completeTrainingModule as _completeTrainingModule,
+  sendMessage as _sendMessage,
+  getMessages as _getMessages,
+  markMessagesRead as _markMessagesRead,
+  updateConnectionStatus as _updateConnectionStatus,
+  reportConcern as _reportConcern,
+  submitConnectionFeedback as _submitConnectionFeedback,
+  getMentorStats as _getMentorStats,
+} from '@/lib/peer-manager';
+import {
   createPreventProfile as _createPreventProfile,
   getPreventProfile as _getPreventProfile,
   updatePreventProfile as _updatePreventProfile,
@@ -1556,6 +1575,25 @@ const handler = startServerAndCreateNextHandler<NextRequest, GraphQLContext>(ser
         getPreventionLifestyle: _getPreventionLifestyle,
         generatePreventionLifestyle: _generatePreventionLifestyle,
         updateFamilyHistory: _updateFamilyHistory,
+
+        // PEERS — Peer Matching & Support
+        enrollAsMentor: _enrollAsMentor,
+        getMentorProfile: _getMentorProfile,
+        updateMentorProfile: _updateMentorProfile,
+        findMatches: _findMatches,
+        proposeConnection: _proposeConnection,
+        respondToConnection: _respondToConnection,
+        getConnections: _getConnections,
+        getConnection: _getConnection,
+        getTrainingModules: _getTrainingModules,
+        completeTrainingModule: _completeTrainingModule,
+        sendMessage: _sendMessage,
+        getMessages: _getMessages,
+        markMessagesRead: _markMessagesRead,
+        updateConnectionStatus: _updateConnectionStatus,
+        reportConcern: _reportConcern,
+        submitConnectionFeedback: _submitConnectionFeedback,
+        getMentorStats: _getMentorStats,
 
         // Preventive Trial Matcher
         getPreventiveTrials: (filters?: any) => _getPreventiveTrials(prisma, filters),
