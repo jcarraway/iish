@@ -119,6 +119,14 @@ model Patient {
   articlePersonalizations  ArticlePersonalization[]
   communityReports         CommunityReport[]
   familyReferralsSent      FamilyReferral[] @relation("referrer")
+  palliativeAssessments    PalliativeAssessment[]
+  advanceCarePlan          AdvanceCarePlan?
+  preventProfile           PreventProfile?
+  riskAssessments          RiskAssessment[]
+  genomicProfile           GenomicProfile?
+  locationHistory          LocationHistory[]
+  screeningSchedule        ScreeningSchedule?
+  dataConsent              DataConsent?
 
   @@map("patients")
 }
@@ -1362,4 +1370,205 @@ model FamilyReferral {
   referredUser        User?     @relation(fields: [referredUserId], references: [id])
 
   @@map("family_referrals")
+}
+
+// ============================================================================
+// PALLIATIVE — Early Palliative Care Integration
+// ============================================================================
+
+model PalliativeAssessment {
+  id                           String    @id @default(uuid()) @db.Uuid
+  patientId                    String    @map("patient_id") @db.Uuid
+  esasScores                   Json      @map("esas_scores")
+  triageLevel                  String    @map("triage_level") @db.VarChar(50)
+  triageRationale              String    @map("triage_rationale")
+  recommendations              Json?     @map("recommendations")
+  palliativeReferralRecommended Boolean  @default(false) @map("palliative_referral_recommended")
+  providerId                   String?   @map("provider_id") @db.Uuid
+  createdAt                    DateTime  @default(now()) @map("created_at")
+
+  patient                      Patient   @relation(fields: [patientId], references: [id])
+
+  @@map("palliative_assessments")
+}
+
+model PalliativeCareProvider {
+  id                  String   @id @default(uuid()) @db.Uuid
+  name                String   @map("name")
+  type                String   @map("type") @db.VarChar(50)
+  setting             String   @map("setting") @db.VarChar(50)
+  affiliatedHospital  String?  @map("affiliated_hospital")
+  servicesOffered     String[] @default([]) @map("services_offered")
+  acceptsInsurance    String[] @default([]) @map("accepts_insurance")
+  acceptsMedicare     Boolean  @default(false) @map("accepts_medicare")
+  offersTelehealth    Boolean  @default(false) @map("offers_telehealth")
+  averageWaitDays     Int?     @map("average_wait_days")
+  referralRequired    Boolean  @default(false) @map("referral_required")
+  lat                 Float?   @map("lat")
+  lng                 Float?   @map("lng")
+  address             String?  @map("address")
+  city                String?  @map("city")
+  state               String?  @map("state") @db.VarChar(2)
+  zipCode             String?  @map("zip_code") @db.VarChar(20)
+  phone               String?  @map("phone")
+  website             String?  @map("website")
+  isActive            Boolean  @default(true) @map("is_active")
+  createdAt           DateTime @default(now()) @map("created_at")
+
+  @@map("palliative_care_providers")
+}
+
+model AdvanceCarePlan {
+  id                       String    @id @default(uuid()) @db.Uuid
+  patientId                String    @unique @map("patient_id") @db.Uuid
+  hasLivingWill            Boolean   @default(false) @map("has_living_will")
+  hasHealthcareProxy       Boolean   @default(false) @map("has_healthcare_proxy")
+  healthcareProxyName      String?   @map("healthcare_proxy_name")
+  hasPolst                 Boolean   @default(false) @map("has_polst")
+  goalsOfCareDocumented    Boolean   @default(false) @map("goals_of_care_documented")
+  goalsOfCareSummary       String?   @map("goals_of_care_summary")
+  documentsUploaded        String[]  @default([]) @map("documents_uploaded")
+  lastReviewedAt           DateTime? @map("last_reviewed_at")
+  createdAt                DateTime  @default(now()) @map("created_at")
+  updatedAt                DateTime  @updatedAt @map("updated_at")
+
+  patient                  Patient   @relation(fields: [patientId], references: [id])
+
+  @@map("advance_care_plans")
+}
+
+// ============================================================================
+// PREVENT — Pre-Diagnosis Risk Intelligence
+// ============================================================================
+
+model PreventProfile {
+  id                      String    @id @default(uuid()) @db.Uuid
+  patientId               String    @unique @map("patient_id") @db.Uuid
+  onboardingCompletedAt   DateTime? @map("onboarding_completed_at")
+  onboardingTier          String?   @map("onboarding_tier") @db.VarChar(20)
+  ageAtMenarche           Int?      @map("age_at_menarche")
+  pregnancies             Int?      @map("pregnancies")
+  ageAtFirstLiveBirth     Int?      @map("age_at_first_live_birth")
+  breastfeedingMonths     Int?      @map("breastfeeding_months")
+  menopausalStatus        String?   @map("menopausal_status") @db.VarChar(30)
+  ageAtMenopause          Int?      @map("age_at_menopause")
+  ocEver                  Boolean?  @map("oc_ever")
+  ocCurrent               Boolean?  @map("oc_current")
+  ocTotalYears            Float?    @map("oc_total_years")
+  hrtEver                 Boolean?  @map("hrt_ever")
+  hrtCurrent              Boolean?  @map("hrt_current")
+  hrtType                 String?   @map("hrt_type") @db.VarChar(50)
+  hrtTotalYears           Float?    @map("hrt_total_years")
+  previousBiopsies        Int?      @map("previous_biopsies")
+  atypicalHyperplasia     Boolean?  @map("atypical_hyperplasia")
+  lcis                    Boolean?  @map("lcis")
+  chestRadiation          Boolean?  @map("chest_radiation")
+  breastDensity           String?   @map("breast_density") @db.VarChar(30)
+  bmi                     Float?    @map("bmi")
+  alcoholDrinksPerWeek    Float?    @map("alcohol_drinks_per_week")
+  exerciseMinutesPerWeek  Int?      @map("exercise_minutes_per_week")
+  smokingStatus           String?   @map("smoking_status") @db.VarChar(30)
+  familyHistory           Json?     @map("family_history")
+  ethnicity               String?   @map("ethnicity") @db.VarChar(50)
+  createdAt               DateTime  @default(now()) @map("created_at")
+  updatedAt               DateTime  @updatedAt @map("updated_at")
+
+  patient                 Patient   @relation(fields: [patientId], references: [id])
+
+  @@map("prevent_profiles")
+}
+
+model RiskAssessment {
+  id                    String    @id @default(uuid()) @db.Uuid
+  patientId             String    @map("patient_id") @db.Uuid
+  assessmentDate        DateTime  @default(now()) @map("assessment_date")
+  modelVersion          String    @default("gail_v1") @map("model_version") @db.VarChar(30)
+  gailInputs            Json?     @map("gail_inputs")
+  lifetimeRiskEstimate  Float     @map("lifetime_risk_estimate")
+  lifetimeRiskCiLow     Float?    @map("lifetime_risk_ci_low")
+  lifetimeRiskCiHigh    Float?    @map("lifetime_risk_ci_high")
+  fiveYearRiskEstimate  Float?    @map("five_year_risk_estimate")
+  tenYearRiskEstimate   Float?    @map("ten_year_risk_estimate")
+  riskCategory          String    @map("risk_category") @db.VarChar(30)
+  riskTrajectory        Json?     @map("risk_trajectory")
+  modifiableFactors     Json?     @map("modifiable_factors")
+  fullAssessment        Json?     @map("full_assessment")
+  createdAt             DateTime  @default(now()) @map("created_at")
+
+  patient               Patient   @relation(fields: [patientId], references: [id])
+
+  @@map("risk_assessments")
+}
+
+model GenomicProfile {
+  id                      String   @id @default(uuid()) @db.Uuid
+  patientId               String   @unique @map("patient_id") @db.Uuid
+  dataSource              String?  @map("data_source") @db.VarChar(50)
+  prsValue                Float?   @map("prs_value")
+  prsPercentile           Float?   @map("prs_percentile")
+  prsSnpCount             Int?     @map("prs_snp_count")
+  prsModelVersion         String?  @map("prs_model_version") @db.VarChar(50)
+  prsAncestryCalibration  String?  @map("prs_ancestry_calibration") @db.VarChar(50)
+  pathogenicVariants      Json?    @map("pathogenic_variants")
+  vusVariants             Json?    @map("vus_variants")
+  genesTested             String[] @default([]) @map("genes_tested")
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
+
+  patient                 Patient  @relation(fields: [patientId], references: [id])
+
+  @@map("genomic_profiles")
+}
+
+model LocationHistory {
+  id                    String    @id @default(uuid()) @db.Uuid
+  patientId             String    @map("patient_id") @db.Uuid
+  zipCode               String    @map("zip_code") @db.VarChar(20)
+  state                 String?   @map("state") @db.VarChar(2)
+  moveInDate            DateTime? @map("move_in_date")
+  moveOutDate           DateTime? @map("move_out_date")
+  residenceType         String?   @map("residence_type") @db.VarChar(30)
+  waterSource           String?   @map("water_source") @db.VarChar(30)
+  nearbyIndustry        String[]  @default([]) @map("nearby_industry")
+  agriculturalProximity Boolean?  @map("agricultural_proximity")
+  lifeStages            String[]  @default([]) @map("life_stages")
+  durationMonths        Int?      @map("duration_months")
+  environmentalData     Json?     @map("environmental_data")
+  locationExposureScore Float?    @map("location_exposure_score")
+  consentResearchUse    Boolean   @default(false) @map("consent_research_use")
+  createdAt             DateTime  @default(now()) @map("created_at")
+
+  patient               Patient   @relation(fields: [patientId], references: [id])
+
+  @@map("location_history")
+}
+
+model ScreeningSchedule {
+  id                  String    @id @default(uuid()) @db.Uuid
+  patientId           String    @unique @map("patient_id") @db.Uuid
+  guidelineSource     String    @default("NCCN") @map("guideline_source") @db.VarChar(30)
+  riskCategory        String    @map("risk_category") @db.VarChar(30)
+  schedule            Json      @map("schedule")
+  nextScreeningDate   DateTime? @map("next_screening_date")
+  nextScreeningType   String?   @map("next_screening_type") @db.VarChar(50)
+  lastUpdatedAt       DateTime  @default(now()) @map("last_updated_at")
+  createdAt           DateTime  @default(now()) @map("created_at")
+
+  patient             Patient   @relation(fields: [patientId], references: [id])
+
+  @@map("screening_schedules")
+}
+
+model DataConsent {
+  id            String    @id @default(uuid()) @db.Uuid
+  patientId     String    @unique @map("patient_id") @db.Uuid
+  consentLevel  Int       @default(1) @map("consent_level")
+  consentedAt   DateTime  @default(now()) @map("consented_at")
+  withdrawnAt   DateTime? @map("withdrawn_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  patient       Patient   @relation(fields: [patientId], references: [id])
+
+  @@map("data_consents")
 }

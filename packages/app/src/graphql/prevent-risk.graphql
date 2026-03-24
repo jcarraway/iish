@@ -1,0 +1,280 @@
+# ============================================================================
+# PREVENT — Risk Intelligence Operations
+# ============================================================================
+
+# -- Queries --
+
+query GetPreventProfile {
+  preventProfile {
+    id
+    patientId
+    onboardingCompletedAt
+    onboardingTier
+    ageAtMenarche
+    pregnancies
+    ageAtFirstLiveBirth
+    breastfeedingMonths
+    menopausalStatus
+    ageAtMenopause
+    ocEver
+    ocCurrent
+    ocTotalYears
+    hrtEver
+    hrtCurrent
+    hrtType
+    hrtTotalYears
+    previousBiopsies
+    atypicalHyperplasia
+    lcis
+    chestRadiation
+    breastDensity
+    bmi
+    alcoholDrinksPerWeek
+    exerciseMinutesPerWeek
+    smokingStatus
+    familyHistory
+    ethnicity
+    createdAt
+  }
+}
+
+query GetLatestRisk {
+  latestRisk {
+    id
+    patientId
+    assessmentDate
+    modelVersion
+    gailInputs
+    lifetimeRiskEstimate
+    lifetimeRiskCiLow
+    lifetimeRiskCiHigh
+    fiveYearRiskEstimate
+    tenYearRiskEstimate
+    riskCategory
+    riskTrajectory {
+      age
+      risk
+      populationAverage
+    }
+    modifiableFactors {
+      factor
+      currentValue
+      impact
+      recommendation
+      evidenceStrength
+      potentialReduction
+    }
+    createdAt
+  }
+}
+
+query GetRiskAssessments {
+  riskAssessments {
+    id
+    assessmentDate
+    modelVersion
+    lifetimeRiskEstimate
+    fiveYearRiskEstimate
+    riskCategory
+    createdAt
+  }
+}
+
+query GetLocationHistory {
+  locationHistory {
+    id
+    patientId
+    zipCode
+    state
+    moveInDate
+    moveOutDate
+    residenceType
+    waterSource
+    nearbyIndustry
+    agriculturalProximity
+    lifeStages
+    durationMonths
+    consentResearchUse
+    createdAt
+  }
+}
+
+query GetDataConsent {
+  dataConsent {
+    id
+    patientId
+    consentLevel
+    consentedAt
+    withdrawnAt
+  }
+}
+
+query GetScreeningSchedule {
+  screeningSchedule {
+    id
+    patientId
+    guidelineSource
+    riskCategory
+    schedule
+    nextScreeningDate
+    nextScreeningType
+    lastUpdatedAt
+  }
+}
+
+query GetChemopreventionEligibility {
+  chemopreventionEligibility {
+    eligible
+    fiveYearRisk
+    riskThreshold
+    medications {
+      name
+      type
+      eligiblePopulation
+      riskReduction
+      duration
+      sideEffects
+      contraindications
+      keyTrials
+    }
+    contraindications
+  }
+}
+
+query GetChemopreventionGuide {
+  chemopreventionGuide {
+    overview
+    medications {
+      name
+      howItWorks
+      benefits
+      risks
+      patientProfile
+    }
+    questionsForDoctor
+    generatedAt
+  }
+}
+
+query GetTestingRecommendations {
+  testingRecommendations {
+    recommended
+    urgency
+    rationale
+    recommendedTests
+    criteria
+    resources {
+      name
+      url
+      description
+    }
+  }
+}
+
+query GetPreventGenomicProfile {
+  preventGenomicProfile {
+    id
+    patientId
+    dataSource
+    pathogenicVariants
+    vusVariants
+    genesTested
+    prsValue
+    prsPercentile
+    createdAt
+  }
+}
+
+query GetPreventionLifestyle {
+  preventionLifestyle
+}
+
+# -- Mutations --
+
+mutation CreatePreventProfile($input: CreatePreventProfileInput!) {
+  createPreventProfile(input: $input) {
+    id
+    patientId
+    onboardingCompletedAt
+    onboardingTier
+    ageAtMenarche
+    pregnancies
+    ageAtFirstLiveBirth
+    menopausalStatus
+    previousBiopsies
+    atypicalHyperplasia
+    ethnicity
+    createdAt
+  }
+}
+
+mutation UpdatePreventProfile($input: UpdatePreventProfileInput!) {
+  updatePreventProfile(input: $input) {
+    id
+    onboardingCompletedAt
+    bmi
+    alcoholDrinksPerWeek
+    exerciseMinutesPerWeek
+    smokingStatus
+    createdAt
+  }
+}
+
+mutation SaveLocationHistory($locations: [LocationHistoryInput!]!) {
+  saveLocationHistory(locations: $locations) {
+    id
+    zipCode
+    state
+    moveInDate
+    moveOutDate
+    durationMonths
+    createdAt
+  }
+}
+
+mutation UpdateDataConsent($level: Int!) {
+  updateDataConsent(level: $level) {
+    id
+    consentLevel
+    consentedAt
+    withdrawnAt
+  }
+}
+
+mutation GenerateScreeningSchedule {
+  generateScreeningSchedule {
+    id
+    guidelineSource
+    riskCategory
+    schedule
+    nextScreeningDate
+    nextScreeningType
+    lastUpdatedAt
+  }
+}
+
+mutation GenerateChemopreventionGuide {
+  generateChemopreventionGuide {
+    overview
+    medications {
+      name
+      howItWorks
+      benefits
+      risks
+      patientProfile
+    }
+    questionsForDoctor
+    generatedAt
+  }
+}
+
+mutation UpdateFamilyHistory($familyHistory: JSON!) {
+  updateFamilyHistory(familyHistory: $familyHistory) {
+    id
+    familyHistory
+  }
+}
+
+mutation GeneratePreventionLifestyle {
+  generatePreventionLifestyle
+}

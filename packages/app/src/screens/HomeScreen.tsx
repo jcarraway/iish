@@ -33,6 +33,13 @@ export function HomeScreen() {
             </Text>
           </View>
         </Link>
+        <Link href="/prevent/onboarding">
+          <View sx={{ borderRadius: '$lg', borderWidth: 1, borderColor: '#7C3AED', px: '$8', py: '$3' }}>
+            <Text sx={{ fontSize: '$sm', fontWeight: '500', color: '#7C3AED' }}>
+              Assess Your Risk
+            </Text>
+          </View>
+        </Link>
       </View>
     </View>
   );

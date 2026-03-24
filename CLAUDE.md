@@ -10,21 +10,21 @@ Personalized cancer vaccine intelligence platform. Monorepo covering the full pa
 iish/
 ├── apps/
 │   ├── web/                    # Next.js 15.0.0, React 19.0.0, Tailwind CSS 3.4
-│   │   ├── app/                # App Router — pages + 89 API route files + 3 cron endpoints
+│   │   ├── app/                # App Router — pages + 85 API route files + 3 cron endpoints
 │   │   ├── components/         # 4 web-only components (DocumentUploader, AdministrationSiteCard, AdministrationSiteMap, visualizations/)
 │   │   │   └── visualizations/ # Canvas 2D viz framework + 31 interactive scenes (VZ1-VZ4)
-│   │   └── lib/                # 59 library files (see below)
+│   │   └── lib/                # 62 library files (see below)
 │   └── mobile/                 # Expo SDK 54, React Native 0.76.9, Dripsy + Solito
-│       ├── app/                # Expo Router — 113 route files across 28 directories
+│       ├── app/                # Expo Router — 130 route files across 30 directories
 │       └── lib/                # apollo.ts (GraphQL client), auth.ts (SecureStore guard)
 ├── docker-compose.yml          # Local dev: postgres:15-alpine + redis:7-alpine
 ├── packages/
 │   ├── ui/                     # Thin RN + Solito re-exports (@iish/ui)
-│   ├── app/                    # 106 shared screens, 24 Dripsy components, theme, 170+ generated hooks (@iish/app)
-│   │   └── src/{screens[96],components[24],providers,theme,graphql,generated,utils,index}.ts
-│   ├── api/                    # Apollo Server schema (156+ types, 97Q, 94M) + 27 resolver files (@iish/api)
-│   │   └── src/{schema,resolvers[24 files],context,index}.ts
-│   ├── db/                     # Prisma 7 + PostgreSQL (51 models)
+│   ├── app/                    # 122 shared screens, 24 Dripsy components, theme, 200+ generated hooks (@iish/app)
+│   │   └── src/{screens[122],components[24],providers,theme,graphql,generated,utils,index}.ts
+│   ├── api/                    # Apollo Server schema (180+ types, 113Q, 102M) + 30 resolver files (@iish/api)
+│   │   └── src/{schema,resolvers[30 files],context,index}.ts
+│   ├── db/                     # Prisma 7 + PostgreSQL (60 models)
 │   │   ├── prisma/schema.prisma
 │   │   └── prisma.config.ts    # defineConfig — url goes HERE, not in schema
 │   ├── shared/                 # Types (720+ lines), Zod schemas, constants, auth
@@ -35,7 +35,7 @@ iish/
 │   └── neoantigen-pipeline/    # Rust workspace (3 crates + common)
 ├── infrastructure/
 │   └── terraform/              # AWS VPC, S3, NATS, ECR, Batch
-└── scripts/                    # 14 seed/sync scripts
+└── scripts/                    # 18 seed/sync/utility scripts
 ```
 
 ## Critical Implementation Patterns
@@ -77,9 +77,9 @@ export async function POST(req: NextRequest) {
 
 ### UI: Dripsy + Solito (Cross-Platform, Screen Migration Complete)
 - **Shared components:** 22 Dripsy components in `packages/app/src/components/` — cross-platform ready
-- **Shared screens:** 106 screens in `packages/app/src/screens/` — 46 migratable (D3-D6) + 4 survivorship (S1) + 2 surveillance (S2) + 3 journal/effects (S3) + 1 lifestyle (S4) + 2 care team (S5) + 2 ctDNA (S6) + 1 notifications (S7) + 8 recurrence (S8) + 5 fertility + 5 advocate + 5 logistics + 5 second opinion + 8 learn (L1-L4) + 4 intel (I1) + 2 community (I5) + 1 intel landscape (I6) + 3 preventive (PTM)
+- **Shared screens:** 122 screens in `packages/app/src/screens/` — 46 migratable (D3-D6) + 4 survivorship (S1) + 2 surveillance (S2) + 3 journal/effects (S3) + 1 lifestyle (S4) + 2 care team (S5) + 2 ctDNA (S6) + 1 notifications (S7) + 8 recurrence (S8) + 5 fertility + 5 advocate + 5 logistics + 5 second opinion + 8 learn (L1-L4) + 4 intel (I1) + 2 community (I5) + 1 intel landscape (I6) + 3 preventive (PTM) + 5 palliative + 11 prevent
 - **Web pages:** Most pages are thin re-exports: `'use client'; export { XxxScreen as default } from '@iish/app';`. Exception: `/learn/[category]/[slug]/page.tsx` is a server component with `generateMetadata` + `generateStaticParams` + JSON-LD that renders a client component wrapper.
-- **Mobile routes:** All 106 screens wired via Expo Router — 113 route files across 28 directories
+- **Mobile routes:** All 122 screens wired via Expo Router — 130 route files across 30 directories
 - **Mobile tabs:** 5-tab layout (Home, Matches, Sequencing, Pipeline, More) with Ionicons
 - **Mobile auth:** `useProtectedRoute()` hook — SecureStore token check + redirect to `/auth` modal
 - **Web-only components (4):** `DocumentUploader` (File API), `AdministrationSiteCard`, `AdministrationSiteMap` (Mapbox), `visualizations/` (Canvas 2D framework + 31 interactive scenes) — kept in `apps/web/components/`
@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
 - Generator: `prisma-client` (not `prisma-client-js`), `output` field required
 - Client needs driver adapter: `new PrismaClient({ adapter: new PrismaPg({ connectionString }) })`
 - All models use `@map("snake_case")` columns and `@@map("table_names")`
-- 51 models total (45 + FeedRelevance, UserFeedConfig from INTEL I4 + CommunityReport from INTEL I5 + CuratedPreventiveTrial, PreventivePrescreen, FamilyReferral from PTM)
+- 60 models total (51 prior + PalliativeAssessment, PalliativeCareProvider, AdvanceCarePlan from PALLIATIVE + PreventProfile, RiskAssessment, GenomicProfile, LocationHistory, ScreeningSchedule, DataConsent from PREVENT)
 
 ### Auth: Custom Magic Link (NOT NextAuth)
 - `jose` HS256 for JWT tokens with 15min expiry
@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
 ### AI: Anthropic Claude
 - Model: `claude-opus-4-20250514` (hardcoded in `apps/web/lib/ai.ts`)
 - Package: `@anthropic-ai/sdk@0.39.0`
-- Used for: document extraction, eligibility parsing, trial matching, treatment translation, genomic interpretation, report generation, regulatory document drafting, SCP generation, surveillance result extraction, lifestyle recommendation generation, symptom routing, appointment prep, ctDNA interpretation, fertility discussion guides, appeal letter generation, peer review prep, logistics plan generation, record packet assembly, communication guide generation, article generation, personalized article context, reading plan generation, article quality checking, article refresh suggestions, research classification (maturity/evidence/impact), research summarization (patient + clinician)
+- Used for: document extraction, eligibility parsing, trial matching, treatment translation, genomic interpretation, report generation, regulatory document drafting, SCP generation, surveillance result extraction, lifestyle recommendation generation, symptom routing, appointment prep, ctDNA interpretation, fertility discussion guides, appeal letter generation, peer review prep, logistics plan generation, record packet assembly, communication guide generation, article generation, personalized article context, reading plan generation, article quality checking, article refresh suggestions, research classification (maturity/evidence/impact), research summarization (patient + clinician), palliative goals-of-care guides, palliative referral letters, chemoprevention discussion guides, prevention lifestyle recommendations
 
 ## What's Built (Phases 1-4)
 
@@ -184,13 +184,19 @@ export async function POST(req: NextRequest) {
 **VISUAL — VZ2-VZ4: 23 Additional Interactive Visualizations (complete):**
 - No new models/lib/resolvers — purely web-only Canvas 2D scene modules. 23 new scene files in `apps/web/components/visualizations/scenes/` (~8600 lines total). VZ2 (7 scenes): `t4-endocrine-therapy` (toggle 4-mode ER therapy), `t7-cold-capping` (toggle scalp cooling), `t6-radiation-dna` (stepper 8-stage DNA damage), `t8-cdk-inhibitor` (stepper 8-stage cell cycle), `d1-tumor-sequencing` (stepper 9-stage pipeline), `d4-oncotype-score` (slider 0-100 with heat map), `s1-chemo-side-effects` (explorable body diagram). VZ3 (7 scenes): `b1-mutations-cause-cancer` (stepper 7-stage mutation→tumor), `b3-metastasis` (stepper 8-stage seed-and-soil), `t5-protac-degraders` (stepper 9-stage PROTAC mechanism), `p1-neoantigen-pipeline` (stepper 9-stage FASTQ→report), `d5-ctdna-monitoring` (stepper 9-stage liquid biopsy), `s2-neuropathy` (stepper 8-stage nerve damage), `p2-mhc-presentation` (stepper 10-stage antigen processing). VZ4 (9 scenes): `b2-cancer-vs-normal` (toggle 5 hallmarks), `b4-tumor-microenvironment` (explorable ecosystem), `t9-lumpectomy-vs-mastectomy` (toggle surgery comparison), `s3-radiation-skin` (stepper 5-stage skin effects), `s4-endocrine-body-effects` (explorable body diagram), `v1-ai-mammogram` (toggle AI overlay), `v2-risk-factors` (explorable compounding risks), `p3-mrna-translation` (stepper 12-stage ribosome), `p4-binding-prediction` (slider MHC groove). Registry expanded to 31 entries. Accessibility descriptions for all 31 scenes. **31/31 visualizations complete. ~14,300 total lines across all viz files. No new dependencies.**
 
+**Access Gap — PALLIATIVE (complete):**
+- 3 Prisma models (PalliativeAssessment, PalliativeCareProvider, AdvanceCarePlan), 1 lib file (palliative-manager.ts: 10 functions — ESAS symptom assessment with deterministic triage scoring, palliative referral recommendation triggers based on symptom burden/treatment phase/diagnosis, provider search with Haversine distance + specialty filters, advance care plan CRUD, Claude goals-of-care discussion guide + referral letter generation, assessment trending), 1 seed script (30 palliative care providers — hospice + outpatient + hospital-based + telehealth). GraphQL: 5 types (PalliativeAssessment, PalliativeCareProvider, AdvanceCarePlan, PalliativeRecommendation, GoalsOfCareGuide) + 2 inputs + 5 queries + 5 mutations, 1 resolver file (palliative.ts). 10 operations in palliative.graphql. 5 shared screens (PalliativeDashboard with recommendation alert + latest assessment summary + quick links, PalliativeAssessment with 9-symptom ESAS form + triage display + trending, PalliativeEducation with evidence-based content citing Temel et al. NEJM 2010, PalliativeProviders with Haversine-sorted directory + specialty filters, AdvanceCare with goals/preferences/proxy CRUD). 5 web pages under `/palliative/` + 6 mobile routes. Dashboard + MoreScreen integration. **Deterministic ESAS triage (emergency/urgent/moderate/mild). Early palliative care framing — not end-of-life. Evidence-based education. Warm, supportive tone.**
+
+**PREVENT Phase 0 Foundation (P0-1 through P0-6, complete):**
+- 6 Prisma models (PreventProfile with reproductive/hormonal/lifestyle/family history fields, RiskAssessment with Gail model inputs/outputs + trajectory + modifiable factors, GenomicProfile with pathogenic/VUS variants + PRS placeholders, LocationHistory with environmental exposure fields, ScreeningSchedule with NCCN guideline-based plan, DataConsent with tiered consent levels). 4 lib files (prevent-manager.ts: profile CRUD + onboarding orchestration + family history management + genomic profile ingestion, prevent-risk-engine.ts: full Gail model implementation with SEER age-specific baselines + competing mortality + attributable risk coefficients + 5-year/10-year/lifetime projections + modifiable factor analysis + risk trajectory curves, prevent-screening.ts: NCCN screening guideline engine with risk-stratified modality selection + interval calculation + dense breast supplemental imaging + insurance coverage mapping, prevent-lifestyle.ts: Claude-generated prevention lifestyle recommendations with exercise/nutrition/alcohol/environment sections). 1 seed script (seed-palliative-providers.ts). GraphQL: 11 types + 3 inputs + 11 queries + 8 mutations, 1 resolver file (prevent.ts). 19 operations in prevent-risk.graphql. 11 shared screens (~5,900 lines — PreventOnboarding 5-step wizard, RiskDashboard with risk gauge + trajectory chart + modifiable factors, RiskFactors with detailed factor breakdown + evidence cards, PreventFamilyHistory with first/second-degree relative form + BRCA assessment + cascade testing info, PreventGenomic with testing recommendations + variant display + counselor resources, ScreeningPlanner with modality schedule + next appointment + dense breast guidance + insurance, Chemoprevention with USPSTF eligibility check + medication comparison + discussion guide, PreventEducation with structured evidence-based content, PreventLifestyle with exercise/nutrition/alcohol/environment sections, LocationHistory for environmental exposure tracking, DataContribution with tiered consent). 3 web page directories (education, onboarding, risk) + 14 mobile routes under `/prevent/`. Dashboard + HomeScreen integration. **Full Gail model with SEER baselines. NCCN screening planner. USPSTF chemoprevention thresholds. 5-step onboarding. ~40% of full spec — PRS calculation, environmental intelligence (EPA/EWG APIs), population aggregation deferred.**
+
 ## What's NOT Built Yet
 
 **Cross-cutting:** CARE (care commerce), COOL (cold capping), ENGINE (opportunity detection).
 
-**Access gap:** PALLIATIVE, PEERS.
+**Access gap:** PEERS.
 
-**Phase 0 — PREVENT:** Pre-diagnosis risk intelligence + prevention.
+**Phase 0 — PREVENT advanced features (P0-7 to P0-21):** PRS calculation pipeline, environmental intelligence (EPA/EWG APIs, product scanner, biomarker panels), population aggregation (k-anonymity, heatmaps), location exposure scoring. Foundation (P0-1 to P0-6) is complete.
 
 ## Spec Documents
 

@@ -202,6 +202,17 @@ import {
   updateDigestPreferences as _updateDigestPreferences,
 } from '@/lib/community-manager';
 import {
+  submitSymptomAssessment as _submitSymptomAssessment,
+  getSymptomAssessments as _getSymptomAssessments,
+  getLatestAssessment as _getLatestAssessment,
+  getPalliativeCareProviders as _getPalliativeCareProviders,
+  getAdvanceCarePlan as _getAdvanceCarePlan,
+  updateAdvanceCarePlan as _updateAdvanceCarePlan,
+  generateGoalsOfCareGuide as _generateGoalsOfCareGuide,
+  generateReferralLetter as _generateReferralLetter,
+  shouldRecommendPalliative as _shouldRecommendPalliative,
+} from '@/lib/palliative-manager';
+import {
   getPreventiveTrials as _getPreventiveTrials,
   runPreventivePrescreen as _runPreventivePrescreen,
   getPreventiveTrialsForFamily as _getPreventiveTrialsForFamily,
@@ -210,6 +221,31 @@ import {
   redeemReferralCode as _redeemReferralCode,
   getReferralStats as _getReferralStats,
 } from '@/lib/preventive-matcher';
+import {
+  createPreventProfile as _createPreventProfile,
+  getPreventProfile as _getPreventProfile,
+  updatePreventProfile as _updatePreventProfile,
+  getRiskAssessments as _getRiskAssessments,
+  getLatestRisk as _getLatestRisk,
+  saveLocationHistory as _saveLocationHistory,
+  getLocationHistory as _getLocationHistory,
+  getDataConsent as _getDataConsent,
+  updateDataConsent as _updateDataConsent,
+} from '@/lib/prevent-manager';
+import {
+  generateScreeningSchedule as _generateScreeningSchedule,
+  getScreeningSchedule as _getScreeningSchedule,
+  getChemopreventionEligibility as _getChemopreventionEligibility,
+  getChemopreventionGuide as _getChemopreventionGuide,
+  generateChemopreventionGuide as _generateChemopreventionGuide,
+} from '@/lib/prevent-screening';
+import {
+  getPreventionLifestyle as _getPreventionLifestyle,
+  generatePreventionLifestyle as _generatePreventionLifestyle,
+  getTestingRecommendations as _getTestingRecommendations,
+  getPreventGenomicProfile as _getPreventGenomicProfile,
+  updateFamilyHistory as _updateFamilyHistory,
+} from '@/lib/prevent-lifestyle';
 
 // ============================================================================
 // Adapter functions — bridge resolver signatures to actual lib functions
@@ -1488,6 +1524,38 @@ const handler = startServerAndCreateNextHandler<NextRequest, GraphQLContext>(ser
         compileDigest: _compileDigest,
         moderateCommunityReport: _moderateReport,
         updateDigestPreferences: _updateDigestPreferences,
+
+        // Palliative Care
+        submitSymptomAssessment: _submitSymptomAssessment,
+        getSymptomAssessments: _getSymptomAssessments,
+        getLatestAssessment: _getLatestAssessment,
+        getPalliativeCareProviders: _getPalliativeCareProviders,
+        getAdvanceCarePlan: _getAdvanceCarePlan,
+        updateAdvanceCarePlan: _updateAdvanceCarePlan,
+        generateGoalsOfCareGuide: _generateGoalsOfCareGuide,
+        generateReferralLetter: _generateReferralLetter,
+        shouldRecommendPalliative: _shouldRecommendPalliative,
+
+        // PREVENT — Pre-Diagnosis Risk
+        createPreventProfile: _createPreventProfile,
+        getPreventProfile: _getPreventProfile,
+        updatePreventProfile: _updatePreventProfile,
+        getRiskAssessments: _getRiskAssessments,
+        getLatestRisk: _getLatestRisk,
+        saveLocationHistory: _saveLocationHistory,
+        getLocationHistory: _getLocationHistory,
+        getDataConsent: _getDataConsent,
+        updateDataConsent: _updateDataConsent,
+        getScreeningSchedule: _getScreeningSchedule,
+        generateScreeningSchedule: _generateScreeningSchedule,
+        getChemopreventionEligibility: _getChemopreventionEligibility,
+        getChemopreventionGuide: _getChemopreventionGuide,
+        generateChemopreventionGuide: _generateChemopreventionGuide,
+        getTestingRecommendations: _getTestingRecommendations,
+        getPreventGenomicProfile: _getPreventGenomicProfile,
+        getPreventionLifestyle: _getPreventionLifestyle,
+        generatePreventionLifestyle: _generatePreventionLifestyle,
+        updateFamilyHistory: _updateFamilyHistory,
 
         // Preventive Trial Matcher
         getPreventiveTrials: (filters?: any) => _getPreventiveTrials(prisma, filters),

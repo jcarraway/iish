@@ -242,6 +242,38 @@ export interface GraphQLContext {
     moderateCommunityReport: (reportId: string, status: string) => Promise<any>;
     updateDigestPreferences: (userId: string, frequency: string | null) => Promise<any>;
 
+    // Palliative Care
+    submitSymptomAssessment: (patientId: string, esasScores: any) => Promise<any>;
+    getSymptomAssessments: (patientId: string, limit?: number) => Promise<any[]>;
+    getLatestAssessment: (patientId: string) => Promise<any>;
+    getPalliativeCareProviders: (patientId: string, filters?: any) => Promise<any[]>;
+    getAdvanceCarePlan: (patientId: string) => Promise<any>;
+    updateAdvanceCarePlan: (patientId: string, updates: any) => Promise<any>;
+    generateGoalsOfCareGuide: (patientId: string) => Promise<any>;
+    generateReferralLetter: (patientId: string) => Promise<any>;
+    shouldRecommendPalliative: (patientId: string) => Promise<any>;
+
+    // PREVENT
+    createPreventProfile: (userId: string, data: any) => Promise<any>;
+    getPreventProfile: (userId: string) => Promise<any>;
+    updatePreventProfile: (userId: string, updates: any) => Promise<any>;
+    getRiskAssessments: (userId: string) => Promise<any[]>;
+    getLatestRisk: (userId: string) => Promise<any>;
+    saveLocationHistory: (userId: string, locations: any[]) => Promise<any[]>;
+    getLocationHistory: (userId: string) => Promise<any[]>;
+    getDataConsent: (userId: string) => Promise<any>;
+    updateDataConsent: (userId: string, level: number) => Promise<any>;
+    getScreeningSchedule: (userId: string) => Promise<any>;
+    generateScreeningSchedule: (userId: string) => Promise<any>;
+    getChemopreventionEligibility: (userId: string) => Promise<any>;
+    getChemopreventionGuide: (userId: string) => Promise<any>;
+    generateChemopreventionGuide: (userId: string) => Promise<any>;
+    getTestingRecommendations: (userId: string) => Promise<any>;
+    getPreventGenomicProfile: (userId: string) => Promise<any>;
+    getPreventionLifestyle: (userId: string) => Promise<any>;
+    generatePreventionLifestyle: (userId: string) => Promise<any>;
+    updateFamilyHistory: (userId: string, familyHistory: any) => Promise<any>;
+
     // Preventive Trial Matcher
     getPreventiveTrials: (filters?: any) => Promise<any>;
     runPreventivePrescreen: (input: any, userId?: string | null) => Promise<any>;

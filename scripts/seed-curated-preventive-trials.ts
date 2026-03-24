@@ -4,7 +4,7 @@ import { resolve } from 'path';
 // Load env from apps/web/.env
 config({ path: resolve(__dirname, '../apps/web/.env') });
 
-import { PrismaClient } from '@iish/db/generated/prisma';
+import { PrismaClient } from '../packages/db/src/generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });

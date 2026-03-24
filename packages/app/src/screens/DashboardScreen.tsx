@@ -12,6 +12,8 @@ import {
   useGetSurvivorshipPlanQuery,
   useGetFertilityAssessmentQuery,
   useGetInsuranceDenialsQuery,
+  useGetLatestPalliativeAssessmentQuery,
+  useGetShouldRecommendPalliativeQuery,
 } from '../generated/graphql';
 
 interface CardProps {
@@ -62,8 +64,10 @@ export function DashboardScreen() {
   const { data: surviveData, loading: svl } = useGetSurvivorshipPlanQuery({ errorPolicy: 'ignore' });
   const { data: fertilityData, loading: ftl } = useGetFertilityAssessmentQuery({ errorPolicy: 'ignore' });
   const { data: denialData, loading: dl } = useGetInsuranceDenialsQuery({ errorPolicy: 'ignore' });
+  const { data: palliativeData, loading: pal } = useGetLatestPalliativeAssessmentQuery({ errorPolicy: 'ignore' });
+  const { data: palRecData, loading: prl } = useGetShouldRecommendPalliativeQuery({ errorPolicy: 'ignore' });
 
-  const loading = ml || fl || fhl || sl || pl || mfl || svl || ftl || dl;
+  const loading = ml || fl || fhl || sl || pl || mfl || svl || ftl || dl || pal || prl;
 
   if (loading) {
     return (
@@ -93,6 +97,8 @@ export function DashboardScreen() {
   const fertilityAssessment = fertilityData?.fertilityAssessment;
   const denials = denialData?.insuranceDenials ?? [];
   const activeDenials = denials.filter((d: any) => d.status === 'denied' || d.status === 'submitted');
+  const latestAssessment = palliativeData?.latestPalliativeAssessment;
+  const shouldRecommend = palRecData?.shouldRecommendPalliative;
   const urgentDeadline = denials.find((d: any) => {
     if (!d.appealDeadline) return false;
     const days = Math.ceil((new Date(d.appealDeadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
@@ -334,6 +340,38 @@ export function DashboardScreen() {
               </>
             )}
           </DashboardCard>
+
+          {/* Prevention & Risk */}
+          <DashboardCard href="/prevent/risk" icon="🔬" iconBg="#F0F9FF" iconColor="sky600" title="Prevention & Risk">
+            <Text sx={{ mt: '$3', fontSize: 14, color: '$mutedForeground' }}>
+              Assess your breast cancer risk using the Gail model, plan screening, and explore prevention options
+            </Text>
+            <Text sx={{ mt: '$1', fontSize: 12, color: 'blue600' }}>Assess your risk →</Text>
+          </DashboardCard>
+
+          {/* Palliative Care */}
+          {(shouldRecommend?.recommended || latestAssessment) && (
+            <DashboardCard href="/palliative" icon="\u{1F49C}" iconBg="#F5F3FF" iconColor="violet600" title="Palliative Care">
+              {latestAssessment ? (
+                <>
+                  <Text sx={{ mt: '$3', fontSize: 14, color: '$foreground', fontWeight: '500' }}>
+                    Last assessment: {latestAssessment.triageLevel}
+                  </Text>
+                  <Text sx={{ fontSize: 12, color: latestAssessment.triageLevel === 'emergency' || latestAssessment.triageLevel === 'urgent' ? '#D97706' : '$mutedForeground' }}>
+                    Score: {(latestAssessment.esasScores as any)?.totalScore ?? '—'}/90
+                  </Text>
+                  <Text sx={{ mt: '$1', fontSize: 12, color: 'blue600' }}>View dashboard →</Text>
+                </>
+              ) : (
+                <>
+                  <Text sx={{ mt: '$3', fontSize: 14, color: '$mutedForeground' }}>
+                    Symptom management and quality of life support alongside your treatment
+                  </Text>
+                  <Text sx={{ mt: '$1', fontSize: 12, color: 'blue600' }}>Learn more →</Text>
+                </>
+              )}
+            </DashboardCard>
+          )}
 
           {/* For Your Family */}
           <DashboardCard href="/prevent/family" icon="👨‍👩‍👧" iconBg="#FEF3C7" iconColor="amber600" title="For Your Family">

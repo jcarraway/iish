@@ -146,6 +146,26 @@ export { PreventiveTrialsScreen } from './PreventiveTrialsScreen';
 export { ForYourFamilyScreen } from './ForYourFamilyScreen';
 export { RecurrencePreventionScreen } from './RecurrencePreventionScreen';
 
+// Palliative Care
+export { PalliativeDashboardScreen } from './PalliativeDashboardScreen';
+export { PalliativeAssessmentScreen } from './PalliativeAssessmentScreen';
+export { PalliativeEducationScreen } from './PalliativeEducationScreen';
+export { PalliativeProvidersScreen } from './PalliativeProvidersScreen';
+export { AdvanceCarePlanScreen } from './AdvanceCarePlanScreen';
+
+// PREVENT — Pre-Diagnosis Risk
+export { PreventOnboardingScreen } from './PreventOnboardingScreen';
+export { RiskDashboardScreen } from './RiskDashboardScreen';
+export { RiskFactorsScreen } from './RiskFactorsScreen';
+export { ScreeningPlannerScreen } from './ScreeningPlannerScreen';
+export { ChemopreventionScreen } from './ChemopreventionScreen';
+export { PreventLifestyleScreen } from './PreventLifestyleScreen';
+export { PreventFamilyHistoryScreen } from './PreventFamilyHistoryScreen';
+export { PreventGenomicScreen } from './PreventGenomicScreen';
+export { LocationHistoryScreen } from './LocationHistoryScreen';
+export { DataContributionScreen } from './DataContributionScreen';
+export { PreventEducationScreen } from './PreventEducationScreen';
+
 // Learn — L2 additions
 export { MyReadingPlanScreen } from './MyReadingPlanScreen';
 export { LearnAdminScreen } from './LearnAdminScreen';

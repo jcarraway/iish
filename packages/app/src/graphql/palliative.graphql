@@ -1,0 +1,129 @@
+query GetLatestPalliativeAssessment {
+  latestPalliativeAssessment {
+    id
+    patientId
+    esasScores
+    triageLevel
+    triageRationale
+    recommendations
+    palliativeReferralRecommended
+    providerId
+    trends
+    createdAt
+  }
+}
+
+query GetSymptomAssessmentHistory($limit: Int) {
+  symptomAssessmentHistory(limit: $limit) {
+    id
+    patientId
+    esasScores
+    triageLevel
+    triageRationale
+    recommendations
+    palliativeReferralRecommended
+    trends
+    createdAt
+  }
+}
+
+query GetPalliativeCareProviders($filters: PalliativeProviderFilters) {
+  palliativeCareProviders(filters: $filters) {
+    id
+    name
+    type
+    setting
+    affiliatedHospital
+    servicesOffered
+    acceptsInsurance
+    acceptsMedicare
+    offersTelehealth
+    averageWaitDays
+    referralRequired
+    address
+    city
+    state
+    zipCode
+    phone
+    website
+    distance
+  }
+}
+
+query GetAdvanceCarePlan {
+  advanceCarePlan {
+    id
+    patientId
+    hasLivingWill
+    hasHealthcareProxy
+    healthcareProxyName
+    hasPolst
+    goalsOfCareDocumented
+    goalsOfCareSummary
+    documentsUploaded
+    lastReviewedAt
+    createdAt
+    updatedAt
+  }
+}
+
+query GetShouldRecommendPalliative {
+  shouldRecommendPalliative {
+    recommended
+    reasons
+  }
+}
+
+mutation SubmitSymptomAssessment($input: SubmitAssessmentInput!) {
+  submitSymptomAssessment(input: $input) {
+    id
+    patientId
+    esasScores
+    triageLevel
+    triageRationale
+    recommendations
+    palliativeReferralRecommended
+    createdAt
+  }
+}
+
+mutation UpdateAdvanceCarePlanMutation($input: UpdateAdvanceCarePlanInput!) {
+  updateAdvanceCarePlan(input: $input) {
+    id
+    hasLivingWill
+    hasHealthcareProxy
+    healthcareProxyName
+    hasPolst
+    goalsOfCareDocumented
+    goalsOfCareSummary
+    documentsUploaded
+    lastReviewedAt
+  }
+}
+
+mutation GenerateGoalsOfCareGuide {
+  generateGoalsOfCareGuide {
+    introduction
+    questions {
+      question
+      why
+    }
+    talkingPoints
+    documentChecklist
+    generatedAt
+  }
+}
+
+mutation GenerateReferralLetter {
+  generateReferralLetter {
+    content
+    generatedAt
+  }
+}
+
+mutation SelectPalliativeProvider($assessmentId: String!, $providerId: String!) {
+  selectPalliativeProvider(assessmentId: $assessmentId, providerId: $providerId) {
+    id
+    providerId
+  }
+}

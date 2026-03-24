@@ -1919,6 +1919,352 @@ export const typeDefs = `#graphql
   }
 
   # ============================================================================
+  # Palliative Care
+  # ============================================================================
+
+  type PalliativeAssessment {
+    id: ID!
+    patientId: String!
+    esasScores: JSON!
+    triageLevel: String!
+    triageRationale: String!
+    recommendations: [String!]!
+    palliativeReferralRecommended: Boolean!
+    providerId: String
+    trends: JSON
+    createdAt: DateTime!
+  }
+
+  type PalliativeCareProvider {
+    id: ID!
+    name: String!
+    type: String!
+    setting: String!
+    affiliatedHospital: String
+    servicesOffered: [String!]!
+    acceptsInsurance: [String!]!
+    acceptsMedicare: Boolean!
+    offersTelehealth: Boolean!
+    averageWaitDays: Int
+    referralRequired: Boolean!
+    address: String
+    city: String
+    state: String
+    zipCode: String
+    phone: String
+    website: String
+    distance: Float
+  }
+
+  type AdvanceCarePlan {
+    id: ID!
+    patientId: String!
+    hasLivingWill: Boolean!
+    hasHealthcareProxy: Boolean!
+    healthcareProxyName: String
+    hasPolst: Boolean!
+    goalsOfCareDocumented: Boolean!
+    goalsOfCareSummary: String
+    documentsUploaded: [String!]!
+    lastReviewedAt: DateTime
+    createdAt: DateTime!
+    updatedAt: DateTime!
+  }
+
+  type GoalsOfCareGuide {
+    introduction: String!
+    questions: [GoalsOfCareQuestion!]!
+    talkingPoints: [String!]!
+    documentChecklist: [String!]!
+    generatedAt: String!
+  }
+
+  type GoalsOfCareQuestion {
+    question: String!
+    why: String!
+  }
+
+  type ReferralLetter {
+    content: String!
+    generatedAt: String!
+  }
+
+  type PalliativeRecommendation {
+    recommended: Boolean!
+    reasons: [String!]!
+  }
+
+  input SubmitAssessmentInput {
+    pain: Int!
+    tiredness: Int!
+    nausea: Int!
+    depression: Int!
+    anxiety: Int!
+    drowsiness: Int!
+    appetite: Int!
+    wellbeing: Int!
+    shortnessOfBreath: Int!
+    other: [OtherSymptomInput!]
+  }
+
+  input OtherSymptomInput {
+    symptom: String!
+    severity: Int!
+  }
+
+  input UpdateAdvanceCarePlanInput {
+    hasLivingWill: Boolean
+    hasHealthcareProxy: Boolean
+    healthcareProxyName: String
+    hasPolst: Boolean
+    goalsOfCareDocumented: Boolean
+    goalsOfCareSummary: String
+    documentsUploaded: [String!]
+    lastReviewedAt: String
+  }
+
+  input PalliativeProviderFilters {
+    type: String
+    setting: String
+    telehealth: Boolean
+    insurance: String
+    maxDistance: Float
+  }
+
+  # ============================================================================
+  # PREVENT — Pre-Diagnosis Risk Intelligence
+  # ============================================================================
+
+  type PreventProfile {
+    id: ID!
+    patientId: String!
+    onboardingCompletedAt: DateTime
+    onboardingTier: String
+    ageAtMenarche: Int
+    pregnancies: Int
+    ageAtFirstLiveBirth: Int
+    breastfeedingMonths: Int
+    menopausalStatus: String
+    ageAtMenopause: Int
+    ocEver: Boolean
+    ocCurrent: Boolean
+    ocTotalYears: Float
+    hrtEver: Boolean
+    hrtCurrent: Boolean
+    hrtType: String
+    hrtTotalYears: Float
+    previousBiopsies: Int
+    atypicalHyperplasia: Boolean
+    lcis: Boolean
+    chestRadiation: Boolean
+    breastDensity: String
+    bmi: Float
+    alcoholDrinksPerWeek: Float
+    exerciseMinutesPerWeek: Int
+    smokingStatus: String
+    familyHistory: JSON
+    ethnicity: String
+    createdAt: DateTime!
+  }
+
+  type RiskAssessment {
+    id: ID!
+    patientId: String!
+    assessmentDate: DateTime!
+    modelVersion: String!
+    gailInputs: JSON
+    lifetimeRiskEstimate: Float!
+    lifetimeRiskCiLow: Float
+    lifetimeRiskCiHigh: Float
+    fiveYearRiskEstimate: Float
+    tenYearRiskEstimate: Float
+    riskCategory: String!
+    riskTrajectory: [RiskTrajectoryPoint!]
+    modifiableFactors: [ModifiableFactor!]
+    createdAt: DateTime!
+  }
+
+  type RiskTrajectoryPoint {
+    age: Int!
+    risk: Float!
+    populationAverage: Float
+  }
+
+  type ModifiableFactor {
+    factor: String!
+    currentValue: String!
+    impact: String!
+    recommendation: String!
+    evidenceStrength: String!
+    potentialReduction: Float
+  }
+
+  type LocationHistoryEntry {
+    id: ID!
+    patientId: String!
+    zipCode: String!
+    state: String
+    moveInDate: DateTime
+    moveOutDate: DateTime
+    residenceType: String
+    waterSource: String
+    nearbyIndustry: [String!]
+    agriculturalProximity: Boolean
+    lifeStages: [String!]
+    durationMonths: Int
+    consentResearchUse: Boolean!
+    createdAt: DateTime!
+  }
+
+  type DataConsentInfo {
+    id: ID!
+    patientId: String!
+    consentLevel: Int!
+    consentedAt: DateTime!
+    withdrawnAt: DateTime
+  }
+
+  type ScreeningScheduleInfo {
+    id: ID!
+    patientId: String!
+    guidelineSource: String!
+    riskCategory: String!
+    schedule: JSON!
+    nextScreeningDate: DateTime
+    nextScreeningType: String
+    lastUpdatedAt: DateTime!
+  }
+
+  type ChemopreventionEligibility {
+    eligible: Boolean!
+    fiveYearRisk: Float!
+    riskThreshold: Float!
+    medications: [ChemopreventionMedication!]!
+    contraindications: [String!]!
+  }
+
+  type ChemopreventionMedication {
+    name: String!
+    type: String!
+    eligiblePopulation: String!
+    riskReduction: String!
+    duration: String!
+    sideEffects: [String!]!
+    contraindications: [String!]!
+    keyTrials: [String!]!
+  }
+
+  type ChemopreventionGuide {
+    overview: String!
+    medications: [ChemopreventionMedicationGuide!]!
+    questionsForDoctor: [String!]!
+    generatedAt: String!
+  }
+
+  type ChemopreventionMedicationGuide {
+    name: String!
+    howItWorks: String!
+    benefits: String!
+    risks: String!
+    patientProfile: String!
+  }
+
+  type PreventGenomicProfile {
+    id: ID!
+    patientId: String!
+    dataSource: String
+    pathogenicVariants: JSON
+    vusVariants: JSON
+    genesTested: [String!]!
+    prsValue: Float
+    prsPercentile: Float
+    createdAt: DateTime!
+  }
+
+  type TestingRecommendation {
+    recommended: Boolean!
+    urgency: String!
+    rationale: String!
+    recommendedTests: [String!]!
+    criteria: [String!]!
+    resources: [TestingResource!]!
+  }
+
+  type TestingResource {
+    name: String!
+    url: String!
+    description: String!
+  }
+
+  input CreatePreventProfileInput {
+    ageAtMenarche: Int
+    pregnancies: Int
+    ageAtFirstLiveBirth: Int
+    breastfeedingMonths: Int
+    menopausalStatus: String
+    ageAtMenopause: Int
+    ocEver: Boolean
+    ocCurrent: Boolean
+    ocTotalYears: Float
+    hrtEver: Boolean
+    hrtCurrent: Boolean
+    hrtType: String
+    hrtTotalYears: Float
+    previousBiopsies: Int
+    atypicalHyperplasia: Boolean
+    lcis: Boolean
+    chestRadiation: Boolean
+    breastDensity: String
+    bmi: Float
+    alcoholDrinksPerWeek: Float
+    exerciseMinutesPerWeek: Int
+    smokingStatus: String
+    familyHistory: JSON
+    ethnicity: String
+  }
+
+  input UpdatePreventProfileInput {
+    ageAtMenarche: Int
+    pregnancies: Int
+    ageAtFirstLiveBirth: Int
+    breastfeedingMonths: Int
+    menopausalStatus: String
+    ageAtMenopause: Int
+    ocEver: Boolean
+    ocCurrent: Boolean
+    ocTotalYears: Float
+    hrtEver: Boolean
+    hrtCurrent: Boolean
+    hrtType: String
+    hrtTotalYears: Float
+    previousBiopsies: Int
+    atypicalHyperplasia: Boolean
+    lcis: Boolean
+    chestRadiation: Boolean
+    breastDensity: String
+    bmi: Float
+    alcoholDrinksPerWeek: Float
+    exerciseMinutesPerWeek: Int
+    smokingStatus: String
+    familyHistory: JSON
+    ethnicity: String
+  }
+
+  input LocationHistoryInput {
+    zipCode: String!
+    state: String
+    moveInDate: String
+    moveOutDate: String
+    residenceType: String
+    waterSource: String
+    nearbyIndustry: [String!]
+    agriculturalProximity: Boolean
+    lifeStages: [String!]
+    durationMonths: Int
+    consentResearchUse: Boolean
+  }
+
+  # ============================================================================
   # Queries
   # ============================================================================
 
@@ -2097,6 +2443,26 @@ export const typeDefs = `#graphql
     preventiveTrialsForFamily: [PreventiveTrialMatch!]!
     recurrencePreventionTrials: [PreventiveTrialMatch!]!
     referralStats: ReferralStats!
+
+    # Palliative Care
+    latestPalliativeAssessment: PalliativeAssessment
+    symptomAssessmentHistory(limit: Int): [PalliativeAssessment!]!
+    palliativeCareProviders(filters: PalliativeProviderFilters): [PalliativeCareProvider!]!
+    advanceCarePlan: AdvanceCarePlan!
+    shouldRecommendPalliative: PalliativeRecommendation!
+
+    # PREVENT — Pre-Diagnosis Risk
+    preventProfile: PreventProfile
+    latestRisk: RiskAssessment
+    riskAssessments: [RiskAssessment!]!
+    locationHistory: [LocationHistoryEntry!]!
+    dataConsent: DataConsentInfo
+    screeningSchedule: ScreeningScheduleInfo
+    chemopreventionEligibility: ChemopreventionEligibility
+    chemopreventionGuide: ChemopreventionGuide
+    testingRecommendations: TestingRecommendation
+    preventGenomicProfile: PreventGenomicProfile
+    preventionLifestyle: JSON
   }
 
   # ============================================================================
@@ -2504,5 +2870,22 @@ export const typeDefs = `#graphql
     # Preventive Trial Matcher
     redeemReferralCode(code: String!): ReferralRedemption!
     generateFamilyReferralLink: FamilyReferralLink!
+
+    # Palliative Care
+    submitSymptomAssessment(input: SubmitAssessmentInput!): PalliativeAssessment!
+    updateAdvanceCarePlan(input: UpdateAdvanceCarePlanInput!): AdvanceCarePlan!
+    generateGoalsOfCareGuide: GoalsOfCareGuide!
+    generateReferralLetter: ReferralLetter!
+    selectPalliativeProvider(assessmentId: String!, providerId: String!): PalliativeAssessment!
+
+    # PREVENT
+    createPreventProfile(input: CreatePreventProfileInput!): PreventProfile!
+    updatePreventProfile(input: UpdatePreventProfileInput!): PreventProfile!
+    saveLocationHistory(locations: [LocationHistoryInput!]!): [LocationHistoryEntry!]!
+    updateDataConsent(level: Int!): DataConsentInfo!
+    generateScreeningSchedule: ScreeningScheduleInfo!
+    generateChemopreventionGuide: ChemopreventionGuide!
+    updateFamilyHistory(familyHistory: JSON!): PreventProfile!
+    generatePreventionLifestyle: JSON!
   }
 `;
