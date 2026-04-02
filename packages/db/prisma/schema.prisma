@@ -1511,6 +1511,8 @@ model GenomicProfile {
   prsSnpCount             Int?     @map("prs_snp_count")
   prsModelVersion         String?  @map("prs_model_version") @db.VarChar(50)
   prsAncestryCalibration  String?  @map("prs_ancestry_calibration") @db.VarChar(50)
+  prsConfidence           String?  @map("prs_confidence") @db.VarChar(20)
+  prsRiskMultiplier       Float?   @map("prs_risk_multiplier")
   pathogenicVariants      Json?    @map("pathogenic_variants")
   vusVariants             Json?    @map("vus_variants")
   genesTested             String[] @default([]) @map("genes_tested")

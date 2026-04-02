@@ -2178,6 +2178,10 @@ export const typeDefs = `#graphql
     genesTested: [String!]!
     prsValue: Float
     prsPercentile: Float
+    prsModelVersion: String
+    prsAncestryCalibration: String
+    prsConfidence: String
+    prsRiskMultiplier: Float
     rawFileS3Key: String
     parsingStatus: String!
     snpCount: Int
@@ -3058,6 +3062,7 @@ export const typeDefs = `#graphql
     generatePreventionLifestyle: JSON!
     requestGenotypeUpload(input: RequestGenotypeUploadInput!): GenotypeUploadResult!
     parseGenotypeFile(s3Key: String!, documentUploadId: String!): PreventGenomicProfile!
+    calculatePrs(ancestryOverride: String): PreventGenomicProfile!
 
     # PEERS — Peer Support
     enrollAsMentor(input: EnrollMentorInput!): PeerMentorProfile!

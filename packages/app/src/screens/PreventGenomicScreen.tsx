@@ -7,6 +7,7 @@ import {
   useGetTestingRecommendationsQuery,
   useRequestGenotypeUploadMutation,
   useParseGenotypeFileMutation,
+  useCalculatePrsMutation,
 } from '../generated/graphql';
 
 // ============================================================================
@@ -47,6 +48,7 @@ export function PreventGenomicScreen() {
   const { data: testingData, loading: testingLoading } = useGetTestingRecommendationsQuery({ errorPolicy: 'ignore' });
   const [requestUpload] = useRequestGenotypeUploadMutation();
   const [parseFile] = useParseGenotypeFileMutation();
+  const [recalculatePrs, { loading: recalculating }] = useCalculatePrsMutation();
 
   const genomicProfile = genomicData?.preventGenomicProfile as any;
   const testingRecs = testingData?.testingRecommendations;
@@ -593,25 +595,65 @@ export function PreventGenomicScreen() {
         <View sx={{ mt: '$8' }}>
           <SectionHeader title="Polygenic Risk Score (PRS)" />
 
-          {genomicProfile?.prsValue != null ? (
+          {genomicProfile?.prsPercentile != null ? (
             <View sx={{ mt: '$4' }}>
+              {/* Percentile display */}
               <View sx={{
                 borderWidth: 2, borderColor: '#C7D2FE', backgroundColor: '#EEF2FF',
                 borderRadius: 12, p: '$5',
               }}>
-                <Text sx={{ fontSize: 14, fontWeight: '600', color: '#3730A3' }}>
-                  Your PRS percentile
-                </Text>
+                <View sx={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Text sx={{ fontSize: 14, fontWeight: '600', color: '#3730A3' }}>
+                    Your PRS percentile
+                  </Text>
+                  {genomicProfile.prsConfidence && (
+                    <View sx={{
+                      px: '$2', py: 2, borderRadius: 6,
+                      backgroundColor: genomicProfile.prsConfidence === 'high' ? '#DCFCE7'
+                        : genomicProfile.prsConfidence === 'moderate' ? '#FEF3C7' : '#FEE2E2',
+                    }}>
+                      <Text sx={{
+                        fontSize: 11, fontWeight: '600',
+                        color: genomicProfile.prsConfidence === 'high' ? '#166534'
+                          : genomicProfile.prsConfidence === 'moderate' ? '#92400E' : '#991B1B',
+                      }}>
+                        {genomicProfile.prsConfidence.toUpperCase()} CONFIDENCE
+                      </Text>
+                    </View>
+                  )}
+                </View>
                 <Text sx={{ mt: '$2', fontSize: 28, fontWeight: 'bold', color: '#3730A3' }}>
-                  {genomicProfile.prsValue}th percentile
+                  {genomicProfile.prsPercentile}th percentile
                 </Text>
                 <Text sx={{ mt: '$2', fontSize: 13, color: '#4338CA', lineHeight: 20 }}>
-                  Your polygenic risk score places you at the {genomicProfile.prsValue}th percentile
+                  Your polygenic risk score places you at the {genomicProfile.prsPercentile}th percentile
                   compared to the general population. This score considers the combined effect of
                   many common genetic variants on breast cancer risk.
                 </Text>
+
+                {/* SNP coverage + risk multiplier */}
+                <View sx={{ mt: '$3', flexDirection: 'row', gap: '$3' }}>
+                  {genomicProfile.prsSnpCount != null && (
+                    <View sx={{ flex: 1, backgroundColor: '#E0E7FF', borderRadius: 8, p: '$3' }}>
+                      <Text sx={{ fontSize: 11, fontWeight: '600', color: '#3730A3' }}>SNP Coverage</Text>
+                      <Text sx={{ fontSize: 13, color: '#4338CA', mt: 2 }}>
+                        {genomicProfile.prsSnpCount} model SNPs
+                      </Text>
+                    </View>
+                  )}
+                  {genomicProfile.prsRiskMultiplier != null && (
+                    <View sx={{ flex: 1, backgroundColor: '#E0E7FF', borderRadius: 8, p: '$3' }}>
+                      <Text sx={{ fontSize: 11, fontWeight: '600', color: '#3730A3' }}>Risk Multiplier</Text>
+                      <Text sx={{ fontSize: 13, color: '#4338CA', mt: 2 }}>
+                        {genomicProfile.prsRiskMultiplier}x baseline
+                      </Text>
+                    </View>
+                  )}
+                </View>
               </View>
-              {genomicProfile.prsValue >= 80 && (
+
+              {/* Elevated risk warning */}
+              {genomicProfile.prsPercentile >= 80 && (
                 <View sx={{
                   mt: '$3', backgroundColor: '#FEF3C7', borderWidth: 1,
                   borderColor: '#FDE68A', borderRadius: 10, p: '$4',
@@ -626,6 +668,86 @@ export function PreventGenomicScreen() {
                   </Text>
                 </View>
               )}
+
+              {/* Low confidence warning */}
+              {genomicProfile.prsConfidence === 'low' && (
+                <View sx={{
+                  mt: '$3', backgroundColor: '#FEE2E2', borderWidth: 1,
+                  borderColor: '#FECACA', borderRadius: 10, p: '$4',
+                }}>
+                  <Text sx={{ fontSize: 13, fontWeight: '600', color: '#991B1B' }}>
+                    Limited SNP coverage
+                  </Text>
+                  <Text sx={{ mt: '$1', fontSize: 12, color: '#7F1D1D', lineHeight: 18 }}>
+                    Your genotype file contained fewer than 60% of the model's SNPs. For a more
+                    accurate polygenic risk score, consider clinical-grade PRS testing through your
+                    healthcare provider.
+                  </Text>
+                </View>
+              )}
+
+              {/* Ancestry disclosure */}
+              {genomicProfile.prsAncestryCalibration && genomicProfile.prsAncestryCalibration !== 'european' && genomicProfile.prsAncestryCalibration !== 'white' && (
+                <View sx={{
+                  mt: '$3', backgroundColor: '#F0F9FF', borderWidth: 1,
+                  borderColor: '#BAE6FD', borderRadius: 10, p: '$4',
+                }}>
+                  <Text sx={{ fontSize: 13, fontWeight: '600', color: '#0C4A6E' }}>
+                    Ancestry calibration note
+                  </Text>
+                  <Text sx={{ mt: '$1', fontSize: 12, color: '#0C4A6E', lineHeight: 18 }}>
+                    PRS models are most accurate for women of European ancestry. Your score has been
+                    calibrated for {genomicProfile.prsAncestryCalibration} ancestry using the best
+                    available data, but the confidence interval is wider. We display this uncertainty
+                    clearly in your risk estimate.
+                  </Text>
+                </View>
+              )}
+
+              {/* Recalculate button */}
+              <Pressable
+                onPress={async () => {
+                  await recalculatePrs();
+                  refetchGenomicProfile();
+                }}
+                disabled={recalculating}
+                style={{ marginTop: 12 }}
+              >
+                <View sx={{
+                  borderWidth: 1, borderColor: '$border', borderRadius: 8,
+                  p: '$3', alignItems: 'center',
+                  opacity: recalculating ? 0.6 : 1,
+                }}>
+                  {recalculating ? (
+                    <ActivityIndicator size="small" />
+                  ) : (
+                    <Text sx={{ fontSize: 13, color: '$mutedForeground' }}>
+                      Recalculate PRS
+                    </Text>
+                  )}
+                </View>
+              </Pressable>
+
+              {/* Model info */}
+              {genomicProfile.prsModelVersion && (
+                <Text sx={{ mt: '$2', fontSize: 11, color: '$mutedForeground', textAlign: 'center' }}>
+                  Model: Mavaddat et al. 2019 (313-SNP) · OR per SD: 1.61
+                </Text>
+              )}
+            </View>
+          ) : genomicProfile?.parsingStatus === 'complete' && !genomicProfile?.prsSnpCount ? (
+            <View sx={{
+              mt: '$4', p: '$5', borderRadius: 12,
+              borderWidth: 2, borderStyle: 'dashed', borderColor: '$border',
+            }}>
+              <Text sx={{ fontSize: 14, fontWeight: '600', color: '$foreground' }}>
+                No PRS data available
+              </Text>
+              <Text sx={{ mt: '$2', fontSize: 13, color: '$mutedForeground', lineHeight: 20 }}>
+                Your genotype file did not contain enough PRS-relevant SNPs for score calculation.
+                This can happen with older genotyping arrays. Consider clinical-grade PRS testing
+                for a comprehensive polygenic risk assessment.
+              </Text>
             </View>
           ) : (
             <View sx={{
@@ -633,12 +755,12 @@ export function PreventGenomicScreen() {
               borderWidth: 2, borderStyle: 'dashed', borderColor: '$border',
             }}>
               <Text sx={{ fontSize: 14, fontWeight: '600', color: '$foreground' }}>
-                Coming soon
+                Upload genotype data to calculate PRS
               </Text>
               <Text sx={{ mt: '$2', fontSize: 13, color: '$mutedForeground', lineHeight: 20 }}>
                 Polygenic risk scores analyze hundreds of common genetic variants to estimate breast
-                cancer risk. PRS integration is coming soon and will provide an additional layer of
-                risk stratification beyond single-gene testing.
+                cancer risk. Upload your raw genotype file (23andMe, AncestryDNA, or VCF) above to
+                calculate your PRS automatically.
               </Text>
               <View sx={{
                 mt: '$3', backgroundColor: '#F0F9FF', borderRadius: 10, p: '$3',

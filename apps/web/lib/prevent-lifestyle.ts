@@ -10,6 +10,7 @@ import { redis } from './redis';
 import { anthropic } from './ai';
 import { generatePresignedUploadUrl, downloadS3AsText } from './s3';
 import { parseGenotypeFile as parseRawGenotype } from './genotype-parser';
+import { calculatePrs } from './prs-calculator';
 import { DOCUMENT_TYPES } from '@iish/shared';
 import { randomUUID } from 'crypto';
 
@@ -345,13 +346,37 @@ export async function processGenotypeFile(
       },
     });
 
+    // Auto-calculate PRS if SNP dosages were extracted
+    let finalProfile = updated;
+    if (parsed.prsSnpCount > 0) {
+      const preventProfile = await prisma.preventProfile.findUnique({
+        where: { patientId: patient.id },
+        select: { ethnicity: true },
+      });
+      const prsResult = calculatePrs(
+        parsed.prsSnpDosages,
+        preventProfile?.ethnicity ?? undefined,
+      );
+      finalProfile = await prisma.genomicProfile.update({
+        where: { patientId: patient.id },
+        data: {
+          prsValue: prsResult.standardizedScore,
+          prsPercentile: prsResult.percentile,
+          prsModelVersion: 'mavaddat_2019_313',
+          prsAncestryCalibration: prsResult.ancestryCalibration,
+          prsConfidence: prsResult.confidence,
+          prsRiskMultiplier: prsResult.riskMultiplier,
+        },
+      });
+    }
+
     // Update DocumentUpload status
     await prisma.documentUpload.update({
       where: { id: documentUploadId },
       data: { extractionStatus: 'completed' },
     });
 
-    return updated;
+    return finalProfile;
   } catch (err) {
     // If parsing failed with a known error, status is already 'failed'
     // For unexpected errors, mark as failed
@@ -373,4 +398,44 @@ export async function processGenotypeFile(
 
     throw err;
   }
+}
+
+/**
+ * Manually calculate (or recalculate) PRS for a user.
+ * Allows ancestry override for recalibration.
+ */
+export async function calculatePrsForUser(userId: string, ancestryOverride?: string) {
+  const patient = await prisma.patient.findUnique({ where: { userId } });
+  if (!patient) throw new Error('Patient not found');
+
+  const genomicProfile = await prisma.genomicProfile.findUnique({
+    where: { patientId: patient.id },
+  });
+  if (!genomicProfile?.prsSnpDosages) {
+    throw new Error('No PRS data available. Upload a genotype file first.');
+  }
+
+  const ethnicity = ancestryOverride ?? (
+    await prisma.preventProfile.findUnique({
+      where: { patientId: patient.id },
+      select: { ethnicity: true },
+    })
+  )?.ethnicity ?? undefined;
+
+  const prsResult = calculatePrs(
+    genomicProfile.prsSnpDosages as Record<string, number>,
+    ethnicity,
+  );
+
+  return prisma.genomicProfile.update({
+    where: { patientId: patient.id },
+    data: {
+      prsValue: prsResult.standardizedScore,
+      prsPercentile: prsResult.percentile,
+      prsModelVersion: 'mavaddat_2019_313',
+      prsAncestryCalibration: prsResult.ancestryCalibration,
+      prsConfidence: prsResult.confidence,
+      prsRiskMultiplier: prsResult.riskMultiplier,
+    },
+  });
 }

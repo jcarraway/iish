@@ -1311,6 +1311,7 @@ export type Mutation = {
   assessRegulatoryPathway: RegulatoryPathwayAssessment;
   assessTrialLogistics: TrialLogisticsAssessment;
   authorizeFhir: FhirAuthorizeResult;
+  calculatePrs: PreventGenomicProfile;
   cancelPipelineJob: PipelineJob;
   checkArticleQuality: QualityCheckResult;
   checkInsuranceCoverage: InsuranceCoverage;
@@ -1472,6 +1473,11 @@ export type MutationAssessTrialLogisticsArgs = {
 
 export type MutationAuthorizeFhirArgs = {
   healthSystemId: Scalars['String']['input'];
+};
+
+
+export type MutationCalculatePrsArgs = {
+  ancestryOverride?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -2411,7 +2417,11 @@ export type PreventGenomicProfile = {
   parsingStatus: Scalars['String']['output'];
   pathogenicVariants?: Maybe<Scalars['JSON']['output']>;
   patientId: Scalars['String']['output'];
+  prsAncestryCalibration?: Maybe<Scalars['String']['output']>;
+  prsConfidence?: Maybe<Scalars['String']['output']>;
+  prsModelVersion?: Maybe<Scalars['String']['output']>;
   prsPercentile?: Maybe<Scalars['Float']['output']>;
+  prsRiskMultiplier?: Maybe<Scalars['Float']['output']>;
   prsSnpCount?: Maybe<Scalars['Int']['output']>;
   prsValue?: Maybe<Scalars['Float']['output']>;
   rawFileS3Key?: Maybe<Scalars['String']['output']>;
@@ -5171,7 +5181,7 @@ export type GetTestingRecommendationsQuery = { __typename?: 'Query', testingReco
 export type GetPreventGenomicProfileQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetPreventGenomicProfileQuery = { __typename?: 'Query', preventGenomicProfile?: { __typename?: 'PreventGenomicProfile', id: string, patientId: string, dataSource?: string | null, pathogenicVariants?: Record<string, unknown> | null, vusVariants?: Record<string, unknown> | null, genesTested: Array<string>, prsValue?: number | null, prsPercentile?: number | null, rawFileS3Key?: string | null, parsingStatus: string, snpCount?: number | null, prsSnpCount?: number | null, extractedAt?: string | null, createdAt: string } | null };
+export type GetPreventGenomicProfileQuery = { __typename?: 'Query', preventGenomicProfile?: { __typename?: 'PreventGenomicProfile', id: string, patientId: string, dataSource?: string | null, pathogenicVariants?: Record<string, unknown> | null, vusVariants?: Record<string, unknown> | null, genesTested: Array<string>, prsValue?: number | null, prsPercentile?: number | null, prsModelVersion?: string | null, prsAncestryCalibration?: string | null, prsConfidence?: string | null, prsRiskMultiplier?: number | null, rawFileS3Key?: string | null, parsingStatus: string, snpCount?: number | null, prsSnpCount?: number | null, extractedAt?: string | null, createdAt: string } | null };
 
 export type GetPreventionLifestyleQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -5241,7 +5251,14 @@ export type ParseGenotypeFileMutationVariables = Exact<{
 }>;
 
 
-export type ParseGenotypeFileMutation = { __typename?: 'Mutation', parseGenotypeFile: { __typename?: 'PreventGenomicProfile', id: string, patientId: string, dataSource?: string | null, pathogenicVariants?: Record<string, unknown> | null, vusVariants?: Record<string, unknown> | null, genesTested: Array<string>, parsingStatus: string, snpCount?: number | null, prsSnpCount?: number | null, extractedAt?: string | null, prsValue?: number | null, prsPercentile?: number | null, createdAt: string } };
+export type ParseGenotypeFileMutation = { __typename?: 'Mutation', parseGenotypeFile: { __typename?: 'PreventGenomicProfile', id: string, patientId: string, dataSource?: string | null, pathogenicVariants?: Record<string, unknown> | null, vusVariants?: Record<string, unknown> | null, genesTested: Array<string>, parsingStatus: string, snpCount?: number | null, prsSnpCount?: number | null, extractedAt?: string | null, prsValue?: number | null, prsPercentile?: number | null, prsConfidence?: string | null, prsRiskMultiplier?: number | null, prsAncestryCalibration?: string | null, prsModelVersion?: string | null, createdAt: string } };
+
+export type CalculatePrsMutationVariables = Exact<{
+  ancestryOverride?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type CalculatePrsMutation = { __typename?: 'Mutation', calculatePrs: { __typename?: 'PreventGenomicProfile', id: string, prsValue?: number | null, prsPercentile?: number | null, prsConfidence?: string | null, prsRiskMultiplier?: number | null, prsAncestryCalibration?: string | null, prsModelVersion?: string | null } };
 
 export type GetPreventiveTrialsQueryVariables = Exact<{
   category?: InputMaybe<Scalars['String']['input']>;
@@ -14607,6 +14624,10 @@ export const GetPreventGenomicProfileDocument = gql`
     genesTested
     prsValue
     prsPercentile
+    prsModelVersion
+    prsAncestryCalibration
+    prsConfidence
+    prsRiskMultiplier
     rawFileS3Key
     parsingStatus
     snpCount
@@ -15042,6 +15063,10 @@ export const ParseGenotypeFileDocument = gql`
     extractedAt
     prsValue
     prsPercentile
+    prsConfidence
+    prsRiskMultiplier
+    prsAncestryCalibration
+    prsModelVersion
     createdAt
   }
 }
@@ -15073,6 +15098,45 @@ export function useParseGenotypeFileMutation(baseOptions?: Apollo.MutationHookOp
 export type ParseGenotypeFileMutationHookResult = ReturnType<typeof useParseGenotypeFileMutation>;
 export type ParseGenotypeFileMutationResult = Apollo.MutationResult<ParseGenotypeFileMutation>;
 export type ParseGenotypeFileMutationOptions = Apollo.BaseMutationOptions<ParseGenotypeFileMutation, ParseGenotypeFileMutationVariables>;
+export const CalculatePrsDocument = gql`
+    mutation CalculatePrs($ancestryOverride: String) {
+  calculatePrs(ancestryOverride: $ancestryOverride) {
+    id
+    prsValue
+    prsPercentile
+    prsConfidence
+    prsRiskMultiplier
+    prsAncestryCalibration
+    prsModelVersion
+  }
+}
+    `;
+export type CalculatePrsMutationFn = Apollo.MutationFunction<CalculatePrsMutation, CalculatePrsMutationVariables>;
+
+/**
+ * __useCalculatePrsMutation__
+ *
+ * To run a mutation, you first call `useCalculatePrsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCalculatePrsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [calculatePrsMutation, { data, loading, error }] = useCalculatePrsMutation({
+ *   variables: {
+ *      ancestryOverride: // value for 'ancestryOverride'
+ *   },
+ * });
+ */
+export function useCalculatePrsMutation(baseOptions?: Apollo.MutationHookOptions<CalculatePrsMutation, CalculatePrsMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CalculatePrsMutation, CalculatePrsMutationVariables>(CalculatePrsDocument, options);
+      }
+export type CalculatePrsMutationHookResult = ReturnType<typeof useCalculatePrsMutation>;
+export type CalculatePrsMutationResult = Apollo.MutationResult<CalculatePrsMutation>;
+export type CalculatePrsMutationOptions = Apollo.BaseMutationOptions<CalculatePrsMutation, CalculatePrsMutationVariables>;
 export const GetPreventiveTrialsDocument = gql`
     query GetPreventiveTrials($category: String) {
   preventiveTrials(category: $category) {

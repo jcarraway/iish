@@ -181,6 +181,10 @@ query GetPreventGenomicProfile {
     genesTested
     prsValue
     prsPercentile
+    prsModelVersion
+    prsAncestryCalibration
+    prsConfidence
+    prsRiskMultiplier
     rawFileS3Key
     parsingStatus
     snpCount
@@ -306,6 +310,22 @@ mutation ParseGenotypeFile($s3Key: String!, $documentUploadId: String!) {
     extractedAt
     prsValue
     prsPercentile
+    prsConfidence
+    prsRiskMultiplier
+    prsAncestryCalibration
+    prsModelVersion
     createdAt
+  }
+}
+
+mutation CalculatePrs($ancestryOverride: String) {
+  calculatePrs(ancestryOverride: $ancestryOverride) {
+    id
+    prsValue
+    prsPercentile
+    prsConfidence
+    prsRiskMultiplier
+    prsAncestryCalibration
+    prsModelVersion
   }
 }

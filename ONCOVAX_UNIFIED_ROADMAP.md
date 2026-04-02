@@ -22,11 +22,12 @@ Women's cancer care + endocrine health risk intelligence platform. Full patient 
 | **Access Gaps** | FERTILITY, SECOND, LOGISTICS, PALLIATIVE, ADVOCATE, PEERS | 12 sessions | ✅ Complete |
 | **Content** | LEARN (educational), INTEL (research intelligence) | Multiple | ✅ Complete |
 | **Prevention** | PREVENT foundation (P0-1 to P0-7) | 7 sessions | ✅ Complete |
-| **Prevention** | PREVENT expansion (P0-8 to P0-EX6) | 16 sessions | 🔲 Not started |
+| **Prevention** | PREVENT PRS engine (P0-8) | 1 session | ✅ Complete |
+| **Prevention** | PREVENT expansion (P0-9 to P0-EX6) | 15 sessions | 🔲 Not started |
 | **Cross-cutting** | CARE, COOL, ENGINE | TBD | 🔲 Not started |
 
-**Total built:** ~50+ sessions, 64 Prisma models, 63 lib files, 85 API routes, 122 shared screens, web + mobile  
-**Total remaining:** 16 PREVENT expansion sessions + CARE/COOL/ENGINE
+**Total built:** ~51+ sessions, 64 Prisma models (+2 fields), 64 lib files, 85 API routes, 122 shared screens, web + mobile
+**Total remaining:** 15 PREVENT expansion sessions + CARE/COOL/ENGINE
 
 ---
 
@@ -103,17 +104,17 @@ Women's cancer care + endocrine health risk intelligence platform. Full patient 
 ✅ P0-5 — NCCN screening planner + calendar integration
 ✅ P0-6 — Chemoprevention navigator (USPSTF eligibility, medication comparison)
 ✅ P0-7 — Genotype parser (23andMe/AncestryDNA/VCF) + pathogenic variant extraction + PRS SNP dosage extraction
+✅ P0-8 — PRS calculation engine (raw score → standardized → percentile → risk multiplier, ancestry calibration, confidence scoring)
 ```
 
 ---
 
 ## What's Next — PREVENT Expansion to Women's Endocrine Health
 
-### Priority 1: Complete Genomic Layer (3 sessions)
+### Priority 1: Complete Genomic Layer (2 sessions remaining)
 
 | ID | Session | Input | Output | Est. Time |
 |----|---------|-------|--------|-----------|
-| P0-8 | PRS Calculation Engine | `GenomicProfile.prsSnpDosages` + Mavaddat 2019 weights | `prs-calculator.ts`: raw PRS → standardized → percentile → risk multiplier, ancestry calibration, confidence scoring | 2-3 hrs |
 | P0-9 | PRS → Composite Risk Model | `prs-calculator.ts` + `prevent-risk-engine.ts` | `composite-risk-engine.ts`: Gail × PRS × monogenic variants = composite lifetime risk, model versioning, auto-recalculation trigger | 2-3 hrs |
 | P0-10 | Ancestry Confidence + Partner Testing | Composite risk engine | Ancestry disclosure UI, partner testing comparison table, genetic counselor directory integration | 2 hrs |
 
@@ -157,7 +158,8 @@ Women's cancer care + endocrine health risk intelligence platform. Full patient 
 ## Recommended Build Order
 
 ```
-Week 1:  P0-8, P0-9, P0-10          (genomic layer — completes breast cancer risk model)
+✅ Done:  P0-8                        (PRS calculation engine)
+Week 1:  P0-9, P0-10                (composite risk model + ancestry UI — completes genomic layer)
 Week 2:  P0-11, P0-12, P0-13        (environmental intelligence — water, products, home)
 Week 3:  P0-14, P0-15               (biomarkers + composite score)
 Week 3:  P0-EX1, P0-EX2             (PCOS module — biggest new market)

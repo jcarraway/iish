@@ -53,7 +53,7 @@ interface VusRef {
   riskAllele: string;
 }
 
-interface PrsSnpRef {
+export interface PrsSnpRef {
   effectAllele: string;
   weight: number; // log-OR
 }
@@ -198,7 +198,7 @@ for (const [rsId, ref] of KNOWN_VUS_VARIANTS) {
 // SNPs here. Effect alleles are on the forward strand.
 // ============================================================================
 
-const PRS_SNPS = new Map<string, PrsSnpRef>([
+export const PRS_SNPS = new Map<string, PrsSnpRef>([
   // Top-weight SNPs from Mavaddat et al. 2019 (Nature Genetics)
   // Format: [rsID, { effectAllele, weight (log-OR) }]
   ['rs2981582', { effectAllele: 'G', weight: 0.263 }],   // FGFR2
@@ -283,7 +283,6 @@ const PRS_SNPS = new Map<string, PrsSnpRef>([
   ['rs3903072', { effectAllele: 'G', weight: -0.048 }],  // 11q13
   ['rs11820646', { effectAllele: 'T', weight: -0.046 }],  // 11q24
   ['rs12505080', { effectAllele: 'T', weight: 0.046 }],  // 4q24
-  ['rs17356907', { effectAllele: 'A', weight: -0.072 }],  // NTN4
 ]);
 
 // ============================================================================

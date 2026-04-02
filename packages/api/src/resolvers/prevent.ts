@@ -110,6 +110,10 @@ export const preventResolvers = {
       if (!ctx.session) throw new Error('UNAUTHORIZED');
       return ctx.lib.processGenotypeFile(ctx.session.userId, s3Key, documentUploadId);
     },
+    calculatePrs: async (_: any, { ancestryOverride }: { ancestryOverride?: string }, ctx: ResolverContext) => {
+      if (!ctx.session) throw new Error('UNAUTHORIZED');
+      return ctx.lib.calculatePrsForUser(ctx.session.userId, ancestryOverride);
+    },
   },
   RiskAssessment: {
     riskTrajectory: (parent: any) => {
