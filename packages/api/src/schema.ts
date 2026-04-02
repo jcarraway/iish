@@ -2178,7 +2178,24 @@ export const typeDefs = `#graphql
     genesTested: [String!]!
     prsValue: Float
     prsPercentile: Float
+    rawFileS3Key: String
+    parsingStatus: String!
+    snpCount: Int
+    prsSnpCount: Int
+    extractedAt: DateTime
     createdAt: DateTime!
+  }
+
+  input RequestGenotypeUploadInput {
+    filename: String!
+    contentType: String!
+    fileSize: Int!
+  }
+
+  type GenotypeUploadResult {
+    uploadUrl: String!
+    s3Key: String!
+    documentUploadId: String!
   }
 
   type TestingRecommendation {
@@ -3039,6 +3056,8 @@ export const typeDefs = `#graphql
     generateChemopreventionGuide: ChemopreventionGuide!
     updateFamilyHistory(familyHistory: JSON!): PreventProfile!
     generatePreventionLifestyle: JSON!
+    requestGenotypeUpload(input: RequestGenotypeUploadInput!): GenotypeUploadResult!
+    parseGenotypeFile(s3Key: String!, documentUploadId: String!): PreventGenomicProfile!
 
     # PEERS — Peer Support
     enrollAsMentor(input: EnrollMentorInput!): PeerMentorProfile!

@@ -264,6 +264,8 @@ import {
   getTestingRecommendations as _getTestingRecommendations,
   getPreventGenomicProfile as _getPreventGenomicProfile,
   updateFamilyHistory as _updateFamilyHistory,
+  requestGenotypeUploadUrl as _requestGenotypeUploadUrl,
+  processGenotypeFile as _processGenotypeFile,
 } from '@/lib/prevent-lifestyle';
 
 // ============================================================================
@@ -1575,6 +1577,8 @@ const handler = startServerAndCreateNextHandler<NextRequest, GraphQLContext>(ser
         getPreventionLifestyle: _getPreventionLifestyle,
         generatePreventionLifestyle: _generatePreventionLifestyle,
         updateFamilyHistory: _updateFamilyHistory,
+        requestGenotypeUploadUrl: _requestGenotypeUploadUrl,
+        processGenotypeFile: _processGenotypeFile,
 
         // PEERS — Peer Matching & Support
         enrollAsMentor: _enrollAsMentor,

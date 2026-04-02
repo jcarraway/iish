@@ -8,6 +8,10 @@
 import { prisma } from './db';
 import { redis } from './redis';
 import { anthropic } from './ai';
+import { generatePresignedUploadUrl, downloadS3AsText } from './s3';
+import { parseGenotypeFile as parseRawGenotype } from './genotype-parser';
+import { DOCUMENT_TYPES } from '@iish/shared';
+import { randomUUID } from 'crypto';
 
 /**
  * Get cached prevention lifestyle recommendations or return null.
@@ -209,4 +213,164 @@ export async function updateFamilyHistory(userId: string, familyHistory: any) {
     where: { patientId: patient.id },
     data: { familyHistory },
   });
+}
+
+// ============================================================================
+// Genotype File Upload + Parsing
+// ============================================================================
+
+const MAX_GENOTYPE_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+
+const ALLOWED_CONTENT_TYPES = [
+  'text/plain',
+  'text/tab-separated-values',
+  'text/csv',
+  'application/octet-stream',
+  'application/x-gzip',
+];
+
+/**
+ * Request a presigned S3 URL for uploading a raw genotype file.
+ */
+export async function requestGenotypeUploadUrl(
+  userId: string,
+  filename: string,
+  contentType: string,
+  fileSize: number
+): Promise<{ uploadUrl: string; s3Key: string; documentUploadId: string }> {
+  if (fileSize > MAX_GENOTYPE_FILE_SIZE) {
+    throw new Error('File too large. Maximum genotype file size is 50MB.');
+  }
+
+  if (!ALLOWED_CONTENT_TYPES.includes(contentType)) {
+    throw new Error(`Unsupported file type: ${contentType}. Please upload a .txt, .csv, .tsv, or .vcf file.`);
+  }
+
+  const patient = await prisma.patient.findUnique({ where: { userId } });
+  if (!patient) throw new Error('Patient not found');
+
+  const ext = filename.split('.').pop() ?? 'txt';
+  const s3Key = `genotype/${patient.id}/${randomUUID()}.${ext}`;
+
+  const result = await generatePresignedUploadUrl(s3Key, contentType);
+
+  // Create DocumentUpload record
+  const doc = await prisma.documentUpload.create({
+    data: {
+      patientId: patient.id,
+      documentType: DOCUMENT_TYPES.GENOTYPE_RAW,
+      s3Key: result.s3Key,
+      s3Bucket: result.bucket,
+      mimeType: contentType,
+      extractionStatus: 'pending',
+    },
+  });
+
+  // Upsert GenomicProfile with uploading status
+  await prisma.genomicProfile.upsert({
+    where: { patientId: patient.id },
+    update: {
+      rawFileS3Key: s3Key,
+      parsingStatus: 'uploading',
+    },
+    create: {
+      patientId: patient.id,
+      rawFileS3Key: s3Key,
+      parsingStatus: 'uploading',
+    },
+  });
+
+  return {
+    uploadUrl: result.uploadUrl,
+    s3Key: result.s3Key,
+    documentUploadId: doc.id,
+  };
+}
+
+/**
+ * Parse an uploaded genotype file from S3 and populate GenomicProfile.
+ */
+export async function processGenotypeFile(
+  userId: string,
+  s3Key: string,
+  documentUploadId: string
+) {
+  const patient = await prisma.patient.findUnique({ where: { userId } });
+  if (!patient) throw new Error('Patient not found');
+
+  const genomicProfile = await prisma.genomicProfile.findUnique({
+    where: { patientId: patient.id },
+  });
+  if (!genomicProfile) throw new Error('Genomic profile not found. Request upload URL first.');
+
+  // Update status to parsing
+  await prisma.genomicProfile.update({
+    where: { patientId: patient.id },
+    data: { parsingStatus: 'parsing' },
+  });
+
+  try {
+    // Download and parse
+    const text = await downloadS3AsText(s3Key);
+    const parsed = parseRawGenotype(text);
+
+    if (parsed.format === 'unknown') {
+      await prisma.genomicProfile.update({
+        where: { patientId: patient.id },
+        data: { parsingStatus: 'failed' },
+      });
+      throw new Error('Unrecognized genotype file format. Supported formats: 23andMe, AncestryDNA, VCF.');
+    }
+
+    // Map format to data source display name
+    const dataSourceMap: Record<string, string> = {
+      '23andme': '23andMe',
+      ancestry: 'AncestryDNA',
+      vcf: 'VCF',
+    };
+
+    // Update GenomicProfile with parsed results
+    const updated = await prisma.genomicProfile.update({
+      where: { patientId: patient.id },
+      data: {
+        dataSource: dataSourceMap[parsed.format] ?? parsed.format,
+        pathogenicVariants: parsed.pathogenicVariants as any,
+        vusVariants: parsed.vusVariants as any,
+        genesTested: parsed.genesTested,
+        prsSnpDosages: parsed.prsSnpDosages,
+        prsSnpCount: parsed.prsSnpCount,
+        snpCount: parsed.totalSnpCount,
+        parsingStatus: 'complete',
+        extractedAt: new Date(),
+      },
+    });
+
+    // Update DocumentUpload status
+    await prisma.documentUpload.update({
+      where: { id: documentUploadId },
+      data: { extractionStatus: 'completed' },
+    });
+
+    return updated;
+  } catch (err) {
+    // If parsing failed with a known error, status is already 'failed'
+    // For unexpected errors, mark as failed
+    const current = await prisma.genomicProfile.findUnique({
+      where: { patientId: patient.id },
+      select: { parsingStatus: true },
+    });
+    if (current?.parsingStatus !== 'failed') {
+      await prisma.genomicProfile.update({
+        where: { patientId: patient.id },
+        data: { parsingStatus: 'failed' },
+      });
+    }
+
+    await prisma.documentUpload.update({
+      where: { id: documentUploadId },
+      data: { extractionStatus: 'failed' },
+    });
+
+    throw err;
+  }
 }

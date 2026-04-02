@@ -181,6 +181,11 @@ query GetPreventGenomicProfile {
     genesTested
     prsValue
     prsPercentile
+    rawFileS3Key
+    parsingStatus
+    snpCount
+    prsSnpCount
+    extractedAt
     createdAt
   }
 }
@@ -277,4 +282,30 @@ mutation UpdateFamilyHistory($familyHistory: JSON!) {
 
 mutation GeneratePreventionLifestyle {
   generatePreventionLifestyle
+}
+
+mutation RequestGenotypeUpload($input: RequestGenotypeUploadInput!) {
+  requestGenotypeUpload(input: $input) {
+    uploadUrl
+    s3Key
+    documentUploadId
+  }
+}
+
+mutation ParseGenotypeFile($s3Key: String!, $documentUploadId: String!) {
+  parseGenotypeFile(s3Key: $s3Key, documentUploadId: $documentUploadId) {
+    id
+    patientId
+    dataSource
+    pathogenicVariants
+    vusVariants
+    genesTested
+    parsingStatus
+    snpCount
+    prsSnpCount
+    extractedAt
+    prsValue
+    prsPercentile
+    createdAt
+  }
 }

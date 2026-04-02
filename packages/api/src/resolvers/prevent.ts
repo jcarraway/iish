@@ -102,6 +102,14 @@ export const preventResolvers = {
       if (!ctx.session) throw new Error('UNAUTHORIZED');
       return ctx.lib.generatePreventionLifestyle(ctx.session.userId);
     },
+    requestGenotypeUpload: async (_: any, { input }: { input: { filename: string; contentType: string; fileSize: number } }, ctx: ResolverContext) => {
+      if (!ctx.session) throw new Error('UNAUTHORIZED');
+      return ctx.lib.requestGenotypeUploadUrl(ctx.session.userId, input.filename, input.contentType, input.fileSize);
+    },
+    parseGenotypeFile: async (_: any, { s3Key, documentUploadId }: { s3Key: string; documentUploadId: string }, ctx: ResolverContext) => {
+      if (!ctx.session) throw new Error('UNAUTHORIZED');
+      return ctx.lib.processGenotypeFile(ctx.session.userId, s3Key, documentUploadId);
+    },
   },
   RiskAssessment: {
     riskTrajectory: (parent: any) => {

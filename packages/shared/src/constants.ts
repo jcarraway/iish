@@ -10,6 +10,7 @@ export const DOCUMENT_TYPES = {
   TREATMENT_SUMMARY: 'treatment_summary',
   IMAGING_REPORT: 'imaging_report',
   GENOMIC_REPORT: 'genomic_report',
+  GENOTYPE_RAW: 'genotype_raw',
   UNKNOWN: 'unknown',
 } as const;
 

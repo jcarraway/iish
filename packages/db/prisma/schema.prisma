@@ -1514,6 +1514,11 @@ model GenomicProfile {
   pathogenicVariants      Json?    @map("pathogenic_variants")
   vusVariants             Json?    @map("vus_variants")
   genesTested             String[] @default([]) @map("genes_tested")
+  rawFileS3Key            String?  @map("raw_file_s3_key")
+  parsingStatus           String   @default("none") @map("parsing_status") @db.VarChar(30)
+  snpCount                Int?     @map("snp_count")
+  extractedAt             DateTime? @map("extracted_at")
+  prsSnpDosages           Json?    @map("prs_snp_dosages")
   createdAt               DateTime @default(now()) @map("created_at")
   updatedAt               DateTime @updatedAt @map("updated_at")
 

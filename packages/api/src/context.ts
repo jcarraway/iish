@@ -273,6 +273,8 @@ export interface GraphQLContext {
     getPreventionLifestyle: (userId: string) => Promise<any>;
     generatePreventionLifestyle: (userId: string) => Promise<any>;
     updateFamilyHistory: (userId: string, familyHistory: any) => Promise<any>;
+    requestGenotypeUploadUrl: (userId: string, filename: string, contentType: string, fileSize: number) => Promise<any>;
+    processGenotypeFile: (userId: string, s3Key: string, documentUploadId: string) => Promise<any>;
 
     // Preventive Trial Matcher
     getPreventiveTrials: (filters?: any) => Promise<any>;
@@ -297,7 +299,7 @@ export interface GraphQLContext {
     sendMessage: (connectionId: string, senderPatientId: string, content: string) => Promise<any>;
     getMessages: (connectionId: string, patientId: string, limit?: number, before?: string) => Promise<any[]>;
     markMessagesRead: (connectionId: string, patientId: string) => Promise<boolean>;
-    updateConnectionStatus: (connectionId: string, patientId: string, action: string, reason?: string) => Promise<any>;
+    updateConnectionStatus: (connectionId: string, patientId: string, action: 'pause' | 'resume' | 'complete' | 'end', reason?: string) => Promise<any>;
     reportConcern: (connectionId: string, reporterId: string, input: any) => Promise<any>;
     submitConnectionFeedback: (connectionId: string, patientId: string, input: any) => Promise<any>;
     getMentorStats: (patientId: string) => Promise<any>;

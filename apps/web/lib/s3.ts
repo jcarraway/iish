@@ -39,3 +39,14 @@ export async function generatePresignedDownloadUrl(s3Key: string): Promise<strin
 
   return getSignedUrl(getS3(), command, { expiresIn: 3600 }); // 1 hour
 }
+
+export async function downloadS3AsText(s3Key: string): Promise<string> {
+  const command = new GetObjectCommand({
+    Bucket: getBucket(),
+    Key: s3Key,
+  });
+
+  const response = await getS3().send(command);
+  if (!response.Body) throw new Error('Empty S3 response body');
+  return response.Body.transformToString('utf-8');
+}

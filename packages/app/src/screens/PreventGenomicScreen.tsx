@@ -1,9 +1,12 @@
 import { View, Text, ScrollView } from 'dripsy';
-import { ActivityIndicator } from 'react-native';
+import { useState, useRef, useCallback } from 'react';
+import { ActivityIndicator, Platform, Pressable } from 'react-native';
 import { Link } from 'solito/link';
 import {
   useGetPreventGenomicProfileQuery,
   useGetTestingRecommendationsQuery,
+  useRequestGenotypeUploadMutation,
+  useParseGenotypeFileMutation,
 } from '../generated/graphql';
 
 // ============================================================================
@@ -40,11 +43,71 @@ const COUNSELOR_RESOURCES = [
 // ============================================================================
 
 export function PreventGenomicScreen() {
-  const { data: genomicData, loading: genomicLoading } = useGetPreventGenomicProfileQuery({ errorPolicy: 'ignore' });
+  const { data: genomicData, loading: genomicLoading, refetch: refetchGenomicProfile } = useGetPreventGenomicProfileQuery({ errorPolicy: 'ignore' });
   const { data: testingData, loading: testingLoading } = useGetTestingRecommendationsQuery({ errorPolicy: 'ignore' });
+  const [requestUpload] = useRequestGenotypeUploadMutation();
+  const [parseFile] = useParseGenotypeFileMutation();
 
   const genomicProfile = genomicData?.preventGenomicProfile as any;
   const testingRecs = testingData?.testingRecommendations;
+
+  const [uploadState, setUploadState] = useState<'idle' | 'uploading' | 'parsing' | 'complete' | 'error'>('idle');
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleFileSelect = useCallback(async (file: File) => {
+    setUploadState('uploading');
+    setUploadProgress(0);
+    setUploadError(null);
+
+    try {
+      // 1. Request presigned upload URL
+      const { data: uploadData } = await requestUpload({
+        variables: {
+          input: {
+            filename: file.name,
+            contentType: file.type || 'text/plain',
+            fileSize: file.size,
+          },
+        },
+      });
+
+      if (!uploadData?.requestGenotypeUpload) {
+        throw new Error('Failed to get upload URL');
+      }
+
+      const { uploadUrl, s3Key, documentUploadId } = uploadData.requestGenotypeUpload;
+
+      // 2. Upload file to S3 via XMLHttpRequest (for progress tracking)
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) setUploadProgress(Math.round((e.loaded / e.total) * 100));
+        };
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) resolve();
+          else reject(new Error(`Upload failed with status ${xhr.status}`));
+        };
+        xhr.onerror = () => reject(new Error('Upload failed'));
+        xhr.open('PUT', uploadUrl);
+        xhr.setRequestHeader('Content-Type', file.type || 'text/plain');
+        xhr.send(file);
+      });
+
+      // 3. Parse the uploaded file
+      setUploadState('parsing');
+      await parseFile({
+        variables: { s3Key, documentUploadId },
+      });
+
+      setUploadState('complete');
+      refetchGenomicProfile();
+    } catch (err) {
+      setUploadState('error');
+      setUploadError(err instanceof Error ? err.message : 'Upload failed');
+    }
+  }, [requestUpload, parseFile, refetchGenomicProfile]);
 
   const loading = genomicLoading || testingLoading;
 
@@ -207,6 +270,190 @@ export function PreventGenomicScreen() {
                   </Text>
                 </View>
               </Link>
+            </View>
+          )}
+        </View>
+
+        {/* ================================================================ */}
+        {/* Upload Raw Genotype Data                                         */}
+        {/* ================================================================ */}
+        <View sx={{ mt: '$8' }}>
+          <SectionHeader title="Upload raw genotype data" />
+
+          {genomicProfile?.parsingStatus === 'complete' ? (
+            <View sx={{
+              mt: '$4', backgroundColor: '#F0FDF4', borderWidth: 1,
+              borderColor: '#BBF7D0', borderRadius: 12, p: '$5',
+            }}>
+              <View sx={{ flexDirection: 'row', alignItems: 'center', gap: '$3' }}>
+                <View sx={{
+                  backgroundColor: '#166534', borderRadius: 12, px: '$3', py: 4,
+                }}>
+                  <Text sx={{ fontSize: 12, fontWeight: '600', color: 'white' }}>
+                    {genomicProfile.dataSource ?? 'Uploaded'}
+                  </Text>
+                </View>
+                <Text sx={{ fontSize: 14, fontWeight: '600', color: '#166534' }}>
+                  Genotype data loaded
+                </Text>
+              </View>
+              <Text sx={{ mt: '$2', fontSize: 13, color: '#14532D', lineHeight: 20 }}>
+                {genomicProfile.snpCount?.toLocaleString() ?? '—'} SNPs analyzed
+                {genomicProfile.prsSnpCount ? ` · ${genomicProfile.prsSnpCount} PRS SNPs found` : ''}
+                {genomicProfile.extractedAt ? ` · Processed ${new Date(genomicProfile.extractedAt).toLocaleDateString()}` : ''}
+              </Text>
+            </View>
+          ) : uploadState === 'complete' ? (
+            <View sx={{
+              mt: '$4', backgroundColor: '#F0FDF4', borderWidth: 1,
+              borderColor: '#BBF7D0', borderRadius: 12, p: '$5',
+            }}>
+              <Text sx={{ fontSize: 14, fontWeight: '600', color: '#166534' }}>
+                Analysis complete
+              </Text>
+              <Text sx={{ mt: '$2', fontSize: 13, color: '#14532D', lineHeight: 20 }}>
+                Your genotype data has been processed. Results are shown below.
+              </Text>
+            </View>
+          ) : uploadState === 'uploading' ? (
+            <View sx={{
+              mt: '$4', borderWidth: 1, borderColor: '#C7D2FE',
+              borderRadius: 12, p: '$5',
+            }}>
+              <View sx={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                <ActivityIndicator size="small" />
+                <Text sx={{ fontSize: 14, fontWeight: '600', color: '#3730A3' }}>
+                  Uploading... {uploadProgress}%
+                </Text>
+              </View>
+              <View sx={{
+                mt: '$3', height: 6, borderRadius: 3, backgroundColor: '#E0E7FF',
+              }}>
+                <View sx={{
+                  height: 6, borderRadius: 3, backgroundColor: '#4338CA',
+                  width: `${uploadProgress}%` as any,
+                }} />
+              </View>
+            </View>
+          ) : uploadState === 'parsing' ? (
+            <View sx={{
+              mt: '$4', borderWidth: 1, borderColor: '#C7D2FE',
+              borderRadius: 12, p: '$5',
+            }}>
+              <View sx={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                <ActivityIndicator size="small" />
+                <Text sx={{ fontSize: 14, fontWeight: '600', color: '#3730A3' }}>
+                  Analyzing your genotype data...
+                </Text>
+              </View>
+              <Text sx={{ mt: '$2', fontSize: 13, color: '#4338CA', lineHeight: 20 }}>
+                Checking for pathogenic variants and extracting PRS-relevant SNPs.
+              </Text>
+            </View>
+          ) : uploadState === 'error' ? (
+            <View sx={{
+              mt: '$4', backgroundColor: '#FEF2F2', borderWidth: 1,
+              borderColor: '#FECACA', borderRadius: 12, p: '$5',
+            }}>
+              <Text sx={{ fontSize: 14, fontWeight: '600', color: '#991B1B' }}>
+                Upload failed
+              </Text>
+              <Text sx={{ mt: '$2', fontSize: 13, color: '#7F1D1D', lineHeight: 20 }}>
+                {uploadError ?? 'Something went wrong. Please try again.'}
+              </Text>
+              {Platform.OS === 'web' && (
+                <Pressable
+                  onPress={() => {
+                    setUploadState('idle');
+                    setUploadError(null);
+                  }}
+                  style={{ marginTop: 12, alignSelf: 'flex-start' }}
+                >
+                  <View sx={{
+                    backgroundColor: '#991B1B', borderRadius: 8, px: '$4', py: '$2',
+                  }}>
+                    <Text sx={{ fontSize: 13, fontWeight: '600', color: 'white' }}>
+                      Try again
+                    </Text>
+                  </View>
+                </Pressable>
+              )}
+            </View>
+          ) : (
+            <View sx={{
+              mt: '$4', borderWidth: 2, borderStyle: 'dashed', borderColor: '$border',
+              borderRadius: 12, p: '$5',
+            }}>
+              <Text sx={{ fontSize: 14, fontWeight: '600', color: '$foreground' }}>
+                Upload your raw genotype file
+              </Text>
+              <Text sx={{ mt: '$2', fontSize: 13, color: '$mutedForeground', lineHeight: 20 }}>
+                Upload raw data from 23andMe, AncestryDNA, or a clinical VCF file. We will scan for
+                breast cancer-related pathogenic variants and extract data for polygenic risk scoring.
+              </Text>
+
+              <View sx={{ mt: '$3', gap: '$2' }}>
+                <Text sx={{ fontSize: 12, color: '$mutedForeground' }}>Supported formats:</Text>
+                <View sx={{ flexDirection: 'row', gap: '$2', flexWrap: 'wrap' }}>
+                  {['23andMe (.txt)', 'AncestryDNA (.txt)', 'VCF (.vcf)'].map((fmt, i) => (
+                    <View key={i} sx={{
+                      backgroundColor: '#F1F5F9', borderRadius: 8, px: '$2', py: 4,
+                    }}>
+                      <Text sx={{ fontSize: 12, fontWeight: '500', color: '#475569' }}>{fmt}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+
+              {Platform.OS === 'web' ? (
+                <>
+                  <Pressable
+                    onPress={() => fileInputRef.current?.click()}
+                    style={{ marginTop: 16, alignSelf: 'flex-start' }}
+                  >
+                    <View sx={{
+                      backgroundColor: 'blue600', borderRadius: 8, px: '$5', py: '$3',
+                    }}>
+                      <Text sx={{ fontSize: 13, fontWeight: '600', color: 'white' }}>
+                        Choose file
+                      </Text>
+                    </View>
+                  </Pressable>
+                  {/* Hidden file input (web only) */}
+                  <input
+                    ref={fileInputRef as any}
+                    type="file"
+                    accept=".txt,.csv,.tsv,.vcf"
+                    style={{ display: 'none' }}
+                    onChange={(e: any) => {
+                      const file = e.target?.files?.[0];
+                      if (file) handleFileSelect(file);
+                    }}
+                  />
+                </>
+              ) : (
+                <View sx={{
+                  mt: '$4', backgroundColor: '#FEF3C7', borderWidth: 1,
+                  borderColor: '#FDE68A', borderRadius: 10, p: '$4',
+                }}>
+                  <Text sx={{ fontSize: 13, fontWeight: '600', color: '#92400E' }}>
+                    Web upload required
+                  </Text>
+                  <Text sx={{ mt: '$1', fontSize: 12, color: '#78350F', lineHeight: 18 }}>
+                    Genotype file upload is available on the web version. Visit the website on your
+                    computer to upload your raw data file.
+                  </Text>
+                </View>
+              )}
+
+              <View sx={{
+                mt: '$4', backgroundColor: '#F0F9FF', borderRadius: 10, p: '$3',
+              }}>
+                <Text sx={{ fontSize: 12, color: '#0C4A6E', lineHeight: 18 }}>
+                  Your genotype data is encrypted in transit and at rest. We only extract breast
+                  cancer-relevant variants — your full raw data is not stored long-term.
+                </Text>
+              </View>
             </View>
           )}
         </View>

@@ -844,6 +844,13 @@ export type GenomicResult = {
   testName: Scalars['String']['output'];
 };
 
+export type GenotypeUploadResult = {
+  __typename?: 'GenotypeUploadResult';
+  documentUploadId: Scalars['String']['output'];
+  s3Key: Scalars['String']['output'];
+  uploadUrl: Scalars['String']['output'];
+};
+
 export type GermlineFinding = {
   __typename?: 'GermlineFinding';
   gene: Scalars['String']['output'];
@@ -1361,6 +1368,7 @@ export type Mutation = {
   matchFinancialPrograms: Array<FinancialMatch>;
   migrateOldTaxonomy: TaxonomyMigrationResult;
   moderateCommunityReport: CommunityReport;
+  parseGenotypeFile: PreventGenomicProfile;
   pauseConnection: PeerConnection;
   proposeConnection: PeerConnection;
   publishArticle: Article;
@@ -1375,6 +1383,7 @@ export type Mutation = {
   reportRecurrence: RecurrenceEvent;
   requestFertilityReferral: FertilityAssessment;
   requestGeneralUploadUrl: UploadUrlResult;
+  requestGenotypeUpload: GenotypeUploadResult;
   requestMagicLink: Scalars['Boolean']['output'];
   requestUploadUrl: UploadUrl;
   rescheduleEvent: SurveillanceEvent;
@@ -1674,6 +1683,12 @@ export type MutationModerateCommunityReportArgs = {
 };
 
 
+export type MutationParseGenotypeFileArgs = {
+  documentUploadId: Scalars['String']['input'];
+  s3Key: Scalars['String']['input'];
+};
+
+
 export type MutationPauseConnectionArgs = {
   connectionId: Scalars['String']['input'];
   reason?: InputMaybe<Scalars['String']['input']>;
@@ -1736,6 +1751,11 @@ export type MutationRequestGeneralUploadUrlArgs = {
   bucket?: InputMaybe<Scalars['String']['input']>;
   contentType: Scalars['String']['input'];
   filename: Scalars['String']['input'];
+};
+
+
+export type MutationRequestGenotypeUploadArgs = {
+  input: RequestGenotypeUploadInput;
 };
 
 
@@ -2385,12 +2405,17 @@ export type PreventGenomicProfile = {
   __typename?: 'PreventGenomicProfile';
   createdAt: Scalars['DateTime']['output'];
   dataSource?: Maybe<Scalars['String']['output']>;
+  extractedAt?: Maybe<Scalars['DateTime']['output']>;
   genesTested: Array<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
+  parsingStatus: Scalars['String']['output'];
   pathogenicVariants?: Maybe<Scalars['JSON']['output']>;
   patientId: Scalars['String']['output'];
   prsPercentile?: Maybe<Scalars['Float']['output']>;
+  prsSnpCount?: Maybe<Scalars['Int']['output']>;
   prsValue?: Maybe<Scalars['Float']['output']>;
+  rawFileS3Key?: Maybe<Scalars['String']['output']>;
+  snpCount?: Maybe<Scalars['Int']['output']>;
   vusVariants?: Maybe<Scalars['JSON']['output']>;
 };
 
@@ -3167,6 +3192,12 @@ export type ReportRecurrenceInput = {
 export type RequestFertilityReferralInput = {
   assessmentId: Scalars['String']['input'];
   providerId: Scalars['String']['input'];
+};
+
+export type RequestGenotypeUploadInput = {
+  contentType: Scalars['String']['input'];
+  fileSize: Scalars['Int']['input'];
+  filename: Scalars['String']['input'];
 };
 
 export type RescheduleEventInput = {
@@ -5140,7 +5171,7 @@ export type GetTestingRecommendationsQuery = { __typename?: 'Query', testingReco
 export type GetPreventGenomicProfileQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetPreventGenomicProfileQuery = { __typename?: 'Query', preventGenomicProfile?: { __typename?: 'PreventGenomicProfile', id: string, patientId: string, dataSource?: string | null, pathogenicVariants?: Record<string, unknown> | null, vusVariants?: Record<string, unknown> | null, genesTested: Array<string>, prsValue?: number | null, prsPercentile?: number | null, createdAt: string } | null };
+export type GetPreventGenomicProfileQuery = { __typename?: 'Query', preventGenomicProfile?: { __typename?: 'PreventGenomicProfile', id: string, patientId: string, dataSource?: string | null, pathogenicVariants?: Record<string, unknown> | null, vusVariants?: Record<string, unknown> | null, genesTested: Array<string>, prsValue?: number | null, prsPercentile?: number | null, rawFileS3Key?: string | null, parsingStatus: string, snpCount?: number | null, prsSnpCount?: number | null, extractedAt?: string | null, createdAt: string } | null };
 
 export type GetPreventionLifestyleQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -5196,6 +5227,21 @@ export type GeneratePreventionLifestyleMutationVariables = Exact<{ [key: string]
 
 
 export type GeneratePreventionLifestyleMutation = { __typename?: 'Mutation', generatePreventionLifestyle: Record<string, unknown> };
+
+export type RequestGenotypeUploadMutationVariables = Exact<{
+  input: RequestGenotypeUploadInput;
+}>;
+
+
+export type RequestGenotypeUploadMutation = { __typename?: 'Mutation', requestGenotypeUpload: { __typename?: 'GenotypeUploadResult', uploadUrl: string, s3Key: string, documentUploadId: string } };
+
+export type ParseGenotypeFileMutationVariables = Exact<{
+  s3Key: Scalars['String']['input'];
+  documentUploadId: Scalars['String']['input'];
+}>;
+
+
+export type ParseGenotypeFileMutation = { __typename?: 'Mutation', parseGenotypeFile: { __typename?: 'PreventGenomicProfile', id: string, patientId: string, dataSource?: string | null, pathogenicVariants?: Record<string, unknown> | null, vusVariants?: Record<string, unknown> | null, genesTested: Array<string>, parsingStatus: string, snpCount?: number | null, prsSnpCount?: number | null, extractedAt?: string | null, prsValue?: number | null, prsPercentile?: number | null, createdAt: string } };
 
 export type GetPreventiveTrialsQueryVariables = Exact<{
   category?: InputMaybe<Scalars['String']['input']>;
@@ -14561,6 +14607,11 @@ export const GetPreventGenomicProfileDocument = gql`
     genesTested
     prsValue
     prsPercentile
+    rawFileS3Key
+    parsingStatus
+    snpCount
+    prsSnpCount
+    extractedAt
     createdAt
   }
 }
@@ -14941,6 +14992,87 @@ export function useGeneratePreventionLifestyleMutation(baseOptions?: Apollo.Muta
 export type GeneratePreventionLifestyleMutationHookResult = ReturnType<typeof useGeneratePreventionLifestyleMutation>;
 export type GeneratePreventionLifestyleMutationResult = Apollo.MutationResult<GeneratePreventionLifestyleMutation>;
 export type GeneratePreventionLifestyleMutationOptions = Apollo.BaseMutationOptions<GeneratePreventionLifestyleMutation, GeneratePreventionLifestyleMutationVariables>;
+export const RequestGenotypeUploadDocument = gql`
+    mutation RequestGenotypeUpload($input: RequestGenotypeUploadInput!) {
+  requestGenotypeUpload(input: $input) {
+    uploadUrl
+    s3Key
+    documentUploadId
+  }
+}
+    `;
+export type RequestGenotypeUploadMutationFn = Apollo.MutationFunction<RequestGenotypeUploadMutation, RequestGenotypeUploadMutationVariables>;
+
+/**
+ * __useRequestGenotypeUploadMutation__
+ *
+ * To run a mutation, you first call `useRequestGenotypeUploadMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRequestGenotypeUploadMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [requestGenotypeUploadMutation, { data, loading, error }] = useRequestGenotypeUploadMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useRequestGenotypeUploadMutation(baseOptions?: Apollo.MutationHookOptions<RequestGenotypeUploadMutation, RequestGenotypeUploadMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RequestGenotypeUploadMutation, RequestGenotypeUploadMutationVariables>(RequestGenotypeUploadDocument, options);
+      }
+export type RequestGenotypeUploadMutationHookResult = ReturnType<typeof useRequestGenotypeUploadMutation>;
+export type RequestGenotypeUploadMutationResult = Apollo.MutationResult<RequestGenotypeUploadMutation>;
+export type RequestGenotypeUploadMutationOptions = Apollo.BaseMutationOptions<RequestGenotypeUploadMutation, RequestGenotypeUploadMutationVariables>;
+export const ParseGenotypeFileDocument = gql`
+    mutation ParseGenotypeFile($s3Key: String!, $documentUploadId: String!) {
+  parseGenotypeFile(s3Key: $s3Key, documentUploadId: $documentUploadId) {
+    id
+    patientId
+    dataSource
+    pathogenicVariants
+    vusVariants
+    genesTested
+    parsingStatus
+    snpCount
+    prsSnpCount
+    extractedAt
+    prsValue
+    prsPercentile
+    createdAt
+  }
+}
+    `;
+export type ParseGenotypeFileMutationFn = Apollo.MutationFunction<ParseGenotypeFileMutation, ParseGenotypeFileMutationVariables>;
+
+/**
+ * __useParseGenotypeFileMutation__
+ *
+ * To run a mutation, you first call `useParseGenotypeFileMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useParseGenotypeFileMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [parseGenotypeFileMutation, { data, loading, error }] = useParseGenotypeFileMutation({
+ *   variables: {
+ *      s3Key: // value for 's3Key'
+ *      documentUploadId: // value for 'documentUploadId'
+ *   },
+ * });
+ */
+export function useParseGenotypeFileMutation(baseOptions?: Apollo.MutationHookOptions<ParseGenotypeFileMutation, ParseGenotypeFileMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ParseGenotypeFileMutation, ParseGenotypeFileMutationVariables>(ParseGenotypeFileDocument, options);
+      }
+export type ParseGenotypeFileMutationHookResult = ReturnType<typeof useParseGenotypeFileMutation>;
+export type ParseGenotypeFileMutationResult = Apollo.MutationResult<ParseGenotypeFileMutation>;
+export type ParseGenotypeFileMutationOptions = Apollo.BaseMutationOptions<ParseGenotypeFileMutation, ParseGenotypeFileMutationVariables>;
 export const GetPreventiveTrialsDocument = gql`
     query GetPreventiveTrials($category: String) {
   preventiveTrials(category: $category) {
