@@ -160,7 +160,7 @@ export async function submitSymptomAssessment(
     orderBy: { createdAt: 'desc' },
   });
 
-  const previousScores = previous?.esasScores as EsasScores | null;
+  const previousScores = previous?.esasScores as unknown as EsasScores | null;
   const triage = triageSymptoms(esasScores, previousScores);
 
   const assessment = await prisma.palliativeAssessment.create({
@@ -190,9 +190,9 @@ export async function getSymptomAssessments(patientId: string, limit = 20) {
 
   // Compute trend deltas (latest vs previous)
   return assessments.map((a, i) => {
-    const scores = a.esasScores as EsasScores;
+    const scores = a.esasScores as unknown as EsasScores;
     const prev = i + 1 < assessments.length
-      ? (assessments[i + 1].esasScores as EsasScores)
+      ? (assessments[i + 1].esasScores as unknown as EsasScores)
       : null;
 
     const trends: Record<string, number> = {};
@@ -406,7 +406,7 @@ export async function generateReferralLetter(
     orderBy: { createdAt: 'desc' },
   });
 
-  const scores = latestAssessment?.esasScores as EsasScores | null;
+  const scores = latestAssessment?.esasScores as unknown as EsasScores | null;
 
   const response = await anthropic.messages.create({
     model: CLAUDE_MODEL,

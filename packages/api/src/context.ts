@@ -275,6 +275,7 @@ export interface GraphQLContext {
     updateFamilyHistory: (userId: string, familyHistory: any) => Promise<any>;
     requestGenotypeUploadUrl: (userId: string, filename: string, contentType: string, fileSize: number) => Promise<any>;
     processGenotypeFile: (userId: string, s3Key: string, documentUploadId: string) => Promise<any>;
+    calculatePrsForUser: (userId: string, ancestryOverride?: string) => Promise<any>;
 
     // Preventive Trial Matcher
     getPreventiveTrials: (filters?: any) => Promise<any>;
