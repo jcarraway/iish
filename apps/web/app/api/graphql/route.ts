@@ -266,6 +266,7 @@ import {
   updateFamilyHistory as _updateFamilyHistory,
   requestGenotypeUploadUrl as _requestGenotypeUploadUrl,
   processGenotypeFile as _processGenotypeFile,
+  calculatePrsForUser as _calculatePrsForUser,
 } from '@/lib/prevent-lifestyle';
 
 // ============================================================================
@@ -1579,6 +1580,7 @@ const handler = startServerAndCreateNextHandler<NextRequest, GraphQLContext>(ser
         updateFamilyHistory: _updateFamilyHistory,
         requestGenotypeUploadUrl: _requestGenotypeUploadUrl,
         processGenotypeFile: _processGenotypeFile,
+        calculatePrsForUser: _calculatePrsForUser,
 
         // PEERS — Peer Matching & Support
         enrollAsMentor: _enrollAsMentor,
