@@ -5,10 +5,12 @@ import { Link } from 'solito/link';
 import {
   useGetPreventGenomicProfileQuery,
   useGetTestingRecommendationsQuery,
+  useGetLatestRiskQuery,
   useRequestGenotypeUploadMutation,
   useParseGenotypeFileMutation,
   useCalculatePrsMutation,
 } from '../generated/graphql';
+import { openExternalUrl } from '../utils/linking';
 
 // ============================================================================
 // Constants
@@ -39,6 +41,87 @@ const COUNSELOR_RESOURCES = [
   },
 ];
 
+const TESTING_OPTIONS = [
+  {
+    name: '23andMe',
+    type: 'Consumer DTC',
+    cost: '$99-229',
+    turnaround: '3-5 weeks',
+    includes: 'Health + Ancestry. BRCA1/BRCA2 (3 Ashkenazi variants), pharmacogenomics, carrier screening.',
+    rawDataForPrs: true,
+    rawDataNote: 'Download raw data from account settings. Compatible with our PRS calculator.',
+    insuranceCovered: false,
+    url: 'https://www.23andme.com',
+  },
+  {
+    name: 'AncestryDNA',
+    type: 'Consumer DTC',
+    cost: '$99-199',
+    turnaround: '6-8 weeks',
+    includes: 'Ancestry + optional health add-on. Limited health reports.',
+    rawDataForPrs: true,
+    rawDataNote: 'Download raw data from Settings > DNA > Download Raw DNA Data.',
+    insuranceCovered: false,
+    url: 'https://www.ancestry.com/dna',
+  },
+  {
+    name: 'Color Health',
+    type: 'Clinical-grade',
+    cost: '$249',
+    turnaround: '2-3 weeks',
+    includes: 'Full BRCA1/BRCA2 + 28 additional cancer genes. Includes genetic counseling session.',
+    rawDataForPrs: false,
+    rawDataNote: 'Clinical-grade sequencing. Comprehensive report but no raw SNP download for PRS.',
+    insuranceCovered: true,
+    insuranceNote: 'Often covered for high-risk individuals. Pre-authorization recommended.',
+    url: 'https://www.color.com',
+  },
+  {
+    name: 'Invitae',
+    type: 'Clinical-grade',
+    cost: '$250-350',
+    turnaround: '10-21 days',
+    includes: 'Comprehensive cancer panel (47+ genes). Doctor order required.',
+    rawDataForPrs: false,
+    rawDataNote: 'Clinical-grade panel. Comprehensive variant classification but no raw SNP data for PRS.',
+    insuranceCovered: true,
+    insuranceNote: 'Covered by most insurance for qualifying patients. Financial assistance available.',
+    url: 'https://www.invitae.com',
+  },
+];
+
+const TESTING_TYPE_BADGE: Record<string, { bg: string; fg: string }> = {
+  'Consumer DTC': { bg: '#DBEAFE', fg: '#1E40AF' },
+  'Clinical-grade': { bg: '#F3E8FF', fg: '#6B21A8' },
+};
+
+const ANCESTRY_CONFIDENCE: Record<string, { bars: number; label: string; color: string; explanation: string }> = {
+  european: { bars: 5, label: 'HIGH', color: '#166534', explanation: 'This PRS model was developed and validated primarily in European populations. Your score has the highest calibration accuracy.' },
+  white: { bars: 5, label: 'HIGH', color: '#166534', explanation: 'This PRS model was developed and validated primarily in European populations. Your score has the highest calibration accuracy.' },
+  african: { bars: 2, label: 'LOW-MODERATE', color: '#991B1B', explanation: 'PRS accuracy is reduced for African ancestry due to differences in linkage disequilibrium patterns. Your score has been calibrated using the best available data, but the confidence interval is wider.' },
+  black: { bars: 2, label: 'LOW-MODERATE', color: '#991B1B', explanation: 'PRS accuracy is reduced for African ancestry due to differences in linkage disequilibrium patterns. Your score has been calibrated using the best available data, but the confidence interval is wider.' },
+  hispanic: { bars: 3, label: 'MODERATE', color: '#92400E', explanation: 'PRS calibration for Hispanic/Latina ancestry uses adjusted population parameters. Accuracy is moderate — the model captures most risk variation but may miss population-specific effects.' },
+  asian: { bars: 3, label: 'MODERATE', color: '#92400E', explanation: 'PRS calibration for East Asian ancestry uses adjusted population parameters. Accuracy is moderate and improving as larger Asian-ancestry GWAS become available.' },
+  other: { bars: 3, label: 'MODERATE', color: '#92400E', explanation: 'Your ancestry calibration uses adjusted parameters. Accuracy is moderate — we apply the best available corrections for your self-reported ethnicity.' },
+};
+
+const PRE_VISIT_GUIDE = {
+  whatToBring: [
+    'Family history details (three generations if possible)',
+    'Prior genetic test results (if any)',
+    'Insurance card and prior authorization number',
+    'List of current medications',
+    'Questions written down in advance',
+  ],
+  questionsToAsk: [
+    'What is my risk for other cancers beyond breast?',
+    'Should my family members be tested?',
+    'What screening changes do you recommend based on my results?',
+    'What risk-reduction options are available to me?',
+    'Are there clinical trials I should consider?',
+  ],
+};
+
 // ============================================================================
 // Component
 // ============================================================================
@@ -49,9 +132,12 @@ export function PreventGenomicScreen() {
   const [requestUpload] = useRequestGenotypeUploadMutation();
   const [parseFile] = useParseGenotypeFileMutation();
   const [recalculatePrs, { loading: recalculating }] = useCalculatePrsMutation();
+  const { data: riskData } = useGetLatestRiskQuery({ errorPolicy: 'ignore' });
 
   const genomicProfile = genomicData?.preventGenomicProfile as any;
   const testingRecs = testingData?.testingRecommendations;
+  const isHighRisk = (riskData?.latestRisk?.lifetimeRiskEstimate ?? 0) > 20
+    || ((genomicProfile?.pathogenicVariants as any[])?.length ?? 0) > 0;
 
   const [uploadState, setUploadState] = useState<'idle' | 'uploading' | 'parsing' | 'complete' | 'error'>('idle');
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -461,6 +547,103 @@ export function PreventGenomicScreen() {
         </View>
 
         {/* ================================================================ */}
+        {/* Partner Testing Options                                          */}
+        {/* ================================================================ */}
+        {genomicProfile?.parsingStatus !== 'complete' && (
+          <View sx={{ mt: '$8' }}>
+            <SectionHeader title="Testing options" />
+            <Text sx={{ mt: '$2', fontSize: 13, color: '$mutedForeground', lineHeight: 20 }}>
+              Compare consumer and clinical genetic testing options. Consumer tests provide raw
+              data compatible with our PRS calculator. Clinical-grade tests offer comprehensive
+              gene panels with genetic counselor support.
+            </Text>
+
+            <View sx={{
+              mt: '$4', backgroundColor: '#F0F9FF', borderWidth: 1,
+              borderColor: '#BAE6FD', borderRadius: 10, p: '$4',
+            }}>
+              <Text sx={{ fontSize: 13, fontWeight: '600', color: '#0C4A6E' }}>
+                Insurance coverage
+              </Text>
+              <Text sx={{ mt: '$1', fontSize: 12, color: '#0C4A6E', lineHeight: 18 }}>
+                Under the Affordable Care Act, BRCA testing is covered at no cost for women
+                identified as high-risk by their provider. If you have a family history of
+                breast or ovarian cancer, ask your doctor about clinical genetic testing
+                before paying out of pocket.
+              </Text>
+            </View>
+
+            <View sx={{ mt: '$4', gap: '$3' }}>
+              {TESTING_OPTIONS.map((option, i) => {
+                const badge = TESTING_TYPE_BADGE[option.type] ?? { bg: '#F1F5F9', fg: '#64748B' };
+                return (
+                  <View key={i} sx={{
+                    borderWidth: 1, borderColor: '$border', borderRadius: 12, p: '$5',
+                  }}>
+                    <View sx={{ flexDirection: 'row', alignItems: 'center', gap: '$2', flexWrap: 'wrap' }}>
+                      <Text sx={{ fontSize: 16, fontWeight: 'bold', color: '$foreground' }}>
+                        {option.name}
+                      </Text>
+                      <View sx={{ backgroundColor: badge.bg, borderRadius: 6, px: '$2', py: 2 }}>
+                        <Text sx={{ fontSize: 10, fontWeight: '600', color: badge.fg }}>
+                          {option.type.toUpperCase()}
+                        </Text>
+                      </View>
+                      {option.rawDataForPrs && (
+                        <View sx={{ backgroundColor: '#DCFCE7', borderRadius: 6, px: '$2', py: 2 }}>
+                          <Text sx={{ fontSize: 10, fontWeight: '600', color: '#166534' }}>
+                            PRS COMPATIBLE
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+
+                    <View sx={{ mt: '$3', flexDirection: 'row', gap: '$3' }}>
+                      <View sx={{ flex: 1, backgroundColor: '#F8FAFC', borderRadius: 8, p: '$3' }}>
+                        <Text sx={{ fontSize: 11, fontWeight: '600', color: '$mutedForeground' }}>Cost</Text>
+                        <Text sx={{ fontSize: 14, fontWeight: 'bold', color: '$foreground', mt: 2 }}>{option.cost}</Text>
+                      </View>
+                      <View sx={{ flex: 1, backgroundColor: '#F8FAFC', borderRadius: 8, p: '$3' }}>
+                        <Text sx={{ fontSize: 11, fontWeight: '600', color: '$mutedForeground' }}>Turnaround</Text>
+                        <Text sx={{ fontSize: 14, fontWeight: 'bold', color: '$foreground', mt: 2 }}>{option.turnaround}</Text>
+                      </View>
+                    </View>
+
+                    <Text sx={{ mt: '$3', fontSize: 13, color: '$foreground', lineHeight: 20 }}>
+                      {option.includes}
+                    </Text>
+                    <Text sx={{ mt: '$2', fontSize: 12, color: '$mutedForeground', lineHeight: 18 }}>
+                      {option.rawDataNote}
+                    </Text>
+
+                    {option.insuranceCovered && (
+                      <View sx={{
+                        mt: '$2', backgroundColor: '#F0FDF4', borderRadius: 8, px: '$3', py: '$2',
+                      }}>
+                        <Text sx={{ fontSize: 12, color: '#166534' }}>
+                          {(option as any).insuranceNote}
+                        </Text>
+                      </View>
+                    )}
+
+                    <Pressable onPress={() => openExternalUrl(option.url)} style={{ marginTop: 12 }}>
+                      <View sx={{
+                        backgroundColor: 'blue600', borderRadius: 8, py: '$2',
+                        alignItems: 'center',
+                      }}>
+                        <Text sx={{ fontSize: 13, fontWeight: '600', color: 'white' }}>
+                          Learn more
+                        </Text>
+                      </View>
+                    </Pressable>
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+        )}
+
+        {/* ================================================================ */}
         {/* Known Variants                                                   */}
         {/* ================================================================ */}
         {genomicProfile && (
@@ -686,23 +869,35 @@ export function PreventGenomicScreen() {
                 </View>
               )}
 
-              {/* Ancestry disclosure */}
-              {genomicProfile.prsAncestryCalibration && genomicProfile.prsAncestryCalibration !== 'european' && genomicProfile.prsAncestryCalibration !== 'white' && (
-                <View sx={{
-                  mt: '$3', backgroundColor: '#F0F9FF', borderWidth: 1,
-                  borderColor: '#BAE6FD', borderRadius: 10, p: '$4',
-                }}>
-                  <Text sx={{ fontSize: 13, fontWeight: '600', color: '#0C4A6E' }}>
-                    Ancestry calibration note
-                  </Text>
-                  <Text sx={{ mt: '$1', fontSize: 12, color: '#0C4A6E', lineHeight: 18 }}>
-                    PRS models are most accurate for women of European ancestry. Your score has been
-                    calibrated for {genomicProfile.prsAncestryCalibration} ancestry using the best
-                    available data, but the confidence interval is wider. We display this uncertainty
-                    clearly in your risk estimate.
-                  </Text>
-                </View>
-              )}
+              {/* Ancestry confidence */}
+              {genomicProfile.prsAncestryCalibration && (() => {
+                const ac = ANCESTRY_CONFIDENCE[genomicProfile.prsAncestryCalibration] ?? ANCESTRY_CONFIDENCE.other;
+                return (
+                  <View sx={{
+                    mt: '$3', backgroundColor: '#F0F9FF', borderWidth: 1,
+                    borderColor: '#BAE6FD', borderRadius: 10, p: '$4',
+                  }}>
+                    <View sx={{ flexDirection: 'row', alignItems: 'center', gap: '$3' }}>
+                      <SignalBars filled={ac.bars} total={5} color={ac.color} />
+                      <Text sx={{ fontSize: 12, fontWeight: '700', color: ac.color }}>
+                        {ac.label} CONFIDENCE
+                      </Text>
+                      <Text sx={{ fontSize: 12, color: '$mutedForeground' }}>
+                        Calibrated for {genomicProfile.prsAncestryCalibration} ancestry
+                      </Text>
+                    </View>
+                    <Text sx={{ mt: '$2', fontSize: 12, color: '#0C4A6E', lineHeight: 18 }}>
+                      {ac.explanation}
+                    </Text>
+                    {genomicProfile.prsAncestryCalibration !== 'european' && genomicProfile.prsAncestryCalibration !== 'white' && (
+                      <Text sx={{ mt: '$2', fontSize: 11, color: '#64748B', fontStyle: 'italic', lineHeight: 16 }}>
+                        We are actively tracking multi-ancestry GWAS studies. As better-calibrated
+                        models become available, we will automatically recalculate your score.
+                      </Text>
+                    )}
+                  </View>
+                );
+              })()}
 
               {/* Recalculate button */}
               <Pressable
@@ -785,22 +980,88 @@ export function PreventGenomicScreen() {
             informed decisions about screening and prevention.
           </Text>
 
+          {/* High-risk alert */}
+          {isHighRisk && (
+            <View sx={{
+              mt: '$4', backgroundColor: '#FEE2E2', borderWidth: 2,
+              borderColor: '#FECACA', borderRadius: 12, p: '$5',
+            }}>
+              <Text sx={{ fontSize: 14, fontWeight: 'bold', color: '#991B1B' }}>
+                Genetic counseling strongly recommended
+              </Text>
+              <Text sx={{ mt: '$2', fontSize: 13, color: '#7F1D1D', lineHeight: 20 }}>
+                {((genomicProfile?.pathogenicVariants as any[])?.length ?? 0) > 0
+                  ? 'A pathogenic variant was identified in your genetic data. A genetic counselor can help you understand the clinical implications, coordinate family testing, and develop a personalized screening and risk-reduction plan.'
+                  : 'Your estimated lifetime breast cancer risk exceeds 20%. NCCN guidelines recommend genetic counseling at this risk level to discuss enhanced screening, risk-reduction strategies, and whether additional genetic testing is appropriate.'}
+              </Text>
+            </View>
+          )}
+
           <View sx={{ mt: '$4', gap: '$3' }}>
             {COUNSELOR_RESOURCES.map((resource, i) => (
-              <View key={i} sx={{
-                borderWidth: 1, borderColor: '$border', borderRadius: 12, p: '$5',
-              }}>
-                <Text sx={{ fontSize: 15, fontWeight: '600', color: '$foreground' }}>
-                  {resource.name}
-                </Text>
-                <Text sx={{ mt: '$2', fontSize: 13, color: '$mutedForeground', lineHeight: 20 }}>
-                  {resource.description}
-                </Text>
-                <Text sx={{ mt: '$2', fontSize: 13, color: 'blue600' }}>
-                  {resource.url}
-                </Text>
-              </View>
+              <Pressable key={i} onPress={() => openExternalUrl(resource.url)}>
+                <View sx={{
+                  borderWidth: 1, borderColor: '$border', borderRadius: 12, p: '$5',
+                }}>
+                  <Text sx={{ fontSize: 15, fontWeight: '600', color: '$foreground' }}>
+                    {resource.name}
+                  </Text>
+                  <Text sx={{ mt: '$2', fontSize: 13, color: '$mutedForeground', lineHeight: 20 }}>
+                    {resource.description}
+                  </Text>
+                  <Text sx={{ mt: '$2', fontSize: 13, color: 'blue600' }}>
+                    {resource.url} {'\u2197'}
+                  </Text>
+                </View>
+              </Pressable>
             ))}
+          </View>
+
+          {/* Pre-visit preparation guide */}
+          {isHighRisk && (
+            <View sx={{
+              mt: '$4', borderWidth: 1, borderColor: '$border', borderRadius: 12, p: '$5',
+            }}>
+              <Text sx={{ fontSize: 15, fontWeight: '600', color: '$foreground' }}>
+                Preparing for your genetic counseling visit
+              </Text>
+
+              <Text sx={{ mt: '$3', fontSize: 13, fontWeight: '600', color: '$foreground' }}>
+                What to bring
+              </Text>
+              {PRE_VISIT_GUIDE.whatToBring.map((item, i) => (
+                <View key={i} sx={{ flexDirection: 'row', alignItems: 'flex-start', gap: '$2', mt: '$2' }}>
+                  <View sx={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#3B82F6', mt: 5 }} />
+                  <Text sx={{ flex: 1, fontSize: 13, color: '$foreground', lineHeight: 20 }}>{item}</Text>
+                </View>
+              ))}
+
+              <Text sx={{ mt: '$4', fontSize: 13, fontWeight: '600', color: '$foreground' }}>
+                Questions to ask
+              </Text>
+              {PRE_VISIT_GUIDE.questionsToAsk.map((item, i) => (
+                <View key={i} sx={{ flexDirection: 'row', alignItems: 'flex-start', gap: '$2', mt: '$2' }}>
+                  <View sx={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#3B82F6', mt: 5 }} />
+                  <Text sx={{ flex: 1, fontSize: 13, color: '$foreground', lineHeight: 20 }}>{item}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {/* Insurance coverage info */}
+          <View sx={{
+            mt: '$4', backgroundColor: '#F0F9FF', borderWidth: 1,
+            borderColor: '#BAE6FD', borderRadius: 10, p: '$4',
+          }}>
+            <Text sx={{ fontSize: 13, fontWeight: '600', color: '#0C4A6E' }}>
+              Insurance coverage for genetic counseling
+            </Text>
+            <Text sx={{ mt: '$2', fontSize: 12, color: '#0C4A6E', lineHeight: 18 }}>
+              Under the ACA, BRCA counseling and testing are covered with no cost-sharing for
+              women with a family history of breast, ovarian, tubal, or peritoneal cancer. Most
+              insurance plans cover genetic counseling with prior authorization. Self-pay costs
+              typically range from $200-400 for an initial consultation.
+            </Text>
           </View>
         </View>
 
@@ -833,6 +1094,24 @@ export function PreventGenomicScreen() {
 // ============================================================================
 // Sub-components
 // ============================================================================
+
+function SignalBars({ filled, total, color }: { filled: number; total: number; color: string }) {
+  return (
+    <View sx={{ flexDirection: 'row', alignItems: 'flex-end', gap: 3 }}>
+      {Array.from({ length: total }, (_, i) => (
+        <View
+          key={i}
+          sx={{
+            width: 6,
+            borderRadius: 2,
+            height: 8 + i * 4,
+            backgroundColor: i < filled ? color : '#E5E5E5',
+          }}
+        />
+      ))}
+    </View>
+  );
+}
 
 function SectionHeader({ title }: { title: string }) {
   return (

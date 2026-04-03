@@ -24,11 +24,12 @@ Women's cancer care + endocrine health risk intelligence platform. Full patient 
 | **Prevention** | PREVENT foundation (P0-1 to P0-7) | 7 sessions | ✅ Complete |
 | **Prevention** | PREVENT PRS engine (P0-8) | 1 session | ✅ Complete |
 | **Prevention** | PREVENT composite risk model (P0-9) | 1 session | ✅ Complete |
-| **Prevention** | PREVENT expansion (P0-10 to P0-EX6) | 14 sessions | 🔲 Not started |
+| **Prevention** | PREVENT ancestry + partner testing (P0-10) | 1 session | ✅ Complete |
+| **Prevention** | PREVENT expansion (P0-11 to P0-EX6) | 13 sessions | 🔲 Not started |
 | **Cross-cutting** | CARE, COOL, ENGINE | TBD | 🔲 Not started |
 
-**Total built:** ~52+ sessions, 64 Prisma models (+2 fields), 65 lib files, 85 API routes, 122 shared screens, web + mobile
-**Total remaining:** 14 PREVENT expansion sessions + CARE/COOL/ENGINE
+**Total built:** ~53+ sessions, 64 Prisma models (+2 fields), 66 lib files, 85 API routes, 122 shared screens, web + mobile
+**Total remaining:** 13 PREVENT expansion sessions + CARE/COOL/ENGINE
 
 ---
 
@@ -107,17 +108,14 @@ Women's cancer care + endocrine health risk intelligence platform. Full patient 
 ✅ P0-7 — Genotype parser (23andMe/AncestryDNA/VCF) + pathogenic variant extraction + PRS SNP dosage extraction
 ✅ P0-8 — PRS calculation engine (raw score → standardized → percentile → risk multiplier, ancestry calibration, confidence scoring)
 ✅ P0-9 — Composite risk model (Gail × PRS × monogenic variants, BRCA penetrance override, auto-trigger, model versioning)
+✅ P0-10 — Ancestry confidence UI + partner testing referral + enhanced genetic counselor referral
 ```
 
 ---
 
 ## What's Next — PREVENT Expansion to Women's Endocrine Health
 
-### Priority 1: Complete Genomic Layer (1 session remaining)
-
-| ID | Session | Input | Output | Est. Time |
-|----|---------|-------|--------|-----------|
-| P0-10 | Ancestry Confidence + Partner Testing | Composite risk engine | Ancestry disclosure UI, partner testing comparison table, genetic counselor directory integration | 2 hrs |
+### Genomic Layer — COMPLETE (P0-7 through P0-10)
 
 ### Priority 2: Environmental Intelligence — Condition Agnostic (5 sessions)
 
@@ -159,8 +157,7 @@ Women's cancer care + endocrine health risk intelligence platform. Full patient 
 ## Recommended Build Order
 
 ```
-✅ Done:  P0-8, P0-9                   (PRS calculation engine + composite risk model)
-Week 1:  P0-10                       (ancestry UI — completes genomic layer)
+✅ Done:  P0-8, P0-9, P0-10            (PRS engine + composite risk model + ancestry UI — genomic layer COMPLETE)
 Week 2:  P0-11, P0-12, P0-13        (environmental intelligence — water, products, home)
 Week 3:  P0-14, P0-15               (biomarkers + composite score)
 Week 3:  P0-EX1, P0-EX2             (PCOS module — biggest new market)
