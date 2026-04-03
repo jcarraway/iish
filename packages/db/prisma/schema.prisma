@@ -86,6 +86,7 @@ model Patient {
   profile          Json?    @map("profile")
   fieldSources     Json?    @map("field_sources")
   fieldConfidence  Json?    @map("field_confidence")
+  dateOfBirth      DateTime? @map("date_of_birth")
   zipCode          String?  @map("zip_code") @db.VarChar(20)
   lat              Float?   @map("lat")
   lng              Float?   @map("lng")
