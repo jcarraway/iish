@@ -152,10 +152,11 @@ function ageToIndex(age: number): number {
  * Calculate absolute risk over an interval [startAge, endAge]
  * using the Gail model composite risk formula.
  */
-function calculateAbsoluteRisk(
+export function calculateAbsoluteRisk(
   inputs: GailInputs,
   startAge: number,
   endAge: number,
+  externalRRMultiplier: number = 1.0,
 ): number {
   const eth = inputs.ethnicity?.toLowerCase() || 'white';
   const hazards = BASELINE_HAZARDS[eth] || BASELINE_HAZARDS.white;
@@ -184,7 +185,7 @@ function calculateAbsoluteRisk(
     if (t1 <= t0) continue;
 
     const dt = t1 - t0;
-    const h1 = hazards[i].h1 * rr; // adjusted breast cancer hazard
+    const h1 = hazards[i].h1 * rr * externalRRMultiplier; // adjusted breast cancer hazard
     const h2 = hazards[i].h2;      // competing mortality
 
     // Probability of developing breast cancer in this interval

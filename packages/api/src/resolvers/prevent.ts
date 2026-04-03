@@ -114,6 +114,10 @@ export const preventResolvers = {
       if (!ctx.session) throw new Error('UNAUTHORIZED');
       return ctx.lib.calculatePrsForUser(ctx.session.userId, ancestryOverride);
     },
+    recalculateRisk: async (_: any, __: any, ctx: ResolverContext) => {
+      if (!ctx.session) throw new Error('UNAUTHORIZED');
+      return ctx.lib.recalculateRisk(ctx.session.userId);
+    },
   },
   RiskAssessment: {
     riskTrajectory: (parent: any) => {

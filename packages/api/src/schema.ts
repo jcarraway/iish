@@ -2081,6 +2081,7 @@ export const typeDefs = `#graphql
     riskCategory: String!
     riskTrajectory: [RiskTrajectoryPoint!]
     modifiableFactors: [ModifiableFactor!]
+    fullAssessment: JSON
     createdAt: DateTime!
   }
 
@@ -3063,6 +3064,7 @@ export const typeDefs = `#graphql
     requestGenotypeUpload(input: RequestGenotypeUploadInput!): GenotypeUploadResult!
     parseGenotypeFile(s3Key: String!, documentUploadId: String!): PreventGenomicProfile!
     calculatePrs(ancestryOverride: String): PreventGenomicProfile!
+    recalculateRisk: RiskAssessment!
 
     # PEERS — Peer Support
     enrollAsMentor(input: EnrollMentorInput!): PeerMentorProfile!

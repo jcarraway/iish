@@ -11,6 +11,7 @@ import { anthropic } from './ai';
 import { generatePresignedUploadUrl, downloadS3AsText } from './s3';
 import { parseGenotypeFile as parseRawGenotype } from './genotype-parser';
 import { calculatePrs } from './prs-calculator';
+import { runCompositeRiskAssessment } from './prevent-manager';
 import { DOCUMENT_TYPES } from '@iish/shared';
 import { randomUUID } from 'crypto';
 
@@ -370,6 +371,9 @@ export async function processGenotypeFile(
       });
     }
 
+    // Auto-trigger composite risk recalculation
+    try { await runCompositeRiskAssessment(patient.id); } catch (_) { /* non-fatal */ }
+
     // Update DocumentUpload status
     await prisma.documentUpload.update({
       where: { id: documentUploadId },
@@ -427,7 +431,7 @@ export async function calculatePrsForUser(userId: string, ancestryOverride?: str
     ethnicity,
   );
 
-  return prisma.genomicProfile.update({
+  const updated = await prisma.genomicProfile.update({
     where: { patientId: patient.id },
     data: {
       prsValue: prsResult.standardizedScore,
@@ -438,4 +442,9 @@ export async function calculatePrsForUser(userId: string, ancestryOverride?: str
       prsRiskMultiplier: prsResult.riskMultiplier,
     },
   });
+
+  // Auto-trigger composite risk recalculation
+  try { await runCompositeRiskAssessment(patient.id); } catch (_) { /* non-fatal */ }
+
+  return updated;
 }

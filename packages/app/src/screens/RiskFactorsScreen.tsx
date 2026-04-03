@@ -1,7 +1,10 @@
 import { View, Text, ScrollView } from 'dripsy';
 import { ActivityIndicator } from 'react-native';
 import { Link } from 'solito/link';
-import { useGetLatestRiskQuery } from '../generated/graphql';
+import {
+  useGetLatestRiskQuery,
+  useGetPreventGenomicProfileQuery,
+} from '../generated/graphql';
 
 // ============================================================================
 // Constants
@@ -28,8 +31,10 @@ const MODIFIABLE_FACTORS = [
 
 export function RiskFactorsScreen() {
   const { data, loading } = useGetLatestRiskQuery({ errorPolicy: 'ignore' });
+  const { data: genomicData } = useGetPreventGenomicProfileQuery({ errorPolicy: 'ignore' });
 
   const risk = data?.latestRisk;
+  const genomicProfile = genomicData?.preventGenomicProfile as any;
 
   if (loading) {
     return (
@@ -382,6 +387,106 @@ export function RiskFactorsScreen() {
             </View>
           )}
         </View>
+
+        {/* ============================================================= */}
+        {/* Genomic Risk Factors */}
+        {/* ============================================================= */}
+        {genomicProfile && (genomicProfile.prsPercentile != null || (genomicProfile.pathogenicVariants as any[])?.length > 0) && (
+          <View sx={{ mt: '$8' }}>
+            <SectionHeader title="Genomic Risk Factors" />
+            <Text sx={{ mt: '$2', fontSize: 13, color: '$mutedForeground' }}>
+              These factors are derived from your uploaded genomic data and are not modifiable,
+              but they inform your overall risk assessment and screening recommendations.
+            </Text>
+
+            <View sx={{ mt: '$4', gap: '$3' }}>
+              {/* PRS */}
+              {genomicProfile.prsPercentile != null && (
+                <View sx={{
+                  borderWidth: 2, borderColor: '#DDD6FE', borderRadius: 12, p: '$4',
+                  backgroundColor: '#F5F3FF',
+                }}>
+                  <View sx={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Text sx={{ fontSize: 15, fontWeight: '600', color: '#5B21B6' }}>
+                      Polygenic Risk Score
+                    </Text>
+                    {genomicProfile.prsConfidence && (
+                      <View sx={{
+                        px: '$2', py: 2, borderRadius: 6,
+                        backgroundColor: genomicProfile.prsConfidence === 'high' ? '#DCFCE7'
+                          : genomicProfile.prsConfidence === 'moderate' ? '#FEF3C7' : '#FEE2E2',
+                      }}>
+                        <Text sx={{
+                          fontSize: 10, fontWeight: '600',
+                          color: genomicProfile.prsConfidence === 'high' ? '#166534'
+                            : genomicProfile.prsConfidence === 'moderate' ? '#92400E' : '#991B1B',
+                        }}>
+                          {genomicProfile.prsConfidence.toUpperCase()}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text sx={{ mt: '$2', fontSize: 22, fontWeight: 'bold', color: '#6D28D9' }}>
+                    {genomicProfile.prsPercentile}th percentile
+                  </Text>
+                  {genomicProfile.prsRiskMultiplier != null && (
+                    <Text sx={{ mt: '$1', fontSize: 13, color: '#7C3AED' }}>
+                      Risk multiplier: {genomicProfile.prsRiskMultiplier}x baseline
+                    </Text>
+                  )}
+                  <Text sx={{ mt: '$2', fontSize: 12, color: '#7C3AED', lineHeight: 18 }}>
+                    PRS assesses the cumulative effect of many common genetic variants. A higher
+                    percentile indicates a greater polygenic contribution to breast cancer risk.
+                  </Text>
+                </View>
+              )}
+
+              {/* Pathogenic Variants */}
+              {((genomicProfile.pathogenicVariants as any[]) ?? []).map((v: any, i: number) => (
+                <View key={i} sx={{
+                  borderWidth: 1, borderColor: v.riskLevel === 'high' ? '#FCA5A5' : '#FDE68A',
+                  borderRadius: 12, p: '$4',
+                  backgroundColor: v.riskLevel === 'high' ? '#FEF2F2' : '#FFFBEB',
+                }}>
+                  <View sx={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Text sx={{ fontSize: 15, fontWeight: '600', color: '$foreground' }}>
+                      {v.gene} — {v.variant}
+                    </Text>
+                    <View sx={{
+                      px: '$2', py: 2, borderRadius: 6,
+                      backgroundColor: v.riskLevel === 'high' ? '#FEE2E2' : '#FEF3C7',
+                    }}>
+                      <Text sx={{
+                        fontSize: 10, fontWeight: '600',
+                        color: v.riskLevel === 'high' ? '#991B1B' : '#92400E',
+                      }}>
+                        {v.riskLevel === 'high' ? 'HIGH PENETRANCE' : 'MODERATE PENETRANCE'}
+                      </Text>
+                    </View>
+                  </View>
+                  <Text sx={{ mt: '$2', fontSize: 13, color: '$foreground', lineHeight: 20 }}>
+                    {v.significance}
+                  </Text>
+                </View>
+              ))}
+
+              {/* VUS (informational) */}
+              {((genomicProfile.vusVariants as any[]) ?? []).length > 0 && (
+                <View sx={{
+                  borderWidth: 1, borderColor: '$border', borderRadius: 12, p: '$4',
+                }}>
+                  <Text sx={{ fontSize: 14, fontWeight: '600', color: '$foreground' }}>
+                    Variants of Uncertain Significance ({(genomicProfile.vusVariants as any[]).length})
+                  </Text>
+                  <Text sx={{ mt: '$1', fontSize: 12, color: '$mutedForeground', lineHeight: 18 }}>
+                    These variants are not included in your risk calculation. Their clinical significance
+                    is uncertain and may be reclassified as more research becomes available.
+                  </Text>
+                </View>
+              )}
+            </View>
+          </View>
+        )}
 
         {/* ============================================================= */}
         {/* Disclaimer */}

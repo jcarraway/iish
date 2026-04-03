@@ -5,6 +5,7 @@ import {
   useGetLatestRiskQuery,
   useGetRiskAssessmentsQuery,
   useGetPreventProfileQuery,
+  useRecalculateRiskMutation,
 } from '../generated/graphql';
 
 // ============================================================================
@@ -44,9 +45,10 @@ const RISK_CATEGORIES: Record<string, { bg: string; fg: string; border: string; 
 // ============================================================================
 
 export function RiskDashboardScreen() {
-  const { data: riskData, loading: rl } = useGetLatestRiskQuery({ errorPolicy: 'ignore' });
+  const { data: riskData, loading: rl, refetch: refetchRisk } = useGetLatestRiskQuery({ errorPolicy: 'ignore' });
   const { data: historyData, loading: hl } = useGetRiskAssessmentsQuery({ errorPolicy: 'ignore' });
   const { data: profileData, loading: pl } = useGetPreventProfileQuery({ errorPolicy: 'ignore' });
+  const [recalculate, { loading: recalculating }] = useRecalculateRiskMutation();
 
   const loading = rl || hl || pl;
 
@@ -110,7 +112,9 @@ export function RiskDashboardScreen() {
           Your Risk Assessment
         </Text>
         <Text sx={{ mt: '$2', fontSize: 14, color: '$mutedForeground' }}>
-          Based on the Gail model (NCI Breast Cancer Risk Assessment Tool)
+          {risk.modelVersion === 'composite_v1'
+            ? 'Integrating Gail model + your genomic profile'
+            : 'Based on the Gail model (NCI Breast Cancer Risk Assessment Tool)'}
         </Text>
 
         {/* Risk Category Badge */}
@@ -144,7 +148,17 @@ export function RiskDashboardScreen() {
                 {catInfo.label}
               </Text>
             </View>
-            <Text sx={{ fontSize: 14, color: catInfo.fg }}>{risk.modelVersion}</Text>
+            <View sx={{
+              backgroundColor: risk.modelVersion === 'composite_v1' ? '#EDE9FE' : '#F1F5F9',
+              borderRadius: 8, px: '$2', py: 2,
+            }}>
+              <Text sx={{
+                fontSize: 11, fontWeight: '600',
+                color: risk.modelVersion === 'composite_v1' ? '#6D28D9' : '#64748B',
+              }}>
+                {risk.modelVersion === 'composite_v1' ? 'GAIL + GENOMIC' : 'GAIL MODEL'}
+              </Text>
+            </View>
           </View>
           <Text sx={{ mt: '$3', fontSize: 14, color: catInfo.fg, lineHeight: 22 }}>
             {catInfo.description}
@@ -163,6 +177,66 @@ export function RiskDashboardScreen() {
           <RiskCard label="5-Year" value={risk.fiveYearRiskEstimate} subtitle="from now" />
           <RiskCard label="10-Year" value={risk.tenYearRiskEstimate} subtitle="from now" />
         </View>
+
+        {/* Genomic Integration Card */}
+        {risk.modelVersion === 'composite_v1' && risk.fullAssessment && (() => {
+          const fa = risk.fullAssessment as any;
+          const gc = fa?.genomicComponents;
+          if (!gc) return null;
+          return (
+            <View sx={{
+              mt: '$4', borderWidth: 2, borderColor: '#DDD6FE', backgroundColor: '#F5F3FF',
+              borderRadius: 12, p: '$4',
+            }}>
+              <Text sx={{ fontSize: 14, fontWeight: '600', color: '#6D28D9' }}>
+                Genomic adjustment applied
+              </Text>
+              {gc.adjustmentMethod === 'prs_multiply' && (
+                <Text sx={{ mt: '$2', fontSize: 13, color: '#5B21B6', lineHeight: 20 }}>
+                  Your polygenic risk score ({gc.prsPercentile?.toFixed(0)}th percentile) adjusts
+                  your baseline risk by {gc.prsRiskMultiplier?.toFixed(2)}x.
+                </Text>
+              )}
+              {gc.adjustmentMethod === 'gene_penetrance_override' && gc.pathogenicVariantOverride && (
+                <Text sx={{ mt: '$2', fontSize: 13, color: '#5B21B6', lineHeight: 20 }}>
+                  A pathogenic {gc.pathogenicVariantOverride.gene} variant was detected. Your risk
+                  estimate uses published penetrance data ({gc.pathogenicVariantOverride.penetranceLow}-
+                  {gc.pathogenicVariantOverride.penetranceHigh}% lifetime risk).
+                </Text>
+              )}
+              {gc.adjustmentMethod === 'gene_prs_combined' && gc.pathogenicVariantOverride && (
+                <Text sx={{ mt: '$2', fontSize: 13, color: '#5B21B6', lineHeight: 20 }}>
+                  A pathogenic {gc.pathogenicVariantOverride.gene} variant was detected. Your PRS
+                  ({gc.prsPercentile?.toFixed(0)}th percentile) further refines the estimate within
+                  the published penetrance range.
+                </Text>
+              )}
+              {gc.prsConfidence && gc.prsConfidence !== 'high' && (
+                <Text sx={{ mt: '$2', fontSize: 12, color: '#7C3AED', fontStyle: 'italic' }}>
+                  PRS confidence: {gc.prsConfidence} — confidence intervals are wider.
+                </Text>
+              )}
+              <View sx={{
+                mt: '$3', flexDirection: 'row', gap: '$3',
+              }}>
+                <View sx={{ flex: 1, backgroundColor: '#EDE9FE', borderRadius: 8, p: '$3' }}>
+                  <Text sx={{ fontSize: 11, fontWeight: '600', color: '#6D28D9' }}>
+                    {gc.adjustmentMethod === 'prs_multiply' ? 'PRS Multiplier' : 'Effective Multiplier'}
+                  </Text>
+                  <Text sx={{ fontSize: 14, fontWeight: 'bold', color: '#5B21B6', mt: 2 }}>
+                    {gc.effectiveMultiplier?.toFixed(2)}x
+                  </Text>
+                </View>
+                <View sx={{ flex: 1, backgroundColor: '#EDE9FE', borderRadius: 8, p: '$3' }}>
+                  <Text sx={{ fontSize: 11, fontWeight: '600', color: '#6D28D9' }}>Gail-Only Risk</Text>
+                  <Text sx={{ fontSize: 14, fontWeight: 'bold', color: '#5B21B6', mt: 2 }}>
+                    {fa.baseGailRisk?.lifetimeRiskEstimate?.toFixed(1)}%
+                  </Text>
+                </View>
+              </View>
+            </View>
+          );
+        })()}
 
         {/* Risk Trajectory */}
         {trajectory.length > 0 && (
@@ -328,6 +402,33 @@ export function RiskDashboardScreen() {
             <ActionCard href="/prevent/risk/screening" title="Screening Planner" description="Personalized screening schedule based on your risk category" />
             <ActionCard href="/prevent/risk/chemoprevention" title="Chemoprevention Navigator" description="Explore risk-reduction medications you may be eligible for" />
             <ActionCard href="/prevent/risk/lifestyle" title="Prevention Lifestyle" description="Evidence-based lifestyle changes for risk reduction" />
+            <Pressable
+              onPress={async () => {
+                await recalculate();
+                refetchRisk();
+              }}
+              disabled={recalculating}
+            >
+              <View sx={{
+                borderWidth: 1, borderColor: '$border', borderRadius: 12, p: '$4',
+                flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+                opacity: recalculating ? 0.6 : 1,
+              }}>
+                <View sx={{ flex: 1 }}>
+                  <Text sx={{ fontSize: 15, fontWeight: '600', color: '$foreground' }}>
+                    {recalculating ? 'Recalculating...' : 'Recalculate Risk'}
+                  </Text>
+                  <Text sx={{ mt: '$1', fontSize: 13, color: '$mutedForeground' }}>
+                    Run a fresh assessment with your latest data
+                  </Text>
+                </View>
+                {recalculating ? (
+                  <ActivityIndicator size="small" />
+                ) : (
+                  <Text sx={{ fontSize: 14, color: '$mutedForeground', ml: '$2' }}>{'\u25B8'}</Text>
+                )}
+              </View>
+            </Pressable>
           </View>
         </View>
 
@@ -378,10 +479,9 @@ export function RiskDashboardScreen() {
             Important disclaimer
           </Text>
           <Text sx={{ mt: '$2', fontSize: 12, color: '#78350F', lineHeight: 18 }}>
-            This risk estimate is based on the Gail model and population-level statistics. Individual
-            risk may differ. This tool does not account for all risk factors (e.g., BRCA mutations,
-            polygenic risk scores). Always discuss your risk with a healthcare provider who can
-            consider your complete medical history.
+            {risk.modelVersion === 'composite_v1'
+              ? 'This risk estimate integrates the Gail model with your genomic data (polygenic risk score and/or pathogenic variant analysis). Individual risk may differ. Always discuss your risk with a healthcare provider who can consider your complete medical history.'
+              : 'This risk estimate is based on the Gail model and population-level statistics. Individual risk may differ. Upload genomic data to incorporate polygenic risk scoring and pathogenic variant analysis. Always discuss your risk with a healthcare provider who can consider your complete medical history.'}
           </Text>
         </View>
       </View>

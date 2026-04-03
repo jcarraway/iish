@@ -12,6 +12,10 @@ import {
   analyzeModifiableFactors,
   type GailInputs,
 } from './prevent-risk-engine';
+import {
+  calculateCompositeRisk,
+  projectCompositeTrajectory,
+} from './composite-risk-engine';
 
 // ============================================================================
 // Profile Management
@@ -161,6 +165,101 @@ async function runRiskAssessment(patientId: string, profile: any) {
       fullAssessment: risk as any,
     },
   });
+}
+
+/**
+ * Run composite risk assessment integrating Gail model + genomic data.
+ * Called after PRS calculation or pathogenic variant detection.
+ */
+export async function runCompositeRiskAssessment(patientId: string) {
+  const patient = await prisma.patient.findUnique({ where: { id: patientId } });
+  if (!patient) return null;
+
+  const profile = await prisma.preventProfile.findUnique({
+    where: { patientId },
+  });
+  if (!profile) return null;
+
+  const genomicProfile = await prisma.genomicProfile.findUnique({
+    where: { patientId },
+  });
+
+  // Compute current age
+  const dob = patient.dateOfBirth;
+  const currentAge = dob
+    ? Math.floor((Date.now() - new Date(dob).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
+    : 50;
+
+  // Extract first-degree relatives count
+  let firstDegreeRelatives = 0;
+  if (profile.familyHistory) {
+    const fh = typeof profile.familyHistory === 'string'
+      ? JSON.parse(profile.familyHistory as string)
+      : profile.familyHistory;
+    if (Array.isArray(fh)) {
+      firstDegreeRelatives = fh.filter(
+        (r: any) => r.relationship === 'mother' || r.relationship === 'sister' || r.relationship === 'daughter'
+      ).length;
+    } else if (typeof fh === 'object' && (fh as any).firstDegreeCount != null) {
+      firstDegreeRelatives = (fh as any).firstDegreeCount;
+    }
+  }
+
+  const gailInputs: GailInputs = {
+    currentAge,
+    ageAtMenarche: profile.ageAtMenarche,
+    ageAtFirstLiveBirth: profile.ageAtFirstLiveBirth,
+    previousBiopsies: profile.previousBiopsies ?? 0,
+    atypicalHyperplasia: profile.atypicalHyperplasia ?? false,
+    firstDegreeRelatives,
+    ethnicity: profile.ethnicity || 'white',
+  };
+
+  const compositeResult = calculateCompositeRisk(gailInputs, genomicProfile);
+
+  // Project trajectory with effective multiplier
+  const effectiveMultiplier = compositeResult.genomicComponents?.effectiveMultiplier ?? 1.0;
+  const trajectory = compositeResult.modelVersion === 'composite_v1'
+    ? projectCompositeTrajectory(gailInputs, currentAge, effectiveMultiplier)
+    : projectTrajectory(gailInputs, currentAge);
+
+  const modifiableFactors = analyzeModifiableFactors({
+    bmi: profile.bmi,
+    alcoholDrinksPerWeek: profile.alcoholDrinksPerWeek,
+    exerciseMinutesPerWeek: profile.exerciseMinutesPerWeek,
+    smokingStatus: profile.smokingStatus,
+    hrtCurrent: profile.hrtCurrent,
+    hrtType: profile.hrtType,
+  });
+
+  return prisma.riskAssessment.create({
+    data: {
+      patientId,
+      modelVersion: compositeResult.modelVersion,
+      gailInputs: gailInputs as any,
+      lifetimeRiskEstimate: compositeResult.lifetimeRiskEstimate,
+      lifetimeRiskCiLow: compositeResult.lifetimeRiskCiLow,
+      lifetimeRiskCiHigh: compositeResult.lifetimeRiskCiHigh,
+      fiveYearRiskEstimate: compositeResult.fiveYearRiskEstimate,
+      tenYearRiskEstimate: compositeResult.tenYearRiskEstimate,
+      riskCategory: compositeResult.riskCategory,
+      riskTrajectory: trajectory as any,
+      modifiableFactors: modifiableFactors as any,
+      fullAssessment: compositeResult as any,
+    },
+  });
+}
+
+/**
+ * Recalculate risk for a user (manual trigger).
+ * Uses composite engine if genomic data is available.
+ */
+export async function recalculateRisk(userId: string) {
+  const patient = await prisma.patient.findUnique({ where: { userId } });
+  if (!patient) throw new Error('Patient not found');
+  const result = await runCompositeRiskAssessment(patient.id);
+  if (!result) throw new Error('Could not calculate risk. Complete your prevention profile first.');
+  return result;
 }
 
 /**

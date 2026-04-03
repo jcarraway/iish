@@ -250,6 +250,7 @@ import {
   getLocationHistory as _getLocationHistory,
   getDataConsent as _getDataConsent,
   updateDataConsent as _updateDataConsent,
+  recalculateRisk as _recalculateRisk,
 } from '@/lib/prevent-manager';
 import {
   generateScreeningSchedule as _generateScreeningSchedule,
@@ -1581,6 +1582,7 @@ const handler = startServerAndCreateNextHandler<NextRequest, GraphQLContext>(ser
         requestGenotypeUploadUrl: _requestGenotypeUploadUrl,
         processGenotypeFile: _processGenotypeFile,
         calculatePrsForUser: _calculatePrsForUser,
+        recalculateRisk: _recalculateRisk,
 
         // PEERS — Peer Matching & Support
         enrollAsMentor: _enrollAsMentor,

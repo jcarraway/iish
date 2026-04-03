@@ -64,6 +64,7 @@ query GetLatestRisk {
       evidenceStrength
       potentialReduction
     }
+    fullAssessment
     createdAt
   }
 }
@@ -327,5 +328,34 @@ mutation CalculatePrs($ancestryOverride: String) {
     prsRiskMultiplier
     prsAncestryCalibration
     prsModelVersion
+  }
+}
+
+mutation RecalculateRisk {
+  recalculateRisk {
+    id
+    assessmentDate
+    modelVersion
+    lifetimeRiskEstimate
+    lifetimeRiskCiLow
+    lifetimeRiskCiHigh
+    fiveYearRiskEstimate
+    tenYearRiskEstimate
+    riskCategory
+    riskTrajectory {
+      age
+      risk
+      populationAverage
+    }
+    modifiableFactors {
+      factor
+      currentValue
+      impact
+      recommendation
+      evidenceStrength
+      potentialReduction
+    }
+    fullAssessment
+    createdAt
   }
 }

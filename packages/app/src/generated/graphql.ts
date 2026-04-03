@@ -1373,6 +1373,7 @@ export type Mutation = {
   pauseConnection: PeerConnection;
   proposeConnection: PeerConnection;
   publishArticle: Article;
+  recalculateRisk: RiskAssessment;
   reclassifyItem: ResearchItem;
   recordSecondOpinionOutcome: SecondOpinionRequest;
   redeemReferralCode: ReferralRedemption;
@@ -3274,6 +3275,7 @@ export type RiskAssessment = {
   assessmentDate: Scalars['DateTime']['output'];
   createdAt: Scalars['DateTime']['output'];
   fiveYearRiskEstimate?: Maybe<Scalars['Float']['output']>;
+  fullAssessment?: Maybe<Scalars['JSON']['output']>;
   gailInputs?: Maybe<Scalars['JSON']['output']>;
   id: Scalars['ID']['output'];
   lifetimeRiskCiHigh?: Maybe<Scalars['Float']['output']>;
@@ -5141,7 +5143,7 @@ export type GetPreventProfileQuery = { __typename?: 'Query', preventProfile?: { 
 export type GetLatestRiskQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetLatestRiskQuery = { __typename?: 'Query', latestRisk?: { __typename?: 'RiskAssessment', id: string, patientId: string, assessmentDate: string, modelVersion: string, gailInputs?: Record<string, unknown> | null, lifetimeRiskEstimate: number, lifetimeRiskCiLow?: number | null, lifetimeRiskCiHigh?: number | null, fiveYearRiskEstimate?: number | null, tenYearRiskEstimate?: number | null, riskCategory: string, createdAt: string, riskTrajectory?: Array<{ __typename?: 'RiskTrajectoryPoint', age: number, risk: number, populationAverage?: number | null }> | null, modifiableFactors?: Array<{ __typename?: 'ModifiableFactor', factor: string, currentValue: string, impact: string, recommendation: string, evidenceStrength: string, potentialReduction?: number | null }> | null } | null };
+export type GetLatestRiskQuery = { __typename?: 'Query', latestRisk?: { __typename?: 'RiskAssessment', id: string, patientId: string, assessmentDate: string, modelVersion: string, gailInputs?: Record<string, unknown> | null, lifetimeRiskEstimate: number, lifetimeRiskCiLow?: number | null, lifetimeRiskCiHigh?: number | null, fiveYearRiskEstimate?: number | null, tenYearRiskEstimate?: number | null, riskCategory: string, fullAssessment?: Record<string, unknown> | null, createdAt: string, riskTrajectory?: Array<{ __typename?: 'RiskTrajectoryPoint', age: number, risk: number, populationAverage?: number | null }> | null, modifiableFactors?: Array<{ __typename?: 'ModifiableFactor', factor: string, currentValue: string, impact: string, recommendation: string, evidenceStrength: string, potentialReduction?: number | null }> | null } | null };
 
 export type GetRiskAssessmentsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -5259,6 +5261,11 @@ export type CalculatePrsMutationVariables = Exact<{
 
 
 export type CalculatePrsMutation = { __typename?: 'Mutation', calculatePrs: { __typename?: 'PreventGenomicProfile', id: string, prsValue?: number | null, prsPercentile?: number | null, prsConfidence?: string | null, prsRiskMultiplier?: number | null, prsAncestryCalibration?: string | null, prsModelVersion?: string | null } };
+
+export type RecalculateRiskMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type RecalculateRiskMutation = { __typename?: 'Mutation', recalculateRisk: { __typename?: 'RiskAssessment', id: string, assessmentDate: string, modelVersion: string, lifetimeRiskEstimate: number, lifetimeRiskCiLow?: number | null, lifetimeRiskCiHigh?: number | null, fiveYearRiskEstimate?: number | null, tenYearRiskEstimate?: number | null, riskCategory: string, fullAssessment?: Record<string, unknown> | null, createdAt: string, riskTrajectory?: Array<{ __typename?: 'RiskTrajectoryPoint', age: number, risk: number, populationAverage?: number | null }> | null, modifiableFactors?: Array<{ __typename?: 'ModifiableFactor', factor: string, currentValue: string, impact: string, recommendation: string, evidenceStrength: string, potentialReduction?: number | null }> | null } };
 
 export type GetPreventiveTrialsQueryVariables = Exact<{
   category?: InputMaybe<Scalars['String']['input']>;
@@ -14219,6 +14226,7 @@ export const GetLatestRiskDocument = gql`
       evidenceStrength
       potentialReduction
     }
+    fullAssessment
     createdAt
   }
 }
@@ -15137,6 +15145,61 @@ export function useCalculatePrsMutation(baseOptions?: Apollo.MutationHookOptions
 export type CalculatePrsMutationHookResult = ReturnType<typeof useCalculatePrsMutation>;
 export type CalculatePrsMutationResult = Apollo.MutationResult<CalculatePrsMutation>;
 export type CalculatePrsMutationOptions = Apollo.BaseMutationOptions<CalculatePrsMutation, CalculatePrsMutationVariables>;
+export const RecalculateRiskDocument = gql`
+    mutation RecalculateRisk {
+  recalculateRisk {
+    id
+    assessmentDate
+    modelVersion
+    lifetimeRiskEstimate
+    lifetimeRiskCiLow
+    lifetimeRiskCiHigh
+    fiveYearRiskEstimate
+    tenYearRiskEstimate
+    riskCategory
+    riskTrajectory {
+      age
+      risk
+      populationAverage
+    }
+    modifiableFactors {
+      factor
+      currentValue
+      impact
+      recommendation
+      evidenceStrength
+      potentialReduction
+    }
+    fullAssessment
+    createdAt
+  }
+}
+    `;
+export type RecalculateRiskMutationFn = Apollo.MutationFunction<RecalculateRiskMutation, RecalculateRiskMutationVariables>;
+
+/**
+ * __useRecalculateRiskMutation__
+ *
+ * To run a mutation, you first call `useRecalculateRiskMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRecalculateRiskMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [recalculateRiskMutation, { data, loading, error }] = useRecalculateRiskMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useRecalculateRiskMutation(baseOptions?: Apollo.MutationHookOptions<RecalculateRiskMutation, RecalculateRiskMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RecalculateRiskMutation, RecalculateRiskMutationVariables>(RecalculateRiskDocument, options);
+      }
+export type RecalculateRiskMutationHookResult = ReturnType<typeof useRecalculateRiskMutation>;
+export type RecalculateRiskMutationResult = Apollo.MutationResult<RecalculateRiskMutation>;
+export type RecalculateRiskMutationOptions = Apollo.BaseMutationOptions<RecalculateRiskMutation, RecalculateRiskMutationVariables>;
 export const GetPreventiveTrialsDocument = gql`
     query GetPreventiveTrials($category: String) {
   preventiveTrials(category: $category) {
